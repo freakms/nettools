@@ -319,7 +319,7 @@ class NetToolsApp(ctk.CTk):
         )
         subtitle_label.place(x=20, y=50)
         
-        # Theme selector
+        # Theme selector (right side)
         theme_label = ctk.CTkLabel(header, text="Theme:", font=ctk.CTkFont(size=11))
         theme_label.pack(side="right", padx=(10, 20), pady=20)
         
@@ -331,6 +331,15 @@ class NetToolsApp(ctk.CTk):
         )
         self.theme_selector.set("Light")
         self.theme_selector.pack(side="right", padx=(0, 10), pady=20)
+        
+        # Toggle Commands button (for MAC formatter)
+        self.toggle_commands_btn = ctk.CTkButton(
+            header,
+            text="Hide Switch Commands",
+            width=180,
+            command=self.toggle_commands
+        )
+        self.toggle_commands_btn.pack(side="right", padx=(0, 20), pady=20)
     
     def create_tabs(self):
         """Create tabbed interface"""
