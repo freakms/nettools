@@ -343,7 +343,7 @@ class NetToolsApp(ctk.CTk):
     
     def create_tabs(self):
         """Create tabbed interface"""
-        self.tabview = ctk.CTkTabview(self)
+        self.tabview = ctk.CTkTabview(self, command=self.on_tab_change)
         self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Add tabs
