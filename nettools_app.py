@@ -529,23 +529,12 @@ class NetToolsApp(ctk.CTk):
         self.commands_frame = ctk.CTkFrame(self.tab_mac)
         self.commands_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        commands_header_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent")
-        commands_header_frame.pack(fill="x", padx=15, pady=(15, 10))
-        
         commands_title = ctk.CTkLabel(
-            commands_header_frame,
+            self.commands_frame,
             text="Switch Commands",
             font=ctk.CTkFont(size=14, weight="bold")
         )
-        commands_title.pack(side="left")
-        
-        self.toggle_commands_btn = ctk.CTkButton(
-            commands_header_frame,
-            text="Hide Commands",
-            width=150,
-            command=self.toggle_commands
-        )
-        self.toggle_commands_btn.pack(side="right")
+        commands_title.pack(anchor="w", padx=15, pady=(15, 10))
         
         command_labels = [
             "EXTREME CLI:",
