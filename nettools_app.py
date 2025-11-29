@@ -550,8 +550,8 @@ class NetToolsApp(ctk.CTk):
             label = ctk.CTkLabel(row_frame, text=label_text, width=200, anchor="w")
             label.pack(side="left", padx=(0, 10))
             
-            textbox = ctk.CTkTextbox(row_frame, height=50, width=400)
-            textbox.pack(side="left", padx=(0, 10))
+            textbox = ctk.CTkTextbox(row_frame, height=50)
+            textbox.pack(side="left", fill="x", expand=True, padx=(0, 10))
             textbox.configure(state="disabled")
             self.command_textboxes.append(textbox)
             
