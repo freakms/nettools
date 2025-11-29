@@ -48,11 +48,11 @@ def build_executable():
     if icon_path and os.path.exists(icon_path):
         args.append(f'--icon={icon_path}')
     
-    # Add version info for Windows
+    # Add version info for Windows (only if file exists)
     if sys.platform == 'win32':
-        args.extend([
-            '--version-file=version_info.txt',  # Optional: create this file for detailed version info
-        ])
+        version_file = 'version_info.txt'
+        if os.path.exists(version_file):
+            args.append(f'--version-file={version_file}')
     
     # Hidden imports that might be needed
     hidden_imports = [
