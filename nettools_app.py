@@ -861,17 +861,30 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Copied to clipboard!")
             self.after(2000, lambda: self.status_label.configure(text="Ready."))
     
+    def on_tab_change(self):
+        """Handle tab change event"""
+        current_tab = self.tabview.get()
+        
+        # Show/hide status bar elements based on tab
+        if current_tab == "IPv4 Scanner":
+            # Show status label and progress bar for scanner
+            self.status_label.configure(text="Ready.")
+        elif current_tab == "MAC Formatter":
+            # Hide scanning-specific status
+            self.status_label.configure(text="")
+            self.progress_bar.pack_forget()
+    
     def toggle_commands(self):
         """Toggle switch commands visibility"""
         if self.commands_visible:
             for textbox in self.command_textboxes:
                 textbox.master.pack_forget()
-            self.toggle_commands_btn.configure(text="Show Commands")
+            self.toggle_commands_btn.configure(text="Show Switch Commands")
             self.commands_visible = False
         else:
             for textbox in self.command_textboxes:
                 textbox.master.pack(fill="x", padx=15, pady=5)
-            self.toggle_commands_btn.configure(text="Hide Commands")
+            self.toggle_commands_btn.configure(text="Hide Switch Commands")
             self.commands_visible = True
     
     def on_enter_key(self, event):
