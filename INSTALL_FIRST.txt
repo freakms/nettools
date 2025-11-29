@@ -1,0 +1,82 @@
+═══════════════════════════════════════════════════════════════════════════════
+  INSTALLATION REQUIRED - READ THIS FIRST!
+═══════════════════════════════════════════════════════════════════════════════
+
+You're seeing "ModuleNotFoundError" because Python dependencies are not installed yet.
+
+══════════════════════════════════════════════════════════════════════════════
+  STEP 1: INSTALL DEPENDENCIES (Required!)
+══════════════════════════════════════════════════════════════════════════════
+
+Open Command Prompt or PowerShell in this folder and run:
+
+    pip install -r requirements.txt
+
+OR if that doesn't work:
+
+    python -m pip install -r requirements.txt
+
+This will install:
+  • customtkinter (Modern GUI framework)
+  • Pillow (Image processing)
+  • pythonping (Network ping)
+  • pyinstaller (Executable builder)
+
+══════════════════════════════════════════════════════════════════════════════
+  STEP 2: RUN THE APPLICATION (Test it)
+══════════════════════════════════════════════════════════════════════════════
+
+After installing dependencies:
+
+    python nettools_app.py
+
+The GUI application should open!
+
+══════════════════════════════════════════════════════════════════════════════
+  STEP 3: BUILD THE EXECUTABLE (Create .exe)
+══════════════════════════════════════════════════════════════════════════════
+
+To create the standalone .exe:
+
+    python build_exe.py
+
+OR for easier build:
+
+    build_windows.bat
+
+The executable will be created at: dist\NetToolsSuite.exe
+
+══════════════════════════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+══════════════════════════════════════════════════════════════════════════════
+
+Problem: "pip is not recognized"
+Solution: Make sure Python is in your PATH. Reinstall Python and check "Add Python to PATH"
+
+Problem: "Permission denied"
+Solution: Run Command Prompt as Administrator
+
+Problem: Installation fails
+Solution: Upgrade pip first:
+    python -m pip install --upgrade pip
+
+Problem: Still getting errors
+Solution: Try installing packages individually:
+    pip install customtkinter
+    pip install Pillow
+    pip install pythonping
+    pip install pyinstaller
+
+══════════════════════════════════════════════════════════════════════════════
+  QUICK START (Complete Steps)
+══════════════════════════════════════════════════════════════════════════════
+
+1. Open Command Prompt in this folder
+2. Run: pip install -r requirements.txt
+3. Wait for installation to complete
+4. Run: python nettools_app.py (to test)
+5. Run: python build_exe.py (to create .exe)
+
+That's it! The .exe will be in the dist\ folder.
+
+══════════════════════════════════════════════════════════════════════════════
