@@ -470,10 +470,9 @@ class NetToolsApp(ctk.CTk):
         
         self.mac_entry = ctk.CTkEntry(
             input_frame,
-            width=400,
             placeholder_text="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF"
         )
-        self.mac_entry.pack(anchor="w", padx=15, pady=(0, 10))
+        self.mac_entry.pack(fill="x", padx=15, pady=(0, 10))
         self.mac_entry.bind('<KeyRelease>', self.update_mac_formats)
         
         self.mac_warning_label = ctk.CTkLabel(
