@@ -364,8 +364,9 @@ class NetToolsApp(ctk.CTk):
         cidr_label = ctk.CTkLabel(input_frame, text="IPv4 / CIDR:", font=ctk.CTkFont(size=12))
         cidr_label.grid(row=0, column=0, padx=15, pady=15, sticky="w")
         
-        self.cidr_entry = ctk.CTkEntry(input_frame, width=300, placeholder_text="e.g., 192.168.1.0/24")
-        self.cidr_entry.grid(row=0, column=1, padx=15, pady=15, sticky="w")
+        self.cidr_entry = ctk.CTkEntry(input_frame, placeholder_text="e.g., 192.168.1.0/24")
+        self.cidr_entry.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
+        input_frame.grid_columnconfigure(1, weight=1)
         self.cidr_entry.bind('<KeyRelease>', self.update_host_count)
         
         self.host_count_label = ctk.CTkLabel(input_frame, text="", font=ctk.CTkFont(size=11))
