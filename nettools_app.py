@@ -226,15 +226,15 @@ class MACFormatter:
     @staticmethod
     def validate_mac(mac_input):
         """Validate MAC address input"""
+        # Check for invalid characters first
+        if re.search(r'[^0-9A-Fa-f:\-\s]', mac_input):
+            return None, "Invalid characters! Allowed: 0-9, A-F, '-', ':', and spaces"
+        
         # Remove valid separators and spaces
         hex_only = re.sub(r'[^0-9A-Fa-f]', '', mac_input)
         
         if len(hex_only) != 12:
             return None, f"Invalid MAC: {len(hex_only)} hex characters (expected: 12)"
-        
-        # Check for invalid characters
-        if re.search(r'[^0-9A-Fa-f:\-\s]', mac_input):
-            return None, "Invalid characters! Allowed: 0-9, A-F, '-', ':', and spaces"
         
         return hex_only.upper(), None
     
