@@ -325,7 +325,7 @@ class NetToolsApp(ctk.CTk):
         
         self.theme_selector = ctk.CTkOptionMenu(
             header,
-            values=["Light", "Dark"],
+            values=["Dark", "Light"],
             command=self.change_theme,
             width=120
         )
