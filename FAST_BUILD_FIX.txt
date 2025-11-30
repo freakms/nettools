@@ -1,0 +1,76 @@
+═══════════════════════════════════════════════════════════════════════════════
+  FAST BUILD ERROR FIX - "unterminated string literal"
+═══════════════════════════════════════════════════════════════════════════════
+
+ERROR YOU SAW:
+  SyntaxError: unterminated string literal (detected at line 1)
+
+CAUSE:
+  Windows may have issues with special characters in the Python script
+
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUTION 1: Use Simple Build (EASIEST)
+═══════════════════════════════════════════════════════════════════════════════
+
+Double-click:
+  build_fast_simple.bat
+
+This bypasses the Python script entirely and uses PyInstaller directly.
+
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUTION 2: Manual PyInstaller Command
+═══════════════════════════════════════════════════════════════════════════════
+
+Open Command Prompt in this folder and run:
+
+pyinstaller --onedir --windowed --name=NetToolsSuite --clean nettools_app.py
+
+That's it! Your FAST build will be in: dist\NetToolsSuite\
+
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUTION 3: Fix File Encoding
+═══════════════════════════════════════════════════════════════════════════════
+
+The issue might be file encoding. Try this in Command Prompt:
+
+chcp 65001
+python build_exe_fast.py
+
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUTION 4: Re-download build_exe_fast.py
+═══════════════════════════════════════════════════════════════════════════════
+
+The file may have been corrupted during download. 
+
+Delete build_exe_fast.py and use Solution 1 or 2 instead.
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK REFERENCE - Build Commands
+═══════════════════════════════════════════════════════════════════════════════
+
+FAST VERSION (Folder - 0.5 sec startup):
+
+  Option 1: build_fast_simple.bat        (EASIEST - USE THIS!)
+  Option 2: pyinstaller --onedir --windowed --name=NetToolsSuite nettools_app.py
+  Option 3: python build_exe_fast.py
+
+SINGLE FILE VERSION (One file - 2-3 sec startup):
+
+  Option 1: build_windows.bat
+  Option 2: python build_exe.py
+
+═══════════════════════════════════════════════════════════════════════════════
+  OUTPUT LOCATIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+FAST Version:
+  dist\NetToolsSuite\NetToolsSuite.exe  (plus dependencies)
+
+Single File:
+  dist\NetToolsSuite.exe  (standalone)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMMENDED: Use build_fast_simple.bat - it works every time!
+
+═══════════════════════════════════════════════════════════════════════════════
