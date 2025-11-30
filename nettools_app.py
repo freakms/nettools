@@ -29,7 +29,7 @@ APP_VERSION = "1.0.0"
 APP_COMPANY = "Malte Schad"
 
 # Configure CustomTkinter
-ctk.set_appearance_mode("Light")
+ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
 
