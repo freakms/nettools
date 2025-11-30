@@ -1,0 +1,119 @@
+═══════════════════════════════════════════════════════════════════════════════
+  NetTools Suite - Complete Application Structure (901 lines)
+═══════════════════════════════════════════════════════════════════════════════
+
+FILE: nettools_app.py
+
+STRUCTURE:
+├── Lines 1-34:    Imports and configuration
+├── Lines 36-105:  NetworkIcon class (icon generation)
+├── Lines 108-226: IPScanner class (network scanning)
+├── Lines 229-260: MACFormatter class (MAC formatting)
+├── Lines 263-901: NetToolsApp class (main application)
+
+═══════════════════════════════════════════════════════════════════════════════
+  MAIN SECTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. CONFIGURATION (Lines 26-33)
+   - APP_NAME = "NetTools Suite"
+   - APP_VERSION = "1.0.0"
+   - APP_COMPANY = "Malte Schad"
+   - ctk.set_appearance_mode("Dark")  ← DARK MODE DEFAULT
+
+2. NetworkIcon CLASS (Lines 36-105)
+   - create_icon(size=256) - Generates custom network icon
+
+3. IPScanner CLASS (Lines 108-226)
+   - parse_cidr() - Parse CIDR notation
+   - ping_host() - Ping single host
+   - scan_network() - Parallel network scan
+   - cancel_scan() - Stop scanning
+
+4. MACFormatter CLASS (Lines 229-260)
+   - validate_mac() - Validate MAC input
+   - format_mac() - Generate 4 formats
+   - generate_switch_commands() - Vendor commands
+
+5. NetToolsApp CLASS (Lines 263-901)
+   - __init__() - Initialize app
+   - create_header() - Header with theme + toggle button  ← BUTTON IN HEADER
+   - create_tabs() - Tabbed interface with tab change callback  ← TAB AWARE
+   - create_scanner_tab() - IPv4 scanner UI (responsive)  ← SCALABLE FIELDS
+   - create_mac_tab() - MAC formatter UI (responsive)  ← SCALABLE FIELDS
+   - create_status_bar() - Status bar at bottom
+   - on_tab_change() - Handle tab switching  ← NEW METHOD
+   - change_theme() - Switch light/dark
+   - start_scan() - Begin network scan
+   - cancel_scan() - Stop scan
+   - filter_results() - Show/hide offline hosts
+   - export_csv() - Export results
+   - update_mac_formats() - Live MAC conversion
+   - toggle_commands() - Show/hide switch commands  ← MOVED TO HEADER
+   - And many more helper methods...
+
+═══════════════════════════════════════════════════════════════════════════════
+  KEY FEATURES IMPLEMENTED
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Dark mode as default (Line 32)
+✓ Theme dropdown shows "Dark" first (Line 328: values=["Dark", "Light"])
+✓ Toggle Commands button in header (Lines 335-341)
+✓ Tab-aware status bar (Lines 864-876: on_tab_change method)
+✓ Responsive/scalable input fields (using fill="x", expand=True, sticky="ew")
+✓ CIDR entry expands (Line 368-369)
+✓ MAC entry expands (Line 472)
+✓ Format entries expand (Line 515)
+✓ Command textboxes expand (Line 554)
+
+═══════════════════════════════════════════════════════════════════════════════
+  TO GET THE COMPLETE FILE
+═══════════════════════════════════════════════════════════════════════════════
+
+Your file is already complete at:
+  C:\users\malte\Downloads\fw-sophos-conflict_291125_1741\nettools_app.py
+
+It contains all 901 lines with all improvements:
+  - Dark mode default
+  - Toggle button in header
+  - Tab-aware status
+  - Responsive fields
+  - All bug fixes
+
+═══════════════════════════════════════════════════════════════════════════════
+  TO VERIFY YOUR FILE
+═══════════════════════════════════════════════════════════════════════════════
+
+Check if you have the right file:
+
+1. Open Command Prompt in your folder
+2. Run: python -c "with open('nettools_app.py') as f: print(len(f.readlines()), 'lines')"
+3. Should show: 901 lines
+
+Or check key lines:
+  Line 32:  ctk.set_appearance_mode("Dark")
+  Line 328: values=["Dark", "Light"]
+  Line 335: Toggle Commands button in header
+  Line 864: on_tab_change method
+
+═══════════════════════════════════════════════════════════════════════════════
+  IF YOUR FILE IS ONLY 105 LINES
+═══════════════════════════════════════════════════════════════════════════════
+
+You may be looking at the wrong file! Check:
+  - build_exe.py (106 lines) ← This is the BUILD SCRIPT, not the app!
+  - nettools_app.py (901 lines) ← This is the MAIN APPLICATION
+
+Make sure you're editing/viewing: nettools_app.py (not build_exe.py)
+
+═══════════════════════════════════════════════════════════════════════════════
+  HOW TO BUILD
+═══════════════════════════════════════════════════════════════════════════════
+
+Once you have the correct nettools_app.py file:
+
+  python build_exe.py              (single file)
+  python build_exe_fast.py         (fast folder version)
+  build_fast_simple.bat            (easiest fast build)
+
+═══════════════════════════════════════════════════════════════════════════════
