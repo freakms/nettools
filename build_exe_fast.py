@@ -19,10 +19,10 @@ def create_icon():
         
         # Save as ICO for Windows
         icon.save(icon_path, format='ICO', sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
-        print(f"✓ Icon created: {icon_path}")
+        print(f"Icon created: {icon_path}")
         return str(icon_path)
     except Exception as e:
-        print(f"! Warning: Could not create icon: {e}")
+        print(f"Warning: Could not create icon: {e}")
         return None
 
 
