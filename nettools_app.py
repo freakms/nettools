@@ -329,7 +329,7 @@ class NetToolsApp(ctk.CTk):
             command=self.change_theme,
             width=120
         )
-        self.theme_selector.set("Light")
+        self.theme_selector.set("Dark")
         self.theme_selector.pack(side="right", padx=(0, 10), pady=20)
         
         # Toggle Commands button (for MAC formatter)
