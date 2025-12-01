@@ -1079,10 +1079,7 @@ class NetToolsApp(ctk.CTk):
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     # Old create_tabs method removed - now using sidebar navigation
     
-    def create_scanner_tab(self):
-        """Create IPv4 Scanner tab"""
-        # Input section
-        input_frame = ctk.CTkFrame(self.tab_scanner)
+    # Old create_scanner_tab method removed - content moved to create_scanner_content
         input_frame.pack(fill="x", padx=15, pady=15)
         
         # CIDR input
