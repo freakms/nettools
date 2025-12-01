@@ -2096,24 +2096,36 @@ class NetToolsApp(ctk.CTk):
         
         try:
             # Set DHCP for IP
-            subprocess.run(
+            result = subprocess.run(
                 ["netsh", "interface", "ipv4", "set", "address", interface_name, "dhcp"],
-                check=True,
+                capture_output=True,
+                text=True,
                 timeout=10
             )
+            
+            if result.returncode != 0:
+                error_msg = result.stderr or result.stdout
+                if "disconnected" in error_msg.lower():
+                    messagebox.showwarning(
+                        "Interface Disconnected",
+                        f"Cannot configure '{interface_name}' because it is currently disconnected.\n\n"
+                        "Please connect the network cable or enable Wi-Fi, then try again."
+                    )
+                else:
+                    messagebox.showerror("Error", f"Failed to set DHCP:\n{error_msg}")
+                return
             
             # Set DHCP for DNS
             subprocess.run(
                 ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "dhcp"],
-                check=True,
                 timeout=10
             )
             
             messagebox.showinfo("Success", f"Interface '{interface_name}' set to DHCP successfully!")
             self.refresh_interfaces()
             
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error", f"Failed to set DHCP:\n{str(e)}")
+        except subprocess.TimeoutExpired:
+            messagebox.showerror("Timeout", "The command took too long to execute. Please try again.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
     
