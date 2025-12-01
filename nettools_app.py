@@ -4553,14 +4553,55 @@ class NetToolsApp(ctk.CTk):
                 if platform.system() == "Windows":
                     # Windows - use CREATE_NO_WINDOW flag
                     import subprocess
-                    result = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        timeout=600,
-                        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
-                        shell=False
-                    )
+                    
+                    # For pathping, we need to handle real-time output better
+                    # Use Popen for streaming output
+                    if tool == "pathping":
+                        process = subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True,
+                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+                            bufsize=1,
+                            universal_newlines=True
+                        )
+                        
+                        # Read output line by line for pathping (it's slow)
+                        stdout_lines = []
+                        stderr_lines = []
+                        
+                        try:
+                            # Read with timeout
+                            stdout_data, stderr_data = process.communicate(timeout=600)
+                            stdout_lines = stdout_data.splitlines() if stdout_data else []
+                            stderr_lines = stderr_data.splitlines() if stderr_data else []
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            stdout_data, stderr_data = process.communicate()
+                            raise subprocess.TimeoutExpired(cmd, 600)
+                        
+                        # Combine output
+                        output = "\n".join(stdout_lines)
+                        if stderr_lines:
+                            output += "\n\nErrors:\n" + "\n".join(stderr_lines)
+                        
+                        result = type('obj', (object,), {
+                            'returncode': process.returncode,
+                            'stdout': output,
+                            'stderr': "\n".join(stderr_lines) if stderr_lines else ""
+                        })
+                    else:
+                        # For tracert, regular run is fine
+                        result = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            timeout=600,
+                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+                            shell=False,
+                            encoding='cp850'  # Use Windows console encoding
+                        )
                 else:
                     # Non-Windows (shouldn't happen, but fallback)
                     result = subprocess.run(
