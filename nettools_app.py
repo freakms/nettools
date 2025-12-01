@@ -2781,10 +2781,15 @@ class NetToolsApp(ctk.CTk):
         self.filter_results()
     
     def add_result_row(self, result):
-        """Add a result row to the display"""
-        row_frame = ctk.CTkFrame(self.results_scrollable, height=38, corner_radius=4)
-        row_frame.pack(fill="x", padx=2, pady=2)
-        row_frame.pack_propagate(False)
+        """Add a result row to the display with alternating colors"""
+        # Determine if this should be an alternate row
+        is_alternate = len(self.result_rows) % 2 == 1
+        
+        # Use ResultRow component with alternating colors
+        row_color = ("gray92", "gray15") if is_alternate else COLORS['bg_card']
+        row_frame = ResultRow(self.results_scrollable, fg_color=row_color)
+        row_frame.pack(fill="x", padx=SPACING['xs'], pady=SPACING['xs'])
+        row_frame._original_color = row_color
         
         # Status dot with better colors
         status_color = COLORS["online"] if result['status'] == 'Online' else COLORS["offline"]
@@ -2795,7 +2800,7 @@ class NetToolsApp(ctk.CTk):
             text_color=status_color,
             width=50
         )
-        dot_label.pack(side="left", padx=5)
+        dot_label.pack(side="left", padx=SPACING['sm'])
         
         # IP Address with better font
         ip_label = ctk.CTkLabel(
@@ -2803,9 +2808,9 @@ class NetToolsApp(ctk.CTk):
             text=result['ip'],
             width=250,
             anchor="w",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=FONTS['body'])
         )
-        ip_label.pack(side="left", padx=5)
+        ip_label.pack(side="left", padx=SPACING['sm'])
         
         # Status with color and bold font
         status_label = ctk.CTkLabel(
@@ -2813,10 +2818,10 @@ class NetToolsApp(ctk.CTk):
             text=result['status'],
             width=200,
             anchor="w",
-            font=ctk.CTkFont(size=12, weight="bold"),
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
             text_color=status_color
         )
-        status_label.pack(side="left", padx=5)
+        status_label.pack(side="left", padx=SPACING['sm'])
         
         # RTT with subtle color
         rtt_label = ctk.CTkLabel(
@@ -2824,10 +2829,10 @@ class NetToolsApp(ctk.CTk):
             text=result['rtt'],
             width=150,
             anchor="w",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=FONTS['small']),
             text_color=COLORS["text_secondary"]
         )
-        rtt_label.pack(side="left", padx=5)
+        rtt_label.pack(side="left", padx=SPACING['sm'])
         
         # Store reference
         row_frame.result_data = result
