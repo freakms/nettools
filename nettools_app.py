@@ -787,7 +787,8 @@ class NetToolsApp(ctk.CTk):
                 font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
+                hover_color=("gray70", "gray30"),
+                padx=20  # Add consistent left padding
             )
             btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
