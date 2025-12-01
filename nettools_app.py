@@ -1450,34 +1450,39 @@ class NetToolsApp(ctk.CTk):
         
         self.port_scan_btn = ctk.CTkButton(
             button_frame,
-            text="Start Port Scan",
+            text="▶ Start Port Scan",
             command=self.start_port_scan,
-            width=180,
+            width=200,
             height=48,
             font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=("#2196F3", "#1976D2")
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
         )
         self.port_scan_btn.pack(side="left", padx=(0, 10))
         
         self.port_cancel_btn = ctk.CTkButton(
             button_frame,
-            text="Cancel",
+            text="⏹ Cancel",
             command=self.cancel_port_scan,
-            width=120,
+            width=130,
             height=48,
-            font=ctk.CTkFont(size=14),
-            state="disabled"
+            font=ctk.CTkFont(size=14, weight="bold"),
+            state="disabled",
+            fg_color=COLORS["danger"],
+            hover_color=COLORS["danger_hover"]
         )
         self.port_cancel_btn.pack(side="left")
         
         self.port_export_btn = ctk.CTkButton(
             button_frame,
-            text="Export Results",
+            text="📤 Export Results",
             command=self.export_port_scan,
-            width=160,
+            width=180,
             height=48,
             font=ctk.CTkFont(size=14),
-            state="disabled"
+            state="disabled",
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
         )
         self.port_export_btn.pack(side="left", padx=(10, 0))
         
