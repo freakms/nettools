@@ -2206,7 +2206,13 @@ class NetToolsApp(ctk.CTk):
     def set_static_ip(self, interface_name, ip, subnet, gateway, dns):
         """Set static IP configuration"""
         if not self.is_admin():
-            messagebox.showerror("Admin Required", "Administrator privileges are required.")
+            result = messagebox.askyesno(
+                "Administrator Required",
+                "Administrator privileges are required to change network settings.\n\n"
+                "Do you want to restart the application with administrator privileges?"
+            )
+            if result:
+                self.restart_as_admin()
             return
         
         try:
