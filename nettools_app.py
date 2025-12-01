@@ -4303,7 +4303,16 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=12),
             text_color=COLORS["text_secondary"]
         )
-        subtitle_label.pack(pady=(0, 20))
+        subtitle_label.pack(pady=(0, 5))
+        
+        # System info
+        system_info = ctk.CTkLabel(
+            scrollable,
+            text=f"Platform: {platform.system()} | Note: Requires Windows for tracert/pathping commands",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        system_info.pack(pady=(0, 15))
         
         # Input Section
         input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
