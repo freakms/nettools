@@ -870,6 +870,8 @@ class NetToolsApp(ctk.CTk):
                 self.create_profiles_content(self.pages[page_id])
             elif page_id == "portscan":
                 self.create_portscan_content(self.pages[page_id])
+            elif page_id == "traceroute":
+                self.create_traceroute_content(self.pages[page_id])
             elif page_id == "dns":
                 self.create_dns_content(self.pages[page_id])
             elif page_id == "subnet":
