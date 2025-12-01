@@ -1019,6 +1019,7 @@ class NetToolsApp(ctk.CTk):
         
         if not mac_input:
             self.mac_warning_label.configure(text="")
+            self.vendor_label.configure(text="")
             for entry in self.format_entries:
                 entry.configure(state="normal")
                 entry.delete(0, 'end')
@@ -1033,6 +1034,7 @@ class NetToolsApp(ctk.CTk):
         
         if error:
             self.mac_warning_label.configure(text=error)
+            self.vendor_label.configure(text="")
             for entry in self.format_entries:
                 entry.configure(state="normal")
                 entry.delete(0, 'end')
@@ -1044,6 +1046,13 @@ class NetToolsApp(ctk.CTk):
             return
         
         self.mac_warning_label.configure(text="")
+        
+        # Lookup and display vendor
+        vendor = self.lookup_vendor(hex_mac)
+        if vendor and vendor != "Unknown Vendor":
+            self.vendor_label.configure(text=f"🏢 Vendor: {vendor}")
+        else:
+            self.vendor_label.configure(text="🏢 Vendor: Unknown")
         
         # Save to history (only when valid)
         self.history.add_mac(hex_mac)
