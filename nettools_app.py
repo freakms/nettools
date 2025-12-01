@@ -4782,8 +4782,22 @@ class NetToolsApp(ctk.CTk):
         thread = threading.Thread(target=subnets_thread, daemon=True)
         thread.start()
     
+    def display_phpipam_loading(self, message):
+        """Display loading message"""
+        # Clear existing results
+        for widget in self.phpipam_results_frame.winfo_children():
+            widget.destroy()
+        
+        loading_label = ctk.CTkLabel(
+            self.phpipam_results_frame,
+            text=f"⏳ {message}",
+            font=ctk.CTkFont(size=14),
+            text_color=COLORS["primary"]
+        )
+        loading_label.pack(pady=50)
+    
     def display_phpipam_results(self, title, data, success):
-        """Display phpIPAM operation results"""
+        """Display phpIPAM operation results with nice card layout"""
         # Clear existing results
         for widget in self.phpipam_results_frame.winfo_children():
             widget.destroy()
@@ -4816,41 +4830,182 @@ class NetToolsApp(ctk.CTk):
             no_data_label.pack(pady=20, padx=15)
             return
         
+        # Count label at top
+        count_label = ctk.CTkLabel(
+            self.phpipam_results_frame,
+            text=f"Found {len(data)} result(s)",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=COLORS["text_secondary"]
+        )
+        count_label.pack(pady=(0, 10), padx=15, anchor="w")
+        
         # Scrollable results
         results_scroll = ctk.CTkScrollableFrame(self.phpipam_results_frame, height=300)
         results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        # Display data
+        # Display data as nice cards
         for item in data:
-            item_frame = ctk.CTkFrame(results_scroll, corner_radius=6)
-            item_frame.pack(fill="x", pady=3)
+            # Create card for each item
+            item_card = ctk.CTkFrame(results_scroll, corner_radius=8, fg_color=COLORS["bg_card"])
+            item_card.pack(fill="x", pady=5, padx=2)
             
-            # Format item data
-            item_text = ""
-            for key, value in item.items():
-                if value and key not in ["id", "subnetId", "sectionId"]:
-                    item_text += f"{key}: {value}\n"
+            # Determine if this is a subnet or IP address
+            is_subnet = "subnet" in item or "mask" in item
             
-            if not item_text:
-                item_text = json.dumps(item, indent=2)
-            
-            item_label = ctk.CTkLabel(
-                item_frame,
-                text=item_text.strip(),
+            if is_subnet:
+                # Subnet card layout
+                self._create_subnet_card(item_card, item)
+            else:
+                # IP address card layout
+                self._create_ip_card(item_card, item)
+    
+    def _create_subnet_card(self, parent, subnet_data):
+        """Create formatted card for subnet display"""
+        # Main subnet info
+        subnet_str = subnet_data.get("subnet", "N/A")
+        mask = subnet_data.get("mask", "")
+        cidr = f"{subnet_str}/{mask}" if mask else subnet_str
+        
+        # Header with CIDR
+        header_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        header_frame.pack(fill="x", padx=12, pady=(12, 5))
+        
+        cidr_label = ctk.CTkLabel(
+            header_frame,
+            text=f"🌐 {cidr}",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            anchor="w"
+        )
+        cidr_label.pack(side="left")
+        
+        # ID badge
+        subnet_id = subnet_data.get("id", "")
+        if subnet_id:
+            id_label = ctk.CTkLabel(
+                header_frame,
+                text=f"ID: {subnet_id}",
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS["text_secondary"]
+            )
+            id_label.pack(side="right")
+        
+        # Description
+        description = subnet_data.get("description", "")
+        if description:
+            desc_label = ctk.CTkLabel(
+                parent,
+                text=description,
                 font=ctk.CTkFont(size=11),
                 anchor="w",
-                justify="left"
+                text_color=COLORS["text_secondary"]
             )
-            item_label.pack(pady=8, padx=10, anchor="w")
+            desc_label.pack(fill="x", padx=12, pady=(0, 5))
         
-        # Count label
-        count_label = ctk.CTkLabel(
-            self.phpipam_results_frame,
-            text=f"Found {len(data)} result(s)",
-            font=ctk.CTkFont(size=11),
-            text_color=COLORS["text_secondary"]
+        # Additional info in compact format
+        info_items = []
+        
+        if "vlanId" in subnet_data and subnet_data["vlanId"]:
+            info_items.append(f"VLAN: {subnet_data['vlanId']}")
+        
+        if "location" in subnet_data and subnet_data["location"]:
+            info_items.append(f"Location: {subnet_data['location']}")
+        
+        if "isFolder" in subnet_data and subnet_data["isFolder"] == "1":
+            info_items.append("📁 Folder")
+        
+        if info_items:
+            info_text = " • ".join(info_items)
+            info_label = ctk.CTkLabel(
+                parent,
+                text=info_text,
+                font=ctk.CTkFont(size=10),
+                anchor="w",
+                text_color=COLORS["text_secondary"]
+            )
+            info_label.pack(fill="x", padx=12, pady=(0, 12))
+        else:
+            # Add bottom padding
+            ctk.CTkFrame(parent, height=5, fg_color="transparent").pack()
+    
+    def _create_ip_card(self, parent, ip_data):
+        """Create formatted card for IP address display"""
+        # IP address
+        ip = ip_data.get("ip", "N/A")
+        
+        # Header with IP
+        header_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        header_frame.pack(fill="x", padx=12, pady=(12, 5))
+        
+        ip_label = ctk.CTkLabel(
+            header_frame,
+            text=f"💻 {ip}",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            anchor="w"
         )
-        count_label.pack(pady=(0, 10), padx=15, anchor="w")
+        ip_label.pack(side="left")
+        
+        # Status badge if available
+        if "state" in ip_data:
+            state = ip_data["state"]
+            state_color = COLORS["online"] if state == "1" else COLORS["offline"]
+            state_text = "Active" if state == "1" else "Inactive"
+            
+            state_label = ctk.CTkLabel(
+                header_frame,
+                text=state_text,
+                font=ctk.CTkFont(size=10, weight="bold"),
+                text_color=state_color
+            )
+            state_label.pack(side="right")
+        
+        # Hostname
+        hostname = ip_data.get("hostname", "")
+        if hostname:
+            host_label = ctk.CTkLabel(
+                parent,
+                text=f"🏷️ {hostname}",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                anchor="w"
+            )
+            host_label.pack(fill="x", padx=12, pady=(0, 5))
+        
+        # Description
+        description = ip_data.get("description", "")
+        if description:
+            desc_label = ctk.CTkLabel(
+                parent,
+                text=description,
+                font=ctk.CTkFont(size=10),
+                anchor="w",
+                text_color=COLORS["text_secondary"]
+            )
+            desc_label.pack(fill="x", padx=12, pady=(0, 5))
+        
+        # Additional details
+        details = []
+        
+        if "mac" in ip_data and ip_data["mac"]:
+            details.append(f"MAC: {ip_data['mac']}")
+        
+        if "owner" in ip_data and ip_data["owner"]:
+            details.append(f"Owner: {ip_data['owner']}")
+        
+        if "port" in ip_data and ip_data["port"]:
+            details.append(f"Port: {ip_data['port']}")
+        
+        if details:
+            details_text = " • ".join(details)
+            details_label = ctk.CTkLabel(
+                parent,
+                text=details_text,
+                font=ctk.CTkFont(size=10),
+                anchor="w",
+                text_color=COLORS["text_secondary"]
+            )
+            details_label.pack(fill="x", padx=12, pady=(0, 12))
+        else:
+            # Add bottom padding
+            ctk.CTkFrame(parent, height=5, fg_color="transparent").pack()
     
     def on_enter_key(self, event):
         """Handle Enter key press"""
