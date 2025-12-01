@@ -776,6 +776,303 @@ class NetToolsApp(ctk.CTk):
         
         # Create comparison page
         self.pages["compare"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+    
+    def create_scanner_content(self, parent):
+        """Create IPv4 Scanner page content"""
+        # Input section
+        input_frame = ctk.CTkFrame(parent)
+        input_frame.pack(fill="x", padx=15, pady=15)
+        
+        # CIDR input
+        cidr_label = ctk.CTkLabel(input_frame, text="IPv4 / CIDR:", font=ctk.CTkFont(size=12))
+        cidr_label.grid(row=0, column=0, padx=15, pady=15, sticky="w")
+        
+        self.cidr_entry = ctk.CTkEntry(input_frame, placeholder_text="e.g., 192.168.1.0/24")
+        self.cidr_entry.grid(row=0, column=1, padx=(15, 5), pady=15, sticky="ew")
+        input_frame.grid_columnconfigure(1, weight=1)
+        self.cidr_entry.bind('<KeyRelease>', self.update_host_count)
+        
+        # History button for CIDR
+        self.cidr_history_btn = ctk.CTkButton(
+            input_frame,
+            text="⏱",
+            width=35,
+            command=self.show_cidr_history,
+            font=ctk.CTkFont(size=16)
+        )
+        self.cidr_history_btn.grid(row=0, column=2, padx=(0, 15), pady=15)
+        
+        self.host_count_label = ctk.CTkLabel(input_frame, text="", font=ctk.CTkFont(size=11))
+        self.host_count_label.grid(row=0, column=3, padx=15, pady=15, sticky="w")
+        
+        # Aggression selector
+        aggro_label = ctk.CTkLabel(input_frame, text="Aggressiveness:", font=ctk.CTkFont(size=12))
+        aggro_label.grid(row=1, column=0, padx=15, pady=15, sticky="w")
+        
+        self.aggro_selector = ctk.CTkOptionMenu(
+            input_frame,
+            values=["Gentle (longer timeout)", "Medium", "Aggressive (short timeout)"]
+        )
+        self.aggro_selector.set("Medium")
+        self.aggro_selector.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
+        
+        # Scan buttons
+        button_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        button_frame.grid(row=0, column=3, rowspan=2, padx=15, pady=15, sticky="e")
+        input_frame.grid_columnconfigure(3, weight=1)
+        
+        self.start_scan_btn = ctk.CTkButton(
+            button_frame,
+            text="Start Scan",
+            command=self.start_scan,
+            width=120,
+            height=35,
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        self.start_scan_btn.pack(side="left", padx=5)
+        
+        self.cancel_scan_btn = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=self.cancel_scan,
+            width=100,
+            height=35,
+            state="disabled",
+            fg_color="#dc3545",
+            hover_color="#c82333"
+        )
+        self.cancel_scan_btn.pack(side="left", padx=5)
+        
+        # Options section
+        options_frame = ctk.CTkFrame(parent)
+        options_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        self.only_responding_check = ctk.CTkCheckBox(
+            options_frame,
+            text="Show only responding hosts",
+            command=self.filter_results
+        )
+        self.only_responding_check.select()  # Check by default
+        self.only_responding_check.pack(side="left", padx=15, pady=15)
+        
+        self.show_all_btn = ctk.CTkButton(
+            options_frame,
+            text="Show All Addresses",
+            command=self.show_all_addresses,
+            width=160
+        )
+        self.show_all_btn.pack(side="left", padx=(10, 15), pady=15)
+        
+        self.export_btn = ctk.CTkButton(
+            options_frame,
+            text="Export as CSV (Ctrl+E)",
+            command=self.export_csv,
+            width=200,
+            state="disabled"
+        )
+        self.export_btn.pack(side="right", padx=15, pady=15)
+        
+        self.compare_btn = ctk.CTkButton(
+            options_frame,
+            text="Compare Scans",
+            command=self.show_scan_comparison,
+            width=160,
+            state="disabled"
+        )
+        self.compare_btn.pack(side="right", padx=(0, 10), pady=15)
+        
+        # Results section
+        results_frame = ctk.CTkFrame(parent)
+        results_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # Results header
+        header_frame = ctk.CTkFrame(results_frame, height=40)
+        header_frame.pack(fill="x", padx=2, pady=2)
+        header_frame.pack_propagate(False)
+        
+        headers = [("●", 50), ("IP Address", 250), ("Status", 200), ("Response (ms)", 150)]
+        for text, width in headers:
+            label = ctk.CTkLabel(
+                header_frame,
+                text=text,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=width
+            )
+            label.pack(side="left", padx=5, pady=5)
+        
+        # Scrollable results
+        self.results_scrollable = ctk.CTkScrollableFrame(results_frame)
+        self.results_scrollable.pack(fill="both", expand=True, padx=2, pady=(0, 2))
+        
+        self.result_rows = []
+    
+    def create_mac_content(self, parent):
+        """Create MAC Formatter page content"""
+        # Input section (stays at top, not scrollable)
+        input_frame = ctk.CTkFrame(parent)
+        input_frame.pack(fill="x", padx=15, pady=15)
+        
+        mac_label = ctk.CTkLabel(
+            input_frame,
+            text="Enter MAC Address:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        mac_label.pack(anchor="w", padx=15, pady=(15, 5))
+        
+        # Frame for MAC entry and history button
+        mac_entry_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        mac_entry_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        self.mac_entry = ctk.CTkEntry(
+            mac_entry_frame,
+            placeholder_text="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF",
+            height=40
+        )
+        self.mac_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.mac_entry.bind('<KeyRelease>', self.update_mac_formats)
+        
+        # History button for MAC
+        self.mac_history_btn = ctk.CTkButton(
+            mac_entry_frame,
+            text="⏱",
+            width=40,
+            height=40,
+            command=self.show_mac_history,
+            font=ctk.CTkFont(size=16)
+        )
+        self.mac_history_btn.pack(side="left")
+        
+        self.mac_warning_label = ctk.CTkLabel(
+            input_frame,
+            text="",
+            font=ctk.CTkFont(size=11),
+            text_color="#dc3545"
+        )
+        self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 5))
+        
+        # Vendor information display
+        self.vendor_label = ctk.CTkLabel(
+            input_frame,
+            text="",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#28a745"
+        )
+        self.vendor_label.pack(anchor="w", padx=15, pady=(0, 15))
+        
+        # Scrollable content area for formats and commands
+        self.mac_scrollable = ctk.CTkScrollableFrame(parent)
+        self.mac_scrollable.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # MAC Formats section (inside scrollable area)
+        self.formats_frame = ctk.CTkFrame(self.mac_scrollable)
+        self.formats_frame.pack(fill="x", padx=5, pady=(10, 15))
+        
+        formats_title = ctk.CTkLabel(
+            self.formats_frame,
+            text="Standard MAC Formats",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        formats_title.pack(anchor="w", padx=15, pady=(15, 10))
+        
+        format_labels = [
+            "Format 1 (Plain):",
+            "Format 2 (Colon):",
+            "Format 3 (Dash-4):",
+            "Format 4 (Dash-2):"
+        ]
+        
+        self.format_entries = []
+        for label_text in format_labels:
+            row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent")
+            row_frame.pack(fill="x", padx=15, pady=4)
+            
+            label = ctk.CTkLabel(row_frame, text=label_text, width=150, anchor="w")
+            label.pack(side="left", padx=(0, 10))
+            
+            entry = ctk.CTkEntry(row_frame, height=32)
+            entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
+            entry.configure(state="readonly")
+            self.format_entries.append(entry)
+            
+            copy_btn = ctk.CTkButton(
+                row_frame,
+                text="Copy",
+                width=80,
+                command=lambda e=entry: self.copy_to_clipboard(e)
+            )
+            copy_btn.pack(side="left")
+        
+        self.formats_frame.pack_configure(pady=(0, 10))
+        
+        # Switch Commands section (inside scrollable area)
+        self.commands_frame = ctk.CTkFrame(self.mac_scrollable)
+        self.commands_frame.pack(fill="x", padx=5, pady=(0, 15))
+        
+        commands_title = ctk.CTkLabel(
+            self.commands_frame,
+            text="Switch Commands",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        commands_title.pack(anchor="w", padx=15, pady=(15, 10))
+        
+        command_labels = [
+            "EXTREME CLI:",
+            "Huawei CLI:",
+            "Huawei Access-User CLI:",
+            "Dell CLI:"
+        ]
+        
+        self.command_textboxes = []
+        for label_text in command_labels:
+            row_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent")
+            row_frame.pack(fill="x", padx=15, pady=4)
+            
+            label = ctk.CTkLabel(row_frame, text=label_text, width=200, anchor="w")
+            label.pack(side="left", padx=(0, 10))
+            
+            textbox = ctk.CTkTextbox(row_frame, height=35, wrap="word")
+            textbox.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
+            textbox.configure(state="disabled")
+            self.command_textboxes.append(textbox)
+            
+            copy_btn = ctk.CTkButton(
+                row_frame,
+                text="Copy",
+                width=80,
+                command=lambda tb=textbox: self.copy_textbox_to_clipboard(tb)
+            )
+            copy_btn.pack(side="left")
+        
+        self.commands_visible = True
+    
+    def create_comparison_content(self, parent):
+        """Create Scan Comparison page content"""
+        # Title
+        title_label = ctk.CTkLabel(
+            parent,
+            text="Network Scan Comparison",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Description
+        desc_label = ctk.CTkLabel(
+            parent,
+            text="Compare two network scans to see what devices have appeared, disappeared, or changed status.",
+            font=ctk.CTkFont(size=12)
+        )
+        desc_label.pack(padx=20, pady=(0, 20))
+        
+        # Comparison button
+        compare_btn = ctk.CTkButton(
+            parent,
+            text="Open Scan Comparison Tool",
+            command=self.show_scan_comparison,
+            width=250,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        compare_btn.pack(pady=20)
         self.create_comparison_content(self.pages["compare"])
         
         # Show initial page (scanner)
