@@ -881,26 +881,62 @@ class NetToolsApp(ctk.CTk):
         if event.widget != self:
             return
         
-        # Calculate scale factor based on width (primary scaling dimension)
+        # Calculate scale factor based on window size
         new_width = event.width
         new_height = event.height
         
-        # Calculate scale (min 0.8, max 1.5)
+        # Calculate scale (min 0.75, max 1.8)
         width_scale = new_width / self.base_width
         height_scale = new_height / self.base_height
         new_scale = min(width_scale, height_scale)
-        new_scale = max(0.8, min(1.5, new_scale))
+        new_scale = max(0.75, min(1.8, new_scale))
         
-        # Only update if scale changed significantly
-        if abs(new_scale - self.current_scale) > 0.05:
+        # Only update if scale changed significantly (avoid too many updates)
+        if abs(new_scale - self.current_scale) > 0.08:
             self.current_scale = new_scale
             self.update_fonts_and_sizes()
     
     def update_fonts_and_sizes(self):
         """Update fonts and widget sizes based on current scale"""
-        # This is called when window is resized
-        # The scaling is handled automatically by CustomTkinter's built-in DPI scaling
-        pass
+        try:
+            # Calculate scaled font sizes
+            scaled_base = max(9, int(self.base_font_size * self.current_scale))
+            scaled_title = max(18, int(self.title_font_size * self.current_scale))
+            scaled_subtitle = max(10, int(self.subtitle_font_size * self.current_scale))
+            scaled_label = max(10, int(self.label_font_size * self.current_scale))
+            
+            # Update header fonts
+            for widget in self.winfo_children():
+                self.update_widget_fonts(widget, scaled_base, scaled_label)
+                
+        except Exception as e:
+            pass  # Silently ignore scaling errors
+    
+    def update_widget_fonts(self, widget, base_size, label_size):
+        """Recursively update fonts for all widgets"""
+        try:
+            if isinstance(widget, ctk.CTkLabel):
+                current_font = widget.cget("font")
+                if current_font:
+                    if isinstance(current_font, ctk.CTkFont):
+                        if current_font.cget("size") >= 14:
+                            # Large labels (titles)
+                            widget.configure(font=ctk.CTkFont(size=label_size + 2, weight=current_font.cget("weight")))
+                        else:
+                            # Normal labels
+                            widget.configure(font=ctk.CTkFont(size=label_size, weight=current_font.cget("weight")))
+            elif isinstance(widget, (ctk.CTkEntry, ctk.CTkTextbox)):
+                # Scale entry and textbox fonts
+                widget.configure(font=ctk.CTkFont(size=base_size))
+            elif isinstance(widget, ctk.CTkButton):
+                # Scale button fonts
+                widget.configure(font=ctk.CTkFont(size=base_size))
+            
+            # Recursively update children
+            for child in widget.winfo_children():
+                self.update_widget_fonts(child, base_size, label_size)
+        except:
+            pass
     
     def on_tab_change(self):
         """Handle tab change event"""
