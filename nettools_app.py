@@ -4476,7 +4476,7 @@ class NetToolsApp(ctk.CTk):
         self.trace_progress_label = ctk.CTkLabel(
             scrollable,
             text="",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=12),
             text_color=COLORS["text_secondary"]
         )
         self.trace_progress_label.pack(pady=(0, 10))
