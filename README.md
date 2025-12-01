@@ -1,7 +1,7 @@
 # NetTools Suite
 
 **Version:** 1.0.0  
-**Author:** Malte Schad  
+**Author:** freakms  
 **Description:** Modern desktop application for network utilities - IPv4 Scanner & MAC Formatter
 
 ---
@@ -188,7 +188,7 @@ pip install --upgrade -r requirements.txt
 
 ## License & Credits
 
-**Created by:** Malte Schad  
+**Created by:** freakms  
 **Framework:** CustomTkinter by Tom Schimansky  
 **Ping Library:** pythonping by Alessandro Maggio  
 

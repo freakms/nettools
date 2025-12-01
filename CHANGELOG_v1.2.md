@@ -173,5 +173,5 @@ You can backup this file to preserve scan history.
 
 **Version**: 1.2.0  
 **Release Date**: November 2024  
-**Author**: Malte Schad  
+**Author**: freakms  
 **Build**: Production-ready

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 NetTools Suite - IPv4 Scanner & MAC Formatter
-Author: Malte Schad
+Author: freakms
 Version: 1.0.0
 
 Modern desktop application for network utilities.
@@ -28,7 +28,7 @@ import json
 # Application metadata
 APP_NAME = "NetTools Suite"
 APP_VERSION = "1.2.1"
-APP_COMPANY = "Malte Schad"
+APP_COMPANY = "freakms"
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("Dark")

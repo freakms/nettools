@@ -54,7 +54,7 @@ open NetToolsSuite.app
 │  Content area (tabs)                                │
 │                                                      │
 ├─────────────────────────────────────────────────────┤
-│  Ready.                              © Malte Schad  │
+│  Ready.                              © freakms  │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -461,7 +461,7 @@ A: Yes, if scanning local network. Internet not required.
 A: No, everything runs locally. No telemetry.
 
 **Q: Can I use it commercially?**  
-A: Check with the author (Malte Schad) for licensing.
+A: Check with the author (freakms) for licensing.
 
 ### IPv4 Scanner Questions
 
@@ -525,7 +525,7 @@ For issues not covered here:
 
 1. Check [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md) for build issues
 2. Check [README.md](README.md) for technical details
-3. Contact: Malte Schad
+3. Contact: freakms
 
 ---
 

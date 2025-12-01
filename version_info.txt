@@ -30,11 +30,11 @@ VSVersionInfo(
       [
       StringTable(
         u'040904B0',
-        [StringStruct(u'CompanyName', u'Malte Schad'),
+        [StringStruct(u'CompanyName', u'freakms'),
         StringStruct(u'FileDescription', u'NetTools Suite - Network Utilities'),
         StringStruct(u'FileVersion', u'1.3.0.0'),
         StringStruct(u'InternalName', u'NetToolsSuite'),
-        StringStruct(u'LegalCopyright', u'\xa9 Malte Schad 2025'),
+        StringStruct(u'LegalCopyright', u'\xa9 freakms 2025'),
         StringStruct(u'OriginalFilename', u'NetToolsSuite.exe'),
         StringStruct(u'ProductName', u'NetTools Suite'),
         StringStruct(u'ProductVersion', u'1.3.0.0')])

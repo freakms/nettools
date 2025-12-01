@@ -185,4 +185,4 @@ Thanks to all users who reported the status bar overlap issue and requested the 
 **Status:** Production Ready  
 **Platform:** Windows  
 **License:** Proprietary  
-**Author:** Malte Schad
+**Author:** freakms

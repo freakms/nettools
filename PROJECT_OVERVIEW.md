@@ -8,7 +8,7 @@
 
 **Name:** NetTools Suite  
 **Version:** 1.0.0  
-**Author:** Malte Schad  
+**Author:** freakms  
 **Type:** Desktop Application (Cross-platform)  
 **Technology:** Python + CustomTkinter  
 **Output:** Single-file executable (.exe, .app, or binary)
@@ -517,7 +517,7 @@ Tests:
 
 ## 📞 Support & Contact
 
-**Author:** Malte Schad
+**Author:** freakms
 
 **For Issues:**
 1. Check documentation first
@@ -588,7 +588,7 @@ Tests:
 - PyInstaller team
 
 **Inspiration:**
-- Original PowerShell script by Malte Schad
+- Original PowerShell script by freakms
 - Modern UI design trends
 - Network administrator feedback
 
@@ -596,7 +596,7 @@ Tests:
 
 ## 📝 License & Copyright
 
-**Copyright:** © Malte Schad 2025
+**Copyright:** © freakms 2025
 
 **Note:** For licensing information, contact the author.
 

@@ -379,4 +379,4 @@ Feel the difference yourself! ⚡
 
 **Updated:** November 2025  
 **Version:** 1.1  
-**Author:** Malte Schad
+**Author:** freakms

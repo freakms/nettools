@@ -168,6 +168,6 @@ See `FEATURE_IMPLEMENTATION_PLAN.md` for full roadmap.
 
 **Version**: 1.2.1  
 **Release Date**: November 2024  
-**Author**: Malte Schad  
+**Author**: freakms  
 **Build**: Production-ready  
 **Type**: Feature enhancement + UX improvement

@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 
 📅 Release Date: November 2024
-👤 Author: Malte Schad
+👤 Author: freakms
 🏷️ Version: 1.2.1
 📦 Type: Feature Enhancement + UX Improvement
 

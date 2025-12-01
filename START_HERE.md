@@ -235,6 +235,6 @@ Then try running the app or building again!
 
 ---
 
-**That's it!** Any questions? Check the documentation files or contact Malte Schad.
+**That's it!** Any questions? Check the documentation files or contact freakms.
 
 🚀 **Happy building!**

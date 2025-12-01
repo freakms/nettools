@@ -226,11 +226,11 @@ VSVersionInfo(
       [
       StringTable(
         u'040904B0',
-        [StringStruct(u'CompanyName', u'Malte Schad'),
+        [StringStruct(u'CompanyName', u'freakms'),
         StringStruct(u'FileDescription', u'NetTools Suite'),
         StringStruct(u'FileVersion', u'1.0.0'),
         StringStruct(u'InternalName', u'NetToolsSuite'),
-        StringStruct(u'LegalCopyright', u'© Malte Schad'),
+        StringStruct(u'LegalCopyright', u'© freakms'),
         StringStruct(u'OriginalFilename', u'NetToolsSuite.exe'),
         StringStruct(u'ProductName', u'NetTools Suite'),
         StringStruct(u'ProductVersion', u'1.0.0')])
@@ -407,7 +407,7 @@ For build issues:
 
 ---
 
-**Build script created by:** Malte Schad  
+**Build script created by:** freakms  
 **Last updated:** 2025  
 **Python version:** 3.8+  
 **Supported OS:** Windows, macOS, Linux

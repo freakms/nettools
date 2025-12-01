@@ -196,7 +196,7 @@ input_frame.grid_columnconfigure(1, weight=1)
 │ EXTREME: [_______________] [Copy]                   │
 │                                                      │
 ├─────────────────────────────────────────────────────┤
-│ Scan running... [=====>    ] 50%    © Malte Schad   │
+│ Scan running... [=====>    ] 50%    © freakms   │
 └─────────────────────────────────────────────────────┘
          ↑ Status shows even on MAC tab
 ```
@@ -217,7 +217,7 @@ input_frame.grid_columnconfigure(1, weight=1)
 │ EXTREME: [========================] [Copy]          │
 │                                                      │
 ├─────────────────────────────────────────────────────┤
-│                                     © Malte Schad   │
+│                                     © freakms   │
 └─────────────────────────────────────────────────────┘
          ↑ Status cleared on MAC tab
          ↑ Fields expand with window
