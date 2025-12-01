@@ -962,6 +962,9 @@ class NetToolsApp(ctk.CTk):
         
         self.mac_warning_label.configure(text="")
         
+        # Save to history (only when valid)
+        self.history.add_mac(hex_mac)
+        
         # Update formats
         formats = MACFormatter.format_mac(hex_mac)
         format_values = [
