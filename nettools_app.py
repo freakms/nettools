@@ -789,7 +789,7 @@ class NetToolsApp(ctk.CTk):
                 text_color=("gray10", "gray90"),
                 hover_color=("gray70", "gray30")
             )
-            btn.pack(fill="x", padx=15, pady=5)  # Padding in pack, not button init
+            btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
         
         # Update initial button state
