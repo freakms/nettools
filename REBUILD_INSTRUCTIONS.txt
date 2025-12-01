@@ -1,9 +1,12 @@
 ═══════════════════════════════════════════════════════════════════════════════
-  IMPORTANT: REBUILD REQUIRED TO SEE HISTORY BUTTONS!
+  IMPORTANT: REBUILD REQUIRED TO SEE NEW FEATURES!
 ═══════════════════════════════════════════════════════════════════════════════
 
-The history feature has been added to the CODE, but you need to REBUILD the
-application to see the changes!
+New features have been added to the CODE:
+  ✓ History & Recent Items (with ⏱ buttons)
+  ✓ OUI Vendor Lookup (identifies device manufacturers)
+
+You need to REBUILD the application to see the changes!
 
 ═══════════════════════════════════════════════════════════════════════════════
   OPTION 1: Test Without Building (Quickest)
