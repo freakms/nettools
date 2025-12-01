@@ -1064,8 +1064,15 @@ class NetToolsApp(ctk.CTk):
         
         if len(results) > 0:
             self.export_btn.configure(state="normal")
+            self.compare_btn.configure(state="normal")
+            
+            # Save scan for comparison
+            cidr = self.cidr_entry.get().strip()
+            scan_id = self.scan_manager.add_scan(cidr, results)
+            self.status_label.configure(text=f"{message} (Saved as {scan_id})")
+        else:
+            self.status_label.configure(text=message)
         
-        self.status_label.configure(text=message)
         self.filter_results()
     
     def add_result_row(self, result):
