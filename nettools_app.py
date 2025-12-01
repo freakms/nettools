@@ -2055,7 +2055,14 @@ class NetToolsApp(ctk.CTk):
     def set_dhcp(self, interface_name):
         """Set interface to DHCP"""
         if not self.is_admin():
-            messagebox.showerror("Admin Required", "Administrator privileges are required to change network settings.\n\nPlease run the application as Administrator.")
+            # Try to elevate privileges via UAC
+            result = messagebox.askyesno(
+                "Administrator Required",
+                "Administrator privileges are required to change network settings.\n\n"
+                "Do you want to restart the application with administrator privileges?"
+            )
+            if result:
+                self.restart_as_admin()
             return
         
         try:
