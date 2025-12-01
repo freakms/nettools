@@ -3634,7 +3634,151 @@ class NetToolsApp(ctk.CTk):
     
     def create_new_profile(self):
         """Show dialog to create a new profile"""
-        messagebox.showinfo("Coming Soon", "Profile creation dialog will be implemented in the next iteration.\n\nFor now, you can manually configure interfaces using the quick actions above.")
+        # Get current interfaces
+        interfaces = self.get_network_interfaces()
+        
+        if not interfaces:
+            messagebox.showerror("Error", "No network interfaces found.")
+            return
+        
+        # Create dialog window
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Create Network Profile")
+        dialog.geometry("700x600")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center window
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            dialog,
+            text="Create New Network Profile",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Profile name
+        name_frame = ctk.CTkFrame(dialog)
+        name_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        name_label = ctk.CTkLabel(
+            name_frame,
+            text="Profile Name:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        name_label.pack(anchor="w", padx=10, pady=(10, 5))
+        
+        name_entry = ctk.CTkEntry(
+            name_frame,
+            placeholder_text="e.g., Home Network, Office WiFi",
+            height=40,
+            font=ctk.CTkFont(size=13)
+        )
+        name_entry.pack(fill="x", padx=10, pady=(0, 10))
+        
+        # Instructions
+        info_label = ctk.CTkLabel(
+            dialog,
+            text="This will save the current configuration of all interfaces:",
+            font=ctk.CTkFont(size=11),
+            text_color=("gray60", "gray40")
+        )
+        info_label.pack(padx=20, pady=(10, 5))
+        
+        # Scrollable frame for interfaces
+        scroll_frame = ctk.CTkScrollableFrame(dialog, height=300)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(5, 10))
+        
+        # Display current interfaces with their configs
+        for interface in interfaces:
+            interface_frame = ctk.CTkFrame(scroll_frame, corner_radius=8)
+            interface_frame.pack(fill="x", pady=5)
+            
+            # Interface name
+            interface_label = ctk.CTkLabel(
+                interface_frame,
+                text=f"📶 {interface['name']}",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                anchor="w"
+            )
+            interface_label.pack(fill="x", padx=10, pady=(10, 5))
+            
+            # Get and display config
+            config = self.get_interface_config(interface["name"])
+            if config:
+                if config["dhcp"]:
+                    config_text = f"DHCP Enabled"
+                    if config["ip"]:
+                        config_text += f"\nCurrent IP: {config['ip']}"
+                else:
+                    config_text = f"Static IP: {config['ip'] or 'Not configured'}"
+                    if config["gateway"]:
+                        config_text += f"\nGateway: {config['gateway']}"
+                    if config["dns"]:
+                        config_text += f"\nDNS: {', '.join(config['dns'][:2])}"
+                
+                config_label = ctk.CTkLabel(
+                    interface_frame,
+                    text=config_text,
+                    font=ctk.CTkFont(size=11),
+                    anchor="w",
+                    justify="left"
+                )
+                config_label.pack(fill="x", padx=10, pady=(0, 10))
+        
+        # Button frame
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        def save_profile():
+            """Save the profile"""
+            name = name_entry.get().strip()
+            if not name:
+                messagebox.showerror("Error", "Please enter a profile name.")
+                return
+            
+            # Collect all interface configurations
+            saved_interfaces = []
+            for interface in interfaces:
+                config = self.get_interface_config(interface["name"])
+                if config:
+                    saved_interfaces.append({
+                        "name": interface["name"],
+                        "config": config
+                    })
+            
+            # Save profile
+            self.profile_manager.add_profile(name, saved_interfaces)
+            self.refresh_profiles()
+            
+            dialog.destroy()
+            messagebox.showinfo("Success", f"Profile '{name}' created successfully!")
+        
+        save_btn = ctk.CTkButton(
+            button_frame,
+            text="Create Profile",
+            command=save_profile,
+            width=160,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=("#2196F3", "#1976D2")
+        )
+        save_btn.pack(side="right", padx=(10, 0))
+        
+        cancel_btn = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            width=120,
+            height=40,
+            font=ctk.CTkFont(size=14)
+        )
+        cancel_btn.pack(side="right")
     
     def apply_profile(self, profile):
         """Apply a saved profile"""
