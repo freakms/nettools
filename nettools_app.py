@@ -4699,8 +4699,17 @@ class NetToolsApp(ctk.CTk):
         # Parse and display results with formatting
         lines = output.split('\n')
         
-        for line in lines:
-            # Keep empty lines for spacing
+        # Show total line count
+        line_count_label = ctk.CTkLabel(
+            results_scroll,
+            text=f"Total lines: {len(lines)}",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS["text_secondary"]
+        )
+        line_count_label.pack(pady=(0, 10))
+        
+        for idx, line in enumerate(lines):
+            # Keep empty lines for spacing but limit consecutive empties
             if not line.strip():
                 ctk.CTkLabel(results_scroll, text=" ", height=5).pack()
                 continue
