@@ -864,6 +864,14 @@ class NetToolsApp(ctk.CTk):
         self.pages["portscan"] = ctk.CTkFrame(self.main_content, corner_radius=0)
         self.create_portscan_content(self.pages["portscan"])
         
+        # Create DNS lookup page
+        self.pages["dns"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_dns_content(self.pages["dns"])
+        
+        # Create subnet calculator page
+        self.pages["subnet"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_subnet_content(self.pages["subnet"])
+        
         # Show the initial page (scanner)
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     
