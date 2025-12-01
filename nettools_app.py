@@ -4933,6 +4933,159 @@ class NetToolsApp(ctk.CTk):
             # Add bottom padding
             ctk.CTkFrame(parent, height=5, fg_color="transparent").pack()
     
+    def _display_phpipam_page(self):
+        """Display current page of phpIPAM results"""
+        # Clear scroll frame
+        for widget in self.phpipam_results_scroll.winfo_children():
+            widget.destroy()
+        
+        # Calculate page boundaries
+        start_idx = self.phpipam_current_page * self.phpipam_items_per_page
+        end_idx = min(start_idx + self.phpipam_items_per_page, len(self.phpipam_current_results))
+        
+        # Get items for current page
+        page_items = self.phpipam_current_results[start_idx:end_idx]
+        
+        # Display items
+        for item in page_items:
+            # Create card for each item
+            item_card = ctk.CTkFrame(
+                self.phpipam_results_scroll, 
+                corner_radius=6, 
+                fg_color=COLORS["bg_card"]
+            )
+            item_card.pack(fill="x", pady=3, padx=2)
+            
+            # Determine if this is a subnet or IP address
+            is_subnet = "subnet" in item or "mask" in item
+            
+            if is_subnet:
+                # Subnet card layout
+                self._create_subnet_card(item_card, item)
+            else:
+                # IP address card layout
+                self._create_ip_card(item_card, item)
+    
+    def _create_pagination_controls(self):
+        """Create pagination controls for phpIPAM results"""
+        total_items = len(self.phpipam_current_results)
+        total_pages = (total_items + self.phpipam_items_per_page - 1) // self.phpipam_items_per_page
+        
+        pagination_frame = ctk.CTkFrame(self.phpipam_results_frame, fg_color="transparent")
+        pagination_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        # Previous button
+        prev_btn = ctk.CTkButton(
+            pagination_frame,
+            text="← Previous",
+            command=self._prev_page,
+            width=100,
+            height=32,
+            state="normal" if self.phpipam_current_page > 0 else "disabled",
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
+        )
+        prev_btn.pack(side="left", padx=(0, 10))
+        
+        # Page indicator
+        start_idx = self.phpipam_current_page * self.phpipam_items_per_page + 1
+        end_idx = min(start_idx + self.phpipam_items_per_page - 1, total_items)
+        
+        self.phpipam_page_label = ctk.CTkLabel(
+            pagination_frame,
+            text=f"Showing {start_idx}-{end_idx} of {total_items} • Page {self.phpipam_current_page + 1}/{total_pages}",
+            font=ctk.CTkFont(size=11)
+        )
+        self.phpipam_page_label.pack(side="left", padx=10)
+        
+        # Next button
+        next_btn = ctk.CTkButton(
+            pagination_frame,
+            text="Next →",
+            command=self._next_page,
+            width=100,
+            height=32,
+            state="normal" if self.phpipam_current_page < total_pages - 1 else "disabled",
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
+        )
+        next_btn.pack(side="left")
+        
+        # Jump to page
+        jump_label = ctk.CTkLabel(
+            pagination_frame,
+            text="Jump to:",
+            font=ctk.CTkFont(size=11)
+        )
+        jump_label.pack(side="right", padx=(10, 5))
+        
+        self.phpipam_page_entry = ctk.CTkEntry(
+            pagination_frame,
+            width=60,
+            height=32,
+            placeholder_text="Page"
+        )
+        self.phpipam_page_entry.pack(side="right", padx=(0, 5))
+        
+        jump_btn = ctk.CTkButton(
+            pagination_frame,
+            text="Go",
+            command=self._jump_to_page,
+            width=50,
+            height=32,
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
+        )
+        jump_btn.pack(side="right")
+    
+    def _prev_page(self):
+        """Go to previous page"""
+        if self.phpipam_current_page > 0:
+            self.phpipam_current_page -= 1
+            # Clear and recreate
+            for widget in self.phpipam_results_frame.winfo_children():
+                if widget != self.phpipam_results_frame.winfo_children()[0]:  # Keep title
+                    widget.destroy()
+            
+            # Recreate display
+            self._display_phpipam_page()
+            self._create_pagination_controls()
+    
+    def _next_page(self):
+        """Go to next page"""
+        total_pages = (len(self.phpipam_current_results) + self.phpipam_items_per_page - 1) // self.phpipam_items_per_page
+        if self.phpipam_current_page < total_pages - 1:
+            self.phpipam_current_page += 1
+            # Clear and recreate
+            for widget in self.phpipam_results_frame.winfo_children():
+                if widget != self.phpipam_results_frame.winfo_children()[0]:  # Keep title
+                    widget.destroy()
+            
+            # Recreate display
+            self._display_phpipam_page()
+            self._create_pagination_controls()
+    
+    def _jump_to_page(self):
+        """Jump to specific page"""
+        try:
+            page_num = int(self.phpipam_page_entry.get())
+            total_pages = (len(self.phpipam_current_results) + self.phpipam_items_per_page - 1) // self.phpipam_items_per_page
+            
+            if 1 <= page_num <= total_pages:
+                self.phpipam_current_page = page_num - 1
+                # Clear and recreate
+                for widget in self.phpipam_results_frame.winfo_children():
+                    if widget != self.phpipam_results_frame.winfo_children()[0]:  # Keep title
+                        widget.destroy()
+                
+                # Recreate display
+                self._display_phpipam_page()
+                self._create_pagination_controls()
+            else:
+                messagebox.showwarning("Invalid Page", f"Please enter a page number between 1 and {total_pages}")
+        except ValueError:
+            messagebox.showwarning("Invalid Input", "Please enter a valid page number")
+    
     def _create_ip_card(self, parent, ip_data):
         """Create formatted card for IP address display"""
         # IP address
