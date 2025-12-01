@@ -987,27 +987,33 @@ class NetToolsApp(ctk.CTk):
         
         self.show_all_btn = ctk.CTkButton(
             options_frame,
-            text="Show All Addresses",
+            text="👁 Show All Addresses",
             command=self.show_all_addresses,
-            width=160
+            width=180,
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
         )
         self.show_all_btn.pack(side="left", padx=(10, 15), pady=15)
         
         self.export_btn = ctk.CTkButton(
             options_frame,
-            text="Export as CSV (Ctrl+E)",
+            text="📤 Export Results (Ctrl+E)",
             command=self.export_csv,
-            width=200,
-            state="disabled"
+            width=220,
+            state="disabled",
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
         )
         self.export_btn.pack(side="right", padx=15, pady=15)
         
         self.compare_btn = ctk.CTkButton(
             options_frame,
-            text="Compare Scans",
+            text="📊 Compare Scans",
             command=self.show_scan_comparison,
-            width=160,
-            state="disabled"
+            width=170,
+            state="disabled",
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
         )
         self.compare_btn.pack(side="right", padx=(0, 10), pady=15)
         
