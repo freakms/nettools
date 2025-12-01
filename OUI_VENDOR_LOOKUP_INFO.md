@@ -71,9 +71,11 @@ Output: 🏢 Vendor: Unknown
 ## Technical Details
 
 - **Database format**: JSON file with OUI-to-vendor mappings
+- **Database size**: 1,177 entries (~180KB)
 - **Lookup speed**: Instant (hash-based lookup)
-- **Memory footprint**: ~150KB for the OUI database
+- **Memory footprint**: Minimal (~200KB in memory)
 - **Compatibility**: Works with all MAC address formats
+- **Last updated**: v1.2.1 (November 2024)
 
 ## Future Enhancements
 
