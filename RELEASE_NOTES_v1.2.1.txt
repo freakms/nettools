@@ -1,0 +1,217 @@
+═══════════════════════════════════════════════════════════════════════════════
+  NetTools Suite v1.2.1 - Release Notes
+═══════════════════════════════════════════════════════════════════════════════
+
+📅 Release Date: November 2024
+👤 Author: Malte Schad
+🏷️ Version: 1.2.1
+📦 Type: Feature Enhancement + UX Improvement
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHAT'S NEW
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ ENHANCED OUI VENDOR DATABASE (25% Larger!)
+
+   Previous: 940 vendors
+   Now:      1,177 vendors (+237 more!)
+   
+   📡 NEW Network Equipment Vendors:
+   ├─ Dell Inc.              (29 OUI prefixes)
+   ├─ Hewlett Packard        (87 OUI prefixes)
+   ├─ Palo Alto Networks     (24 OUI prefixes)
+   ├─ Sophos                 (10 OUI prefixes)
+   ├─ Extreme Networks       (13 OUI prefixes)
+   ├─ Aruba Networks         (22 OUI prefixes)
+   ├─ Huawei Technologies    (103 additional OUI prefixes)
+   └─ Juniper Networks       (53 OUI prefixes)
+
+   🎯 Impact:
+   • Recognize enterprise firewalls (Palo Alto, Sophos)
+   • Identify network switches (Extreme, Aruba, Juniper)
+   • Detect servers and workstations (Dell, HP)
+   • Professional-grade network auditing
+
+🎯 IMPROVED SCAN RESULTS DISPLAY
+
+   Default Behavior (NEW!):
+   ✓ "Show only responding hosts" is now PRE-SELECTED
+   ✓ Scan results show online hosts immediately
+   ✓ Cleaner view for large network scans
+   
+   New "Show All Addresses" Button:
+   • One-click to view all scanned addresses
+   • Toggle between focused and full view
+   • Better workflow for common tasks
+
+═══════════════════════════════════════════════════════════════════════════════
+  BENEFITS
+═══════════════════════════════════════════════════════════════════════════════
+
+For Network Administrators:
+  ✓ Instantly identify switches, routers, firewalls by MAC
+  ✓ Cleaner scan results (only online hosts by default)
+  ✓ Professional vendor identification
+  ✓ Faster troubleshooting workflows
+
+For Security Teams:
+  ✓ Spot unauthorized devices (recognize vendors)
+  ✓ Audit network equipment efficiently
+  ✓ Quick security assessments
+
+For IT Support:
+  ✓ Identify problematic devices faster
+  ✓ Less clutter in large network scans
+  ✓ Professional device cataloging
+
+═══════════════════════════════════════════════════════════════════════════════
+  TESTING VERIFIED
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ OUI lookups for all new vendors (Dell, HP, Palo Alto, Sophos, etc.)
+✅ Default checkbox state (pre-selected on startup)
+✅ "Show All Addresses" button functionality
+✅ Filter toggle behavior
+✅ No regressions in existing features (scanning, comparison, export)
+✅ Database integrity (1,177 entries loaded correctly)
+
+═══════════════════════════════════════════════════════════════════════════════
+  UPGRADE INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+Option 1: Test Without Building (Fastest)
+─────────────────────────────────────────
+cd /app
+python nettools_app.py
+
+Option 2: Build New Executable
+─────────────────────────────────────────
+python build_exe.py           # Single file (slower startup)
+  or
+python build_exe_fast.py      # Directory-based (faster startup)
+  or
+build_fast_simple.bat         # Simplest option
+
+🔒 Your Data is Safe!
+─────────────────────────────────────────
+• Scan history: Preserved
+• MAC history: Preserved
+• Saved scans: Preserved
+• All settings: Intact
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK TEST GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+Test 1: Vendor Lookup
+─────────────────────────────────────────
+1. Open MAC Formatter tab
+2. Enter: 00:1B:17:AA:BB:CC
+3. Expected: 🏢 Vendor: Palo Alto Networks ✓
+
+Test 2: Default Filter
+─────────────────────────────────────────
+1. Open IPv4 Scanner tab
+2. Check: "Show only responding hosts" should be CHECKED ✓
+3. Run a scan
+4. Only online hosts appear ✓
+5. Click "Show All Addresses"
+6. All hosts (online + offline) appear ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+  VERSION COMPARISON
+═══════════════════════════════════════════════════════════════════════════════
+
+Feature                    v1.2.0         v1.2.1
+────────────────────────────────────────────────────────────────────────────
+OUI Database Size          940            1,177 (+25%)
+Network Equipment          Partial        ✅ Full Coverage
+Dell Devices               No             ✅ Yes (29 OUIs)
+HP Devices                 Limited        ✅ Yes (87 OUIs)
+Palo Alto / Sophos         No             ✅ Yes
+Extreme / Aruba            No             ✅ Yes
+Juniper                    No             ✅ Yes (53 OUIs)
+Default Filter             Unchecked      ✅ Pre-selected
+Show All Button            No             ✅ Yes
+
+═══════════════════════════════════════════════════════════════════════════════
+  EXAMPLE USAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+Scenario: Network Audit
+─────────────────────────────────────────
+Task: Find all network equipment on 192.168.1.0/24
+
+1. Scan: 192.168.1.0/24
+2. Results show only online hosts (default) ✓
+3. 12 devices found:
+   • 192.168.1.1   → Router
+   • 192.168.1.10  → Server
+   • 192.168.1.50  → Firewall
+   ...
+
+4. View MAC addresses to identify vendors:
+   • 00:1B:17:xx:xx:xx → Palo Alto Networks (Firewall) ✓
+   • 00:14:22:xx:xx:xx → Dell Inc. (Server) ✓
+   • 00:E0:2B:xx:xx:xx → Extreme Networks (Switch) ✓
+
+5. Click "Show All Addresses" to see full network map
+6. Export results for documentation
+
+═══════════════════════════════════════════════════════════════════════════════
+  FILES CHANGED
+═══════════════════════════════════════════════════════════════════════════════
+
+Modified:
+  • nettools_app.py                 (v1.2.1, checkbox default + button)
+  • oui_database.json               (1,177 entries, +341 new)
+  • version_info.txt                (updated to 1.2.1)
+
+Created:
+  • CHANGELOG_v1.2.1.md             (This release notes)
+  • WHATS_NEW_v1.2.1.md             (User-friendly guide)
+  • RELEASE_NOTES_v1.2.1.txt        (This file)
+
+Updated:
+  • OUI_VENDOR_LOOKUP_INFO.md       (Updated vendor counts)
+
+═══════════════════════════════════════════════════════════════════════════════
+  ROADMAP (What's Coming Next)
+═══════════════════════════════════════════════════════════════════════════════
+
+v1.3.0 Preview:
+  • Design improvements (icons, hover effects)
+  • Performance optimizations (faster scanning)
+  • Additional tools (Port Scanner, DNS Lookup)
+
+v1.4.0 Preview:
+  • Network Profile Manager (switch configs with one click)
+  • phpIPAM integration (enterprise IPAM)
+
+See FEATURE_IMPLEMENTATION_PLAN.md for full roadmap.
+
+═══════════════════════════════════════════════════════════════════════════════
+  SUPPORT & DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 Documentation Files:
+  • WHATS_NEW_v1.2.1.md             - Quick overview of changes
+  • CHANGELOG_v1.2.1.md             - Detailed changelog
+  • OUI_VENDOR_LOOKUP_INFO.md       - Vendor lookup guide
+  • SCAN_COMPARISON_GUIDE.md        - Scan comparison guide
+  • TESTING_GUIDE_v1.2.md           - Complete testing procedures
+  • FEATURE_IMPLEMENTATION_PLAN.md  - Full roadmap
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎉 Thank you for using NetTools Suite!
+
+This release brings professional-grade network equipment identification and
+a smoother scanning experience. Perfect for network administrators, security
+professionals, and IT support teams.
+
+Questions? Check the documentation files or review the feature plan.
+
+═══════════════════════════════════════════════════════════════════════════════
+  END OF RELEASE NOTES
+═══════════════════════════════════════════════════════════════════════════════
