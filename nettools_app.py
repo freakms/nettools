@@ -4540,29 +4540,56 @@ class NetToolsApp(ctk.CTk):
                 else:
                     cmd = ["pathping", "-h", str(max_hops), target]
                 
-                # Run command
-                result = self.run_subprocess(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=600  # 10 minute timeout
-                )
-                
-                if result.returncode == 0 or result.stdout:
-                    output = result.stdout
+                # Run command with explicit settings
+                if platform.system() == "Windows":
+                    # Windows - use CREATE_NO_WINDOW flag
+                    import subprocess
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=600,
+                        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+                        shell=False
+                    )
                 else:
-                    output = f"Error: {result.stderr}"
+                    # Non-Windows (shouldn't happen, but fallback)
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=600,
+                        shell=False
+                    )
+                
+                # Capture both stdout and stderr
+                output = ""
+                if result.stdout:
+                    output = result.stdout
+                if result.stderr and not result.stdout:
+                    output = f"Error Output:\n{result.stderr}"
+                elif result.stderr:
+                    output += f"\n\nError Messages:\n{result.stderr}"
+                
+                if not output:
+                    output = f"Command completed but produced no output.\nReturn code: {result.returncode}\nCommand: {' '.join(cmd)}"
                 
                 # Store results
                 self.trace_results_text = output
                 
                 # Update UI in main thread
-                self.after(0, self.display_traceroute_results, output, True)
+                success = bool(output and result.returncode in [0, 1])  # tracert returns 1 on some errors but still has output
+                self.after(0, self.display_traceroute_results, output, success)
                 
             except subprocess.TimeoutExpired:
-                self.after(0, self.display_traceroute_results, "Error: Command timeout (10 minutes exceeded)", False)
+                error_msg = f"Command timeout (10 minutes exceeded)\nCommand: {' '.join(cmd)}"
+                self.after(0, self.display_traceroute_results, error_msg, False)
+            except FileNotFoundError:
+                error_msg = f"Command not found: {cmd[0]}\nThis command may not be available on your system."
+                self.after(0, self.display_traceroute_results, error_msg, False)
             except Exception as e:
-                self.after(0, self.display_traceroute_results, f"Error: {str(e)}", False)
+                error_msg = f"Error executing command:\n{str(e)}\n\nCommand: {' '.join(cmd)}"
+                self.after(0, self.display_traceroute_results, error_msg, False)
         
         thread = threading.Thread(target=trace_thread, daemon=True)
         thread.start()
