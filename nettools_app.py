@@ -1106,6 +1106,170 @@ class NetToolsApp(ctk.CTk):
             self.toggle_commands_btn.configure(text="Hide Switch Commands")
             self.commands_visible = True
     
+    def show_cidr_history(self):
+        """Show CIDR history dropdown"""
+        recent_cidrs = self.history.get_recent_cidrs()
+        
+        if not recent_cidrs:
+            messagebox.showinfo("History", "No recent scans in history.")
+            return
+        
+        # Create popup window
+        history_window = ctk.CTkToplevel(self)
+        history_window.title("Recent Scans")
+        history_window.geometry("400x350")
+        history_window.transient(self)
+        history_window.grab_set()
+        
+        # Center window
+        history_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - history_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - history_window.winfo_height()) // 2
+        history_window.geometry(f"+{x}+{y}")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            history_window,
+            text="Recent Scans (Click to use)",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Scrollable frame for history items
+        scroll_frame = ctk.CTkScrollableFrame(history_window)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        # Add each history item as a button
+        for cidr in recent_cidrs:
+            btn = ctk.CTkButton(
+                scroll_frame,
+                text=cidr,
+                command=lambda c=cidr: self.select_cidr_from_history(c, history_window),
+                height=35,
+                anchor="w"
+            )
+            btn.pack(fill="x", pady=3)
+        
+        # Bottom buttons
+        button_frame = ctk.CTkFrame(history_window, fg_color="transparent")
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        clear_btn = ctk.CTkButton(
+            button_frame,
+            text="Clear History",
+            command=lambda: self.clear_cidr_history(history_window),
+            fg_color="#dc3545",
+            hover_color="#c82333"
+        )
+        clear_btn.pack(side="left", padx=(0, 10))
+        
+        close_btn = ctk.CTkButton(
+            button_frame,
+            text="Close",
+            command=history_window.destroy
+        )
+        close_btn.pack(side="left")
+    
+    def select_cidr_from_history(self, cidr, window):
+        """Select CIDR from history"""
+        self.cidr_entry.delete(0, 'end')
+        self.cidr_entry.insert(0, cidr)
+        self.update_host_count()
+        window.destroy()
+    
+    def clear_cidr_history(self, window):
+        """Clear CIDR history"""
+        result = messagebox.askyesno(
+            "Clear History",
+            "Are you sure you want to clear all scan history?"
+        )
+        if result:
+            self.history.clear_cidr_history()
+            window.destroy()
+            messagebox.showinfo("History", "Scan history cleared.")
+    
+    def show_mac_history(self):
+        """Show MAC history dropdown"""
+        recent_macs = self.history.get_recent_macs()
+        
+        if not recent_macs:
+            messagebox.showinfo("History", "No recent MAC addresses in history.")
+            return
+        
+        # Create popup window
+        history_window = ctk.CTkToplevel(self)
+        history_window.title("Recent MAC Addresses")
+        history_window.geometry("450x350")
+        history_window.transient(self)
+        history_window.grab_set()
+        
+        # Center window
+        history_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - history_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - history_window.winfo_height()) // 2
+        history_window.geometry(f"+{x}+{y}")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            history_window,
+            text="Recent MAC Addresses (Click to use)",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Scrollable frame for history items
+        scroll_frame = ctk.CTkScrollableFrame(history_window)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        # Add each history item as a button
+        for mac in recent_macs:
+            btn = ctk.CTkButton(
+                scroll_frame,
+                text=mac,
+                command=lambda m=mac: self.select_mac_from_history(m, history_window),
+                height=35,
+                anchor="w"
+            )
+            btn.pack(fill="x", pady=3)
+        
+        # Bottom buttons
+        button_frame = ctk.CTkFrame(history_window, fg_color="transparent")
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        clear_btn = ctk.CTkButton(
+            button_frame,
+            text="Clear History",
+            command=lambda: self.clear_mac_history(history_window),
+            fg_color="#dc3545",
+            hover_color="#c82333"
+        )
+        clear_btn.pack(side="left", padx=(0, 10))
+        
+        close_btn = ctk.CTkButton(
+            button_frame,
+            text="Close",
+            command=history_window.destroy
+        )
+        close_btn.pack(side="left")
+    
+    def select_mac_from_history(self, mac, window):
+        """Select MAC from history"""
+        self.mac_entry.delete(0, 'end')
+        self.mac_entry.insert(0, mac)
+        self.update_mac_formats()
+        window.destroy()
+    
+    def clear_mac_history(self, window):
+        """Clear MAC history"""
+        result = messagebox.askyesno(
+            "Clear History",
+            "Are you sure you want to clear all MAC history?"
+        )
+        if result:
+            self.history.clear_mac_history()
+            window.destroy()
+            messagebox.showinfo("History", "MAC history cleared.")
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.tabview.get() == "IPv4 Scanner":
