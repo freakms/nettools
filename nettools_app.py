@@ -2361,6 +2361,14 @@ class NetToolsApp(ctk.CTk):
         except:
             return False
     
+    def run_subprocess(self, cmd, **kwargs):
+        """Run subprocess without showing console window (fixes ghost CMD windows)"""
+        if platform.system() == "Windows":
+            # Add flag to hide console window on Windows
+            if 'creationflags' not in kwargs:
+                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        return subprocess.run(cmd, **kwargs)
+    
     def restart_as_admin(self):
         """Restart application with administrator privileges (Windows UAC)"""
         try:
