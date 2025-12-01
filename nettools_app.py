@@ -662,10 +662,10 @@ class NetToolsApp(ctk.CTk):
         self.subtitle_font_size = 12
         self.label_font_size = 12
         
-        # Create UI
+        # Create UI (order matters: status bar must be packed before main content)
         self.create_sidebar()
-        self.create_main_content()
         self.create_status_bar()
+        self.create_main_content()
         
         # Bind keyboard shortcuts
         self.bind('<Return>', self.on_enter_key)
