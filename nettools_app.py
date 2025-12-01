@@ -4278,6 +4278,557 @@ class NetToolsApp(ctk.CTk):
         )
         close_btn.pack(side="right")
     
+    def create_phpipam_content(self, parent):
+        """Create phpIPAM integration page content"""
+        if not PHPIPAM_AVAILABLE:
+            # Show error if modules not available
+            error_frame = ctk.CTkFrame(parent)
+            error_frame.pack(fill="both", expand=True, padx=20, pady=20)
+            
+            error_label = ctk.CTkLabel(
+                error_frame,
+                text="⚠️ phpIPAM Integration Unavailable",
+                font=ctk.CTkFont(size=24, weight="bold")
+            )
+            error_label.pack(pady=(50, 10))
+            
+            msg_label = ctk.CTkLabel(
+                error_frame,
+                text="Required modules are missing. Please install:\n\npip install cryptography requests",
+                font=ctk.CTkFont(size=14)
+            )
+            msg_label.pack(pady=20)
+            return
+        
+        # Initialize phpIPAM config
+        self.phpipam_config = PHPIPAMConfig()
+        self.phpipam_client = None
+        
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="phpIPAM Integration",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Manage IP addresses with phpIPAM API",
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Status Section
+        status_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        status_frame.pack(fill="x", pady=(0, 15))
+        
+        status_title = ctk.CTkLabel(
+            status_frame,
+            text="Connection Status",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        status_title.pack(pady=(15, 5), padx=15, anchor="w")
+        
+        self.phpipam_status_label = ctk.CTkLabel(
+            status_frame,
+            text="⚪ Not configured" if not self.phpipam_config.is_enabled() else "🟢 Enabled",
+            font=ctk.CTkFont(size=12)
+        )
+        self.phpipam_status_label.pack(pady=(0, 15), padx=15, anchor="w")
+        
+        # Action buttons
+        button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(0, 15))
+        
+        settings_btn = ctk.CTkButton(
+            button_frame,
+            text="⚙️ Settings",
+            command=self.show_phpipam_settings,
+            width=140,
+            height=42,
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
+        )
+        settings_btn.pack(side="left", padx=(0, 10))
+        
+        test_btn = ctk.CTkButton(
+            button_frame,
+            text="🔌 Test Connection",
+            command=self.test_phpipam_connection,
+            width=180,
+            height=42,
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
+        )
+        test_btn.pack(side="left", padx=(0, 10))
+        
+        auth_btn = ctk.CTkButton(
+            button_frame,
+            text="🔑 Authenticate",
+            command=self.authenticate_phpipam,
+            width=160,
+            height=42,
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
+        )
+        auth_btn.pack(side="left")
+        
+        # Operations Section
+        ops_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        ops_frame.pack(fill="x", pady=(0, 15))
+        
+        ops_title = ctk.CTkLabel(
+            ops_frame,
+            text="Operations",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        ops_title.pack(pady=(15, 10), padx=15, anchor="w")
+        
+        # IP Search
+        search_frame = ctk.CTkFrame(ops_frame, fg_color="transparent")
+        search_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        search_label = ctk.CTkLabel(
+            search_frame,
+            text="Search IP Address:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        search_label.pack(anchor="w", pady=(0, 5))
+        
+        search_entry_frame = ctk.CTkFrame(search_frame, fg_color="transparent")
+        search_entry_frame.pack(fill="x")
+        
+        self.phpipam_search_entry = ctk.CTkEntry(
+            search_entry_frame,
+            placeholder_text="e.g., 192.168.1.10",
+            height=38,
+            font=ctk.CTkFont(size=13)
+        )
+        self.phpipam_search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        search_btn = ctk.CTkButton(
+            search_entry_frame,
+            text="🔍 Search",
+            command=self.search_phpipam_ip,
+            width=120,
+            height=38,
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
+        )
+        search_btn.pack(side="left")
+        
+        # View Subnets
+        subnet_btn_frame = ctk.CTkFrame(ops_frame, fg_color="transparent")
+        subnet_btn_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        view_subnets_btn = ctk.CTkButton(
+            subnet_btn_frame,
+            text="📋 View All Subnets",
+            command=self.view_phpipam_subnets,
+            width=200,
+            height=38,
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
+        )
+        view_subnets_btn.pack(side="left")
+        
+        # Results Section
+        results_title = ctk.CTkLabel(
+            scrollable,
+            text="Results",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        results_title.pack(pady=(10, 10), anchor="w")
+        
+        self.phpipam_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.phpipam_results_frame.pack(fill="both", expand=True)
+        
+        # Initial message
+        no_results_label = ctk.CTkLabel(
+            self.phpipam_results_frame,
+            text="No results yet. Configure settings and perform an operation.",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS["text_secondary"]
+        )
+        no_results_label.pack(pady=50)
+    
+    def show_phpipam_settings(self):
+        """Show phpIPAM settings dialog"""
+        if not PHPIPAM_AVAILABLE:
+            messagebox.showerror("Error", "phpIPAM modules not available")
+            return
+        
+        # Create settings dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("phpIPAM Settings")
+        dialog.geometry("600x700")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center window
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content
+        content = ctk.CTkScrollableFrame(dialog)
+        content.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            content,
+            text="phpIPAM Configuration",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(pady=(0, 20))
+        
+        # Enable/Disable
+        enabled_var = ctk.BooleanVar(value=self.phpipam_config.is_enabled())
+        enabled_check = ctk.CTkCheckBox(
+            content,
+            text="Enable phpIPAM Integration",
+            variable=enabled_var,
+            font=ctk.CTkFont(size=13, weight="bold")
+        )
+        enabled_check.pack(anchor="w", pady=(0, 20))
+        
+        # phpIPAM URL
+        url_label = ctk.CTkLabel(
+            content,
+            text="phpIPAM URL:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        url_label.pack(anchor="w", pady=(0, 5))
+        
+        url_entry = ctk.CTkEntry(
+            content,
+            placeholder_text="https://ipam.example.com",
+            height=38
+        )
+        url_entry.insert(0, self.phpipam_config.get_phpipam_url())
+        url_entry.pack(fill="x", pady=(0, 15))
+        
+        # App ID
+        appid_label = ctk.CTkLabel(
+            content,
+            text="App ID:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        appid_label.pack(anchor="w", pady=(0, 5))
+        
+        appid_entry = ctk.CTkEntry(
+            content,
+            placeholder_text="MyApplication",
+            height=38
+        )
+        appid_entry.insert(0, self.phpipam_config.get_app_id())
+        appid_entry.pack(fill="x", pady=(0, 15))
+        
+        # Authentication Method
+        auth_label = ctk.CTkLabel(
+            content,
+            text="Authentication Method:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        auth_label.pack(anchor="w", pady=(0, 5))
+        
+        auth_var = ctk.StringVar(value=self.phpipam_config.get_auth_method())
+        
+        dynamic_radio = ctk.CTkRadioButton(
+            content,
+            text="Dynamic (Username + Password)",
+            variable=auth_var,
+            value="dynamic"
+        )
+        dynamic_radio.pack(anchor="w", pady=2)
+        
+        static_radio = ctk.CTkRadioButton(
+            content,
+            text="Static Token",
+            variable=auth_var,
+            value="static"
+        )
+        static_radio.pack(anchor="w", pady=(2, 15))
+        
+        # Username (for dynamic)
+        username_label = ctk.CTkLabel(
+            content,
+            text="Username (Dynamic Auth):",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        username_label.pack(anchor="w", pady=(0, 5))
+        
+        username_entry = ctk.CTkEntry(
+            content,
+            placeholder_text="admin",
+            height=38
+        )
+        username_entry.insert(0, self.phpipam_config.get_username())
+        username_entry.pack(fill="x", pady=(0, 15))
+        
+        # Password (for dynamic)
+        password_label = ctk.CTkLabel(
+            content,
+            text="Password (Dynamic Auth):",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        password_label.pack(anchor="w", pady=(0, 5))
+        
+        password_entry = ctk.CTkEntry(
+            content,
+            placeholder_text="Enter password",
+            height=38,
+            show="*"
+        )
+        password_entry.pack(fill="x", pady=(0, 15))
+        
+        # Static Token
+        token_label = ctk.CTkLabel(
+            content,
+            text="Static Token (Static Auth):",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        token_label.pack(anchor="w", pady=(0, 5))
+        
+        token_entry = ctk.CTkEntry(
+            content,
+            placeholder_text="Enter static API token",
+            height=38,
+            show="*"
+        )
+        token_entry.pack(fill="x", pady=(0, 15))
+        
+        # SSL Verify
+        ssl_var = ctk.BooleanVar(value=self.phpipam_config.get_ssl_verify())
+        ssl_check = ctk.CTkCheckBox(
+            content,
+            text="Verify SSL Certificates",
+            variable=ssl_var
+        )
+        ssl_check.pack(anchor="w", pady=(0, 20))
+        
+        # Save function
+        def save_settings():
+            password = password_entry.get()
+            token = token_entry.get()
+            
+            # Don't overwrite if fields are empty (means user didn't change them)
+            if not password:
+                password = self.phpipam_config.get_password()
+            if not token:
+                token = self.phpipam_config.get_static_token()
+            
+            success = self.phpipam_config.update_config(
+                enabled=enabled_var.get(),
+                phpipam_url=url_entry.get(),
+                app_id=appid_entry.get(),
+                auth_method=auth_var.get(),
+                username=username_entry.get(),
+                password=password,
+                static_token=token,
+                ssl_verify=ssl_var.get()
+            )
+            
+            if success:
+                # Update status label
+                if self.phpipam_config.is_enabled():
+                    self.phpipam_status_label.configure(text="🟢 Enabled")
+                else:
+                    self.phpipam_status_label.configure(text="⚪ Disabled")
+                
+                # Reset client to force re-auth
+                self.phpipam_client = None
+                
+                dialog.destroy()
+                messagebox.showinfo("Success", "Settings saved successfully!")
+            else:
+                messagebox.showerror("Error", "Failed to save settings")
+        
+        # Buttons
+        button_frame = ctk.CTkFrame(content, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(20, 0))
+        
+        save_btn = ctk.CTkButton(
+            button_frame,
+            text="💾 Save",
+            command=save_settings,
+            width=120,
+            height=40,
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
+        )
+        save_btn.pack(side="right", padx=(10, 0))
+        
+        cancel_btn = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            width=100,
+            height=40
+        )
+        cancel_btn.pack(side="right")
+    
+    def test_phpipam_connection(self):
+        """Test connection to phpIPAM"""
+        if not PHPIPAM_AVAILABLE:
+            messagebox.showerror("Error", "phpIPAM modules not available")
+            return
+        
+        if not self.phpipam_config.is_enabled():
+            messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
+            return
+        
+        # Create client and test
+        client = PHPIPAMClient(self.phpipam_config)
+        success, message = client.test_connection()
+        
+        if success:
+            messagebox.showinfo("Success", f"✅ {message}")
+        else:
+            messagebox.showerror("Connection Failed", f"❌ {message}")
+    
+    def authenticate_phpipam(self):
+        """Authenticate with phpIPAM"""
+        if not PHPIPAM_AVAILABLE:
+            messagebox.showerror("Error", "phpIPAM modules not available")
+            return
+        
+        if not self.phpipam_config.is_enabled():
+            messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
+            return
+        
+        # Create/get client
+        if not self.phpipam_client:
+            self.phpipam_client = PHPIPAMClient(self.phpipam_config)
+        
+        success, message = self.phpipam_client.authenticate()
+        
+        if success:
+            messagebox.showinfo("Success", f"✅ {message}")
+        else:
+            messagebox.showerror("Authentication Failed", f"❌ {message}")
+    
+    def search_phpipam_ip(self):
+        """Search for IP address in phpIPAM"""
+        if not PHPIPAM_AVAILABLE:
+            messagebox.showerror("Error", "phpIPAM modules not available")
+            return
+        
+        if not self.phpipam_config.is_enabled():
+            messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
+            return
+        
+        ip_address = self.phpipam_search_entry.get().strip()
+        if not ip_address:
+            messagebox.showwarning("Input Required", "Please enter an IP address to search")
+            return
+        
+        # Create/get client
+        if not self.phpipam_client:
+            self.phpipam_client = PHPIPAMClient(self.phpipam_config)
+        
+        # Search
+        success, results = self.phpipam_client.search_ip(ip_address)
+        
+        # Display results
+        self.display_phpipam_results("IP Search Results", results, success)
+    
+    def view_phpipam_subnets(self):
+        """View all subnets from phpIPAM"""
+        if not PHPIPAM_AVAILABLE:
+            messagebox.showerror("Error", "phpIPAM modules not available")
+            return
+        
+        if not self.phpipam_config.is_enabled():
+            messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
+            return
+        
+        # Create/get client
+        if not self.phpipam_client:
+            self.phpipam_client = PHPIPAMClient(self.phpipam_config)
+        
+        # Get subnets
+        success, results = self.phpipam_client.get_all_subnets()
+        
+        # Display results
+        self.display_phpipam_results("All Subnets", results, success)
+    
+    def display_phpipam_results(self, title, data, success):
+        """Display phpIPAM operation results"""
+        # Clear existing results
+        for widget in self.phpipam_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Title
+        result_title = ctk.CTkLabel(
+            self.phpipam_results_frame,
+            text=title,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        result_title.pack(pady=(15, 10), padx=15, anchor="w")
+        
+        if not success:
+            error_label = ctk.CTkLabel(
+                self.phpipam_results_frame,
+                text=f"❌ Error: {data}",
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS["danger"]
+            )
+            error_label.pack(pady=20, padx=15)
+            return
+        
+        if not data:
+            no_data_label = ctk.CTkLabel(
+                self.phpipam_results_frame,
+                text="No results found",
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS["text_secondary"]
+            )
+            no_data_label.pack(pady=20, padx=15)
+            return
+        
+        # Scrollable results
+        results_scroll = ctk.CTkScrollableFrame(self.phpipam_results_frame, height=300)
+        results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # Display data
+        for item in data:
+            item_frame = ctk.CTkFrame(results_scroll, corner_radius=6)
+            item_frame.pack(fill="x", pady=3)
+            
+            # Format item data
+            item_text = ""
+            for key, value in item.items():
+                if value and key not in ["id", "subnetId", "sectionId"]:
+                    item_text += f"{key}: {value}\n"
+            
+            if not item_text:
+                item_text = json.dumps(item, indent=2)
+            
+            item_label = ctk.CTkLabel(
+                item_frame,
+                text=item_text.strip(),
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                justify="left"
+            )
+            item_label.pack(pady=8, padx=10, anchor="w")
+        
+        # Count label
+        count_label = ctk.CTkLabel(
+            self.phpipam_results_frame,
+            text=f"Found {len(data)} result(s)",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS["text_secondary"]
+        )
+        count_label.pack(pady=(0, 10), padx=15, anchor="w")
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.current_page == "scanner":
