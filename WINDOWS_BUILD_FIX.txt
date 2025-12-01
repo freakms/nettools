@@ -1,0 +1,268 @@
+═══════════════════════════════════════════════════════════════════════════════
+  ⚠️ SEEING OLD DESIGN AFTER REBUILD? HERE'S THE FIX! ⚠️
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEM: You rebuilt on Windows but still see the old tabbed interface instead
+         of the new modern sidebar.
+
+CAUSE: Windows caches build files, and old .spec files or build artifacts can
+       cause PyInstaller to build an old version.
+
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUTION: CLEAN REBUILD
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Close Everything
+─────────────────────────────────────────────────────────────────────────────
+• Close ALL instances of NetTools app
+• Close any Command Prompt windows that were building
+• Make sure NO NetToolsSuite.exe is running (check Task Manager)
+
+STEP 2: Delete Old Build Files
+─────────────────────────────────────────────────────────────────────────────
+Manually delete these folders/files if they exist:
+  • build\          (entire folder)
+  • dist\           (entire folder)
+  • *.spec          (any .spec files)
+  • __pycache__\    (Python cache folders)
+
+Or use this command in Command Prompt:
+  cd C:\path\to\your\app
+  rmdir /s /q build dist
+  del /q *.spec
+
+STEP 3: Use the Clean Rebuild Script
+─────────────────────────────────────────────────────────────────────────────
+We created a special script that does EVERYTHING automatically:
+
+  Double-click: rebuild_clean.bat
+
+This script will:
+  ✓ Delete all old builds
+  ✓ Clear Python cache
+  ✓ Verify critical files (including oui_database.json)
+  ✓ Build completely fresh
+  ✓ Take 2-5 minutes
+
+STEP 4: Run the NEW Executable
+─────────────────────────────────────────────────────────────────────────────
+After rebuild, run:
+  dist\NetToolsSuite\NetToolsSuite.exe
+
+NOT any old shortcuts or copies!
+
+═══════════════════════════════════════════════════════════════════════════════
+  HOW TO VERIFY YOU HAVE THE NEW VERSION
+═══════════════════════════════════════════════════════════════════════════════
+
+NEW VERSION (v1.3.0) - Modern Sidebar:
+───────────────────────────────────────────────────────────────────────────────
+┌──────────┬─────────────────────────────────────┐
+│NetTools  │  IPv4 Scanner Page                  │
+│          │                                     │
+│🔍 IPv4   │                                     │
+│  Scanner │                                     │
+│🏷️ MAC    │        Content Area                 │
+│  Format  │                                     │
+│📊 Scan   │                                     │
+│  Compare │                                     │
+│          │                                     │
+│  Theme   │                                     │
+│ [Dark ▼] │                                     │
+└──────────┴─────────────────────────────────────┘
+      ↑
+  Sidebar on LEFT
+
+Visual checks:
+  ✓ "NetTools" at top (not "NetTools Suite")
+  ✓ "Professional Suite" subtitle
+  ✓ Navigation buttons on LEFT side
+  ✓ Emoji icons: 🔍 🏷️ 📊
+  ✓ Theme selector at BOTTOM of sidebar
+  ✓ NO tabs at the top
+
+OLD VERSION (v1.2.1) - Tabbed Interface:
+───────────────────────────────────────────────────────────────────────────────
+┌─────────────────────────────────────────────────┐
+│ NetTools Suite              Theme: [Dark ▼]    │
+│ IPv4 Scanner & MAC Formatter                    │
+├─────────────────────────────────────────────────┤
+│ [IPv4 Scanner] [MAC Formatter]  ← Tabs         │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│            Content Here                         │
+│                                                 │
+└─────────────────────────────────────────────────┘
+
+Visual checks:
+  ✗ "NetTools Suite" header
+  ✗ Tabs at the TOP
+  ✗ Theme selector in TOP-RIGHT
+  ✗ "IPv4 Scanner & MAC Formatter" subtitle
+
+═══════════════════════════════════════════════════════════════════════════════
+  ALTERNATIVE: Test Python Script Directly
+═══════════════════════════════════════════════════════════════════════════════
+
+Before rebuilding, verify the source code has the new design:
+
+  python nettools_app.py
+
+If Python script shows NEW design → Source code is correct, just need clean rebuild
+If Python script shows OLD design → Something went wrong, contact support
+
+═══════════════════════════════════════════════════════════════════════════════
+  COMMON ISSUES & SOLUTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+Issue 1: "Still seeing old design after clean rebuild"
+─────────────────────────────────────────────────────────────────────────────
+Cause:   Running an old copy of the .exe (desktop shortcut, etc.)
+Solution:
+  1. Delete ALL old copies of NetToolsSuite.exe
+  2. Delete desktop shortcuts
+  3. Run ONLY: dist\NetToolsSuite\NetToolsSuite.exe
+  4. Create NEW shortcut if needed
+
+Issue 2: "Build script fails"
+─────────────────────────────────────────────────────────────────────────────
+Cause:   Missing dependencies or PyInstaller issues
+Solution:
+  1. Update PyInstaller: pip install --upgrade pyinstaller
+  2. Reinstall dependencies: pip install -r requirements.txt
+  3. Try as Administrator: Right-click rebuild_clean.bat → Run as Administrator
+
+Issue 3: "Python script shows new design, but .exe shows old"
+─────────────────────────────────────────────────────────────────────────────
+Cause:   PyInstaller cached old build or .spec file has old config
+Solution:
+  1. Delete NetToolsSuite.spec file
+  2. Delete build\ and dist\ folders
+  3. Run: rebuild_clean.bat
+  4. This forces PyInstaller to rebuild from scratch
+
+Issue 4: "Antivirus blocking build"
+─────────────────────────────────────────────────────────────────────────────
+Cause:   Windows Defender or antivirus sees PyInstaller as suspicious
+Solution:
+  1. Temporarily disable antivirus
+  2. Run rebuild_clean.bat
+  3. Add exception for your app folder
+  4. Re-enable antivirus
+
+Issue 5: "'pyinstaller' is not recognized"
+─────────────────────────────────────────────────────────────────────────────
+Cause:   PyInstaller not installed or not in PATH
+Solution:
+  pip install pyinstaller
+  Then run rebuild again
+
+═══════════════════════════════════════════════════════════════════════════════
+  STEP-BY-STEP: GUARANTEED CLEAN BUILD
+═══════════════════════════════════════════════════════════════════════════════
+
+Follow these exact steps:
+
+1. Open Command Prompt in your app folder
+   (Shift + Right-click in folder → "Open PowerShell window here"
+    or "Open command window here")
+
+2. Run these commands ONE BY ONE:
+
+   REM Close any running instances
+   taskkill /f /im NetToolsSuite.exe 2>nul
+
+   REM Delete old builds
+   rmdir /s /q build
+   rmdir /s /q dist
+   del /q *.spec
+
+   REM Clean Python cache
+   for /d /r . %d in (__pycache__) do @if exist "%d" rmdir /s /q "%d"
+
+   REM Verify files
+   dir nettools_app.py
+   dir oui_database.json
+   dir build_exe_fast.py
+
+   REM Rebuild
+   python build_exe_fast.py
+
+3. After build completes (2-5 minutes), run:
+   dist\NetToolsSuite\NetToolsSuite.exe
+
+4. Verify NEW design:
+   • Sidebar on left?
+   • "NetTools" (not "NetTools Suite")?
+   • Navigation buttons (not tabs)?
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK COMMANDS REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Clean rebuild (RECOMMENDED):
+  rebuild_clean.bat
+
+Manual clean rebuild:
+  rmdir /s /q build dist && del /q *.spec && python build_exe_fast.py
+
+Test Python source:
+  python nettools_app.py
+
+Check version:
+  python check_version.py
+
+Fast rebuild (if you're sure cache is clean):
+  python build_exe_fast.py
+
+Single-file build (slower startup):
+  python build_exe.py
+
+═══════════════════════════════════════════════════════════════════════════════
+  FILES CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+Before building, verify these files exist:
+  ✓ nettools_app.py               (Main application - v1.3.0)
+  ✓ oui_database.json             (Vendor database - 1,177 entries)
+  ✓ build_exe_fast.py             (Build script with --add-data)
+  ✓ version_info.txt              (Version 1.3.0)
+  ✓ requirements.txt              (Dependencies)
+  ✓ rebuild_clean.bat             (Clean rebuild script)
+
+These scripts have been UPDATED for v1.3.0:
+  ✓ build_exe.py                  (Added --add-data argument)
+  ✓ build_exe_fast.py             (Added --add-data argument)
+  ✓ build_fast_simple.bat         (Added --add-data argument)
+  ✓ nettools_app.py               (Complete UI redesign)
+
+═══════════════════════════════════════════════════════════════════════════════
+  STILL NOT WORKING?
+═══════════════════════════════════════════════════════════════════════════════
+
+If you've tried everything above and still see the old design:
+
+1. Verify source code version:
+   python check_version.py
+
+2. Test Python script to confirm source is correct:
+   python nettools_app.py
+   
+   If this shows NEW design → Problem is with .exe build
+   If this shows OLD design → Source code wasn't updated
+
+3. Check file dates:
+   • nettools_app.py should be RECENT (today's date)
+   • If it's old, the file wasn't updated properly
+
+4. Last resort - Manual verification:
+   Open nettools_app.py in text editor
+   Search for "create_sidebar"
+   If found → New version ✓
+   If not found → Old version, file wasn't updated
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 BOTTOM LINE: Use rebuild_clean.bat - it does EVERYTHING automatically!
+
+═══════════════════════════════════════════════════════════════════════════════
