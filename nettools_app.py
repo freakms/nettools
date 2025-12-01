@@ -781,6 +781,10 @@ class NetToolsApp(ctk.CTk):
         self.pages["compare"] = ctk.CTkFrame(self.main_content, corner_radius=0)
         self.create_comparison_content(self.pages["compare"])
         
+        # Create network profiles page
+        self.pages["profiles"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_profiles_content(self.pages["profiles"])
+        
         # Show the initial page (scanner)
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     
