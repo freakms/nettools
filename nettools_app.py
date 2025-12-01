@@ -820,6 +820,8 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Compare network scans")
         elif page_id == "profiles":
             self.status_label.configure(text="Manage network interface profiles")
+        elif page_id == "portscan":
+            self.status_label.configure(text="Scan for open ports on target hosts")
     
     def create_main_content(self):
         """Create main content area with pages"""
