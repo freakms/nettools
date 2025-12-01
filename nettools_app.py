@@ -1258,6 +1258,96 @@ class NetToolsApp(ctk.CTk):
         )
         copyright_label.pack(side="right", padx=15, pady=5)
     
+    def is_admin(self):
+        """Check if running with administrator privileges"""
+        try:
+            if platform.system() == "Windows":
+                import ctypes
+                return ctypes.windll.shell32.IsUserAnAdmin() != 0
+            return os.geteuid() == 0
+        except:
+            return False
+    
+    def get_network_interfaces(self):
+        """Get list of network interfaces (Windows)"""
+        try:
+            result = subprocess.run(
+                ["netsh", "interface", "ipv4", "show", "interfaces"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            interfaces = []
+            lines = result.stdout.split('\n')[3:]  # Skip header lines
+            
+            for line in lines:
+                if line.strip():
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        idx = parts[0]
+                        status = parts[2]
+                        name = ' '.join(parts[3:])
+                        interfaces.append({
+                            "index": idx,
+                            "name": name,
+                            "status": status
+                        })
+            
+            return interfaces
+        except Exception as e:
+            print(f"Error getting interfaces: {e}")
+            return []
+    
+    def get_interface_config(self, interface_name):
+        """Get current IP configuration for an interface"""
+        try:
+            result = subprocess.run(
+                ["netsh", "interface", "ipv4", "show", "config", interface_name],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            config = {
+                "dhcp": False,
+                "ip": None,
+                "subnet": None,
+                "gateway": None,
+                "dns": []
+            }
+            
+            lines = result.stdout.split('\n')
+            for i, line in enumerate(lines):
+                if "DHCP enabled" in line and "Yes" in line:
+                    config["dhcp"] = True
+                elif "IP Address:" in line and i + 1 < len(lines):
+                    config["ip"] = lines[i + 1].strip()
+                elif "Subnet Prefix:" in line and i + 1 < len(lines):
+                    subnet_line = lines[i + 1].strip()
+                    config["subnet"] = subnet_line.split('/')[0] if '/' in subnet_line else subnet_line
+                elif "Default Gateway:" in line and i + 1 < len(lines):
+                    config["gateway"] = lines[i + 1].strip()
+                elif "DNS servers configured through DHCP:" in line:
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip() and not lines[j].startswith('Configuration'):
+                        dns = lines[j].strip()
+                        if dns:
+                            config["dns"].append(dns)
+                        j += 1
+                elif "Statically Configured DNS Servers:" in line:
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip() and not lines[j].startswith('Configuration'):
+                        dns = lines[j].strip()
+                        if dns:
+                            config["dns"].append(dns)
+                        j += 1
+            
+            return config
+        except Exception as e:
+            print(f"Error getting interface config: {e}")
+            return None
+    
     def change_theme(self, theme):
         """Change application theme"""
         ctk.set_appearance_mode(theme)
