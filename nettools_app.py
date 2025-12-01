@@ -289,9 +289,15 @@ class NetToolsApp(ctk.CTk):
         self.scan_thread = None
         
         # Base window size for scaling calculations
-        self.base_width = 1100
-        self.base_height = 820
+        self.base_width = 1200
+        self.base_height = 900
         self.current_scale = 1.0
+        
+        # Store font references for scaling
+        self.base_font_size = 11
+        self.title_font_size = 24
+        self.subtitle_font_size = 12
+        self.label_font_size = 12
         
         # Create UI
         self.create_header()
