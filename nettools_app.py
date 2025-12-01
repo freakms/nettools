@@ -2432,7 +2432,7 @@ class NetToolsApp(ctk.CTk):
     def get_interface_config(self, interface_name):
         """Get current IP configuration for an interface"""
         try:
-            result = subprocess.run(
+            result = self.run_subprocess(
                 ["netsh", "interface", "ipv4", "show", "config", interface_name],
                 capture_output=True,
                 text=True,
