@@ -1,3 +1,11 @@
+Pre-Word:
+I am not a developer, but I made this App to optimize and pimp my daily business.
+So i do not want to get this Commercial, but it would be glad to get some back for emergent coins ;)
+
+This App was developed also with emergent.sh
+
+https://www.paypal.com/donate/?hosted_button_id=PBAARPBKPNG86
+
 # NetTools Suite
 
 **Version:** 1.0.0  
