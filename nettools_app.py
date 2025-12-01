@@ -459,6 +459,34 @@ class NetToolsApp(ctk.CTk):
         
         # Bind window resize for auto-scaling
         self.bind('<Configure>', self.on_window_resize)
+    
+    def load_oui_database(self):
+        """Load OUI database from JSON file"""
+        try:
+            oui_path = Path(__file__).parent / "oui_database.json"
+            if oui_path.exists():
+                with open(oui_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Could not load OUI database: {e}")
+        return {}
+    
+    def lookup_vendor(self, mac_address):
+        """Lookup vendor from MAC address OUI"""
+        if not mac_address or len(mac_address) < 8:
+            return "Unknown"
+        
+        # Extract OUI (first 3 octets) and normalize format
+        # Handle different MAC formats
+        cleaned_mac = mac_address.replace(':', '').replace('-', '').replace('.', '').upper()
+        
+        if len(cleaned_mac) >= 6:
+            # Format as XX:XX:XX for lookup
+            oui = f"{cleaned_mac[0:2]}:{cleaned_mac[2:4]}:{cleaned_mac[4:6]}"
+            vendor = self.oui_database.get(oui, "Unknown Vendor")
+            return vendor
+        
+        return "Unknown"
         
     def create_header(self):
         """Create header with title and theme selector"""
