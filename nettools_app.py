@@ -1467,6 +1467,8 @@ class NetToolsApp(ctk.CTk):
         # Port scan state
         self.port_scan_running = False
         self.port_scan_cancelled = False
+        self.port_scan_results = []  # Store port scan results for export
+        self.port_scan_target = ""   # Store target for export
     
     def update_port_mode(self):
         """Update port input based on selected mode"""
