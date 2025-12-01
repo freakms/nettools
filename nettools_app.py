@@ -1983,6 +1983,274 @@ class NetToolsApp(ctk.CTk):
             window.destroy()
             messagebox.showinfo("History", "MAC history cleared.")
     
+    def refresh_profiles(self):
+        """Refresh the profiles list display"""
+        # Clear existing
+        for widget in self.profiles_frame.winfo_children():
+            widget.destroy()
+        
+        profiles = self.profile_manager.profiles
+        
+        if not profiles:
+            no_profiles_label = ctk.CTkLabel(
+                self.profiles_frame,
+                text="No saved profiles. Create one to get started!",
+                font=ctk.CTkFont(size=12)
+            )
+            no_profiles_label.pack(pady=20)
+            return
+        
+        for profile in profiles:
+            self.create_profile_card(profile)
+    
+    def create_profile_card(self, profile):
+        """Create a card for a saved profile"""
+        card = ctk.CTkFrame(self.profiles_frame, corner_radius=8)
+        card.pack(fill="x", pady=5)
+        
+        content_frame = ctk.CTkFrame(card, fg_color="transparent")
+        content_frame.pack(fill="x", padx=15, pady=10)
+        
+        # Profile name
+        name_label = ctk.CTkLabel(
+            content_frame,
+            text=profile["name"],
+            font=ctk.CTkFont(size=14, weight="bold"),
+            anchor="w"
+        )
+        name_label.pack(side="left", fill="x", expand=True)
+        
+        # Apply button
+        apply_btn = ctk.CTkButton(
+            content_frame,
+            text="Apply Profile",
+            command=lambda p=profile: self.apply_profile(p),
+            width=120,
+            height=36,
+            fg_color=("#2196F3", "#1976D2")
+        )
+        apply_btn.pack(side="right", padx=(5, 0))
+        
+        # Delete button
+        delete_btn = ctk.CTkButton(
+            content_frame,
+            text="Delete",
+            command=lambda p=profile: self.delete_profile_confirm(p),
+            width=80,
+            height=36,
+            fg_color=("#F44336", "#D32F2F")
+        )
+        delete_btn.pack(side="right", padx=(5, 0))
+        
+        # Show interface count
+        interface_count = len(profile.get("interfaces", []))
+        count_label = ctk.CTkLabel(
+            card,
+            text=f"{interface_count} interface(s) configured",
+            font=ctk.CTkFont(size=11),
+            text_color=("gray60", "gray40")
+        )
+        count_label.pack(padx=15, pady=(0, 10), anchor="w")
+    
+    def set_dhcp(self, interface_name):
+        """Set interface to DHCP"""
+        if not self.is_admin():
+            messagebox.showerror("Admin Required", "Administrator privileges are required to change network settings.\n\nPlease run the application as Administrator.")
+            return
+        
+        try:
+            # Set DHCP for IP
+            subprocess.run(
+                ["netsh", "interface", "ipv4", "set", "address", interface_name, "dhcp"],
+                check=True,
+                timeout=10
+            )
+            
+            # Set DHCP for DNS
+            subprocess.run(
+                ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "dhcp"],
+                check=True,
+                timeout=10
+            )
+            
+            messagebox.showinfo("Success", f"Interface '{interface_name}' set to DHCP successfully!")
+            self.refresh_interfaces()
+            
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Failed to set DHCP:\n{str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+    
+    def show_static_ip_dialog(self, interface_name):
+        """Show dialog to configure static IP"""
+        # Get current config
+        current_config = self.get_interface_config(interface_name)
+        
+        # Create dialog window
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(f"Configure Static IP - {interface_name}")
+        dialog.geometry("500x450")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center window
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            dialog,
+            text=f"Static IP Configuration",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(pady=(20, 5))
+        
+        subtitle_label = ctk.CTkLabel(
+            dialog,
+            text=interface_name,
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Form frame
+        form_frame = ctk.CTkFrame(dialog)
+        form_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        # IP Address
+        ip_label = ctk.CTkLabel(form_frame, text="IP Address:", font=ctk.CTkFont(size=12, weight="bold"))
+        ip_label.pack(pady=(15, 5), anchor="w", padx=15)
+        
+        ip_entry = ctk.CTkEntry(form_frame, placeholder_text="e.g., 192.168.1.100", height=40)
+        ip_entry.pack(fill="x", padx=15)
+        if current_config and current_config["ip"]:
+            ip_entry.insert(0, current_config["ip"])
+        
+        # Subnet Mask
+        subnet_label = ctk.CTkLabel(form_frame, text="Subnet Mask:", font=ctk.CTkFont(size=12, weight="bold"))
+        subnet_label.pack(pady=(15, 5), anchor="w", padx=15)
+        
+        subnet_entry = ctk.CTkEntry(form_frame, placeholder_text="e.g., 255.255.255.0", height=40)
+        subnet_entry.pack(fill="x", padx=15)
+        if current_config and current_config["subnet"]:
+            subnet_entry.insert(0, current_config["subnet"])
+        else:
+            subnet_entry.insert(0, "255.255.255.0")
+        
+        # Default Gateway
+        gateway_label = ctk.CTkLabel(form_frame, text="Default Gateway:", font=ctk.CTkFont(size=12, weight="bold"))
+        gateway_label.pack(pady=(15, 5), anchor="w", padx=15)
+        
+        gateway_entry = ctk.CTkEntry(form_frame, placeholder_text="e.g., 192.168.1.1", height=40)
+        gateway_entry.pack(fill="x", padx=15)
+        if current_config and current_config["gateway"]:
+            gateway_entry.insert(0, current_config["gateway"])
+        
+        # DNS Server (Primary)
+        dns_label = ctk.CTkLabel(form_frame, text="Primary DNS:", font=ctk.CTkFont(size=12, weight="bold"))
+        dns_label.pack(pady=(15, 5), anchor="w", padx=15)
+        
+        dns_entry = ctk.CTkEntry(form_frame, placeholder_text="e.g., 8.8.8.8 (optional)", height=40)
+        dns_entry.pack(fill="x", padx=15, pady=(0, 15))
+        if current_config and current_config["dns"] and len(current_config["dns"]) > 0:
+            dns_entry.insert(0, current_config["dns"][0])
+        
+        # Buttons
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        def apply_static():
+            ip = ip_entry.get().strip()
+            subnet = subnet_entry.get().strip()
+            gateway = gateway_entry.get().strip()
+            dns = dns_entry.get().strip()
+            
+            if not ip:
+                messagebox.showwarning("Invalid Input", "IP Address is required")
+                return
+            
+            if not subnet:
+                messagebox.showwarning("Invalid Input", "Subnet Mask is required")
+                return
+            
+            self.set_static_ip(interface_name, ip, subnet, gateway, dns)
+            dialog.destroy()
+        
+        apply_btn = ctk.CTkButton(
+            button_frame,
+            text="Apply",
+            command=apply_static,
+            width=120,
+            height=40,
+            fg_color=("#4CAF50", "#388E3C")
+        )
+        apply_btn.pack(side="left", padx=(0, 10))
+        
+        cancel_btn = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            width=120,
+            height=40
+        )
+        cancel_btn.pack(side="left")
+    
+    def set_static_ip(self, interface_name, ip, subnet, gateway, dns):
+        """Set static IP configuration"""
+        if not self.is_admin():
+            messagebox.showerror("Admin Required", "Administrator privileges are required.")
+            return
+        
+        try:
+            # Build command
+            if gateway:
+                cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet, gateway]
+            else:
+                cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet]
+            
+            subprocess.run(cmd, check=True, timeout=10)
+            
+            # Set DNS if provided
+            if dns:
+                subprocess.run(
+                    ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "static", dns, "primary"],
+                    check=True,
+                    timeout=10
+                )
+            
+            messagebox.showinfo("Success", f"Static IP configured successfully!\n\nIP: {ip}\nSubnet: {subnet}")
+            self.refresh_interfaces()
+            
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Failed to set static IP:\n{str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+    
+    def create_new_profile(self):
+        """Show dialog to create a new profile"""
+        messagebox.showinfo("Coming Soon", "Profile creation dialog will be implemented in the next iteration.\n\nFor now, you can manually configure interfaces using the quick actions above.")
+    
+    def apply_profile(self, profile):
+        """Apply a saved profile"""
+        if not self.is_admin():
+            messagebox.showerror("Admin Required", "Administrator privileges are required to apply profiles.")
+            return
+        
+        messagebox.showinfo("Coming Soon", "Profile application will be implemented in the next iteration.")
+    
+    def delete_profile_confirm(self, profile):
+        """Confirm and delete a profile"""
+        result = messagebox.askyesno(
+            "Delete Profile",
+            f"Are you sure you want to delete the profile '{profile['name']}'?\n\nThis cannot be undone."
+        )
+        
+        if result:
+            self.profile_manager.delete_profile(profile["id"])
+            self.refresh_profiles()
+            messagebox.showinfo("Success", f"Profile '{profile['name']}' deleted successfully.")
+    
     def show_scan_comparison(self):
         """Show scan comparison window"""
         scans = self.scan_manager.get_scans()
