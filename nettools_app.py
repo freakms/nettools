@@ -44,7 +44,7 @@ except ImportError:
 
 # Application metadata
 APP_NAME = "NetTools Suite"
-APP_VERSION = "1.9.0"
+APP_VERSION = "1.10.0"
 APP_COMPANY = "Malte Schad"
 
 # Color Palette - Consistent Design System
