@@ -1136,6 +1136,11 @@ class NetToolsApp(ctk.CTk):
             else:
                 row.pack(fill="x", padx=2, pady=1)
     
+    def show_all_addresses(self):
+        """Show all addresses (uncheck the filter)"""
+        self.only_responding_check.deselect()
+        self.filter_results()
+    
     def export_csv(self, event=None):
         """Export results to CSV"""
         if not self.scanner.results:
