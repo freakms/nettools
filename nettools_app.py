@@ -434,6 +434,9 @@ class NetToolsApp(ctk.CTk):
         # Initialize history manager
         self.history = HistoryManager()
         
+        # Load OUI database
+        self.oui_database = self.load_oui_database()
+        
         # Base window size for scaling calculations
         self.base_width = 1200
         self.base_height = 800
