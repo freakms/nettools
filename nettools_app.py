@@ -5120,6 +5120,65 @@ class NetToolsApp(ctk.CTk):
         except ValueError:
             messagebox.showwarning("Invalid Input", "Please enter a valid page number")
     
+    def _filter_phpipam_results(self, event=None):
+        """Filter displayed phpIPAM results based on search text"""
+        if not hasattr(self, 'phpipam_all_results'):
+            return
+        
+        filter_text = self.phpipam_filter_entry.get().lower().strip()
+        
+        if not filter_text:
+            # Show all results
+            self.phpipam_current_results = self.phpipam_all_results
+        else:
+            # Filter results
+            filtered = []
+            for item in self.phpipam_all_results:
+                # Search in all string values
+                item_text = " ".join(str(v).lower() for v in item.values() if v)
+                if filter_text in item_text:
+                    filtered.append(item)
+            
+            self.phpipam_current_results = filtered
+        
+        # Reset to first page and redisplay
+        self.phpipam_current_page = 0
+        
+        # Clear and recreate (keeping title)
+        for widget in self.phpipam_results_frame.winfo_children():
+            if widget != self.phpipam_results_frame.winfo_children()[0]:
+                widget.destroy()
+        
+        # Update count label
+        info_frame = ctk.CTkFrame(self.phpipam_results_frame, fg_color="transparent")
+        info_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        count_text = f"Showing {len(self.phpipam_current_results)} of {len(self.phpipam_all_results)} result(s)"
+        if len(self.phpipam_current_results) > self.phpipam_items_per_page:
+            count_text += f" • {self.phpipam_items_per_page} per page"
+        
+        count_label = ctk.CTkLabel(
+            info_frame,
+            text=count_text,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=COLORS["text_secondary"]
+        )
+        count_label.pack(side="left")
+        
+        # Recreate scroll frame
+        self.phpipam_results_scroll = ctk.CTkScrollableFrame(
+            self.phpipam_results_frame,
+            height=300
+        )
+        self.phpipam_results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 10))
+        
+        # Display page
+        self._display_phpipam_page()
+        
+        # Add pagination if needed
+        if len(self.phpipam_current_results) > self.phpipam_items_per_page:
+            self._create_pagination_controls()
+    
     def _create_ip_card(self, parent, ip_data):
         """Create formatted card for IP address display"""
         # IP address
