@@ -638,6 +638,9 @@ class NetToolsApp(ctk.CTk):
         # Initialize scan manager
         self.scan_manager = ScanManager()
         
+        # Initialize network profile manager
+        self.profile_manager = NetworkProfileManager()
+        
         # Load OUI database
         self.oui_database = self.load_oui_database()
         
