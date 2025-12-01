@@ -1077,10 +1077,6 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=14, weight="bold")
         )
         compare_btn.pack(pady=20)
-        self.create_comparison_content(self.pages["compare"])
-        
-        # Show initial page (scanner)
-        self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     # Old create_tabs method removed - now using sidebar navigation
     
     # Old create_scanner_tab method removed - content moved to create_scanner_content
