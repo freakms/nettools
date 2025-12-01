@@ -526,7 +526,7 @@ class NetToolsApp(ctk.CTk):
             label.pack(side="left", padx=(0, 10))
             
             entry = ctk.CTkEntry(row_frame, height=35)
-            entry.pack(side="left", fill="both", expand=True, padx=(0, 10))
+            entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=5)
             entry.configure(state="readonly")
             self.format_entries.append(entry)
             
