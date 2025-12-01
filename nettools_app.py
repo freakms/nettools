@@ -4700,7 +4700,7 @@ class NetToolsApp(ctk.CTk):
             error_label = ctk.CTkLabel(
                 results_scroll,
                 text="No output received from command.\n\nPossible causes:\n• Command not found on system\n• Insufficient permissions\n• Network adapter issue\n\nTry running NetTools as Administrator.",
-                font=ctk.CTkFont(size=12),
+                font=ctk.CTkFont(size=13),
                 text_color=COLORS["danger"],
                 justify="left"
             )
