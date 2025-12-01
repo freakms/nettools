@@ -2401,7 +2401,7 @@ class NetToolsApp(ctk.CTk):
     def get_network_interfaces(self):
         """Get list of network interfaces (Windows)"""
         try:
-            result = subprocess.run(
+            result = self.run_subprocess(
                 ["netsh", "interface", "ipv4", "show", "interfaces"],
                 capture_output=True,
                 text=True,
