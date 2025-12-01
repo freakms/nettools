@@ -544,9 +544,9 @@ class NetToolsApp(ctk.CTk):
         
         self.formats_frame.pack_configure(pady=(0, 10))
         
-        # Switch Commands section
-        self.commands_frame = ctk.CTkFrame(self.tab_mac)
-        self.commands_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        # Switch Commands section (inside scrollable area)
+        self.commands_frame = ctk.CTkFrame(self.mac_scrollable)
+        self.commands_frame.pack(fill="x", padx=5, pady=(0, 15))
         
         commands_title = ctk.CTkLabel(
             self.commands_frame,
