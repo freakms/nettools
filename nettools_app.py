@@ -4587,17 +4587,31 @@ class NetToolsApp(ctk.CTk):
                         shell=False
                     )
                 
-                # Capture both stdout and stderr
+                # Capture both stdout and stderr - pathping might use either
                 output = ""
-                if result.stdout:
-                    output = result.stdout
-                if result.stderr and not result.stdout:
-                    output = f"Error Output:\n{result.stderr}"
-                elif result.stderr:
-                    output += f"\n\nError Messages:\n{result.stderr}"
+                stdout_data = result.stdout if result.stdout else ""
+                stderr_data = result.stderr if result.stderr else ""
                 
-                if not output:
-                    output = f"Command completed but produced no output.\nReturn code: {result.returncode}\nCommand: {' '.join(cmd)}"
+                # Debug info
+                debug_info = f"Debug Info:\n"
+                debug_info += f"Command: {' '.join(cmd)}\n"
+                debug_info += f"Return code: {result.returncode}\n"
+                debug_info += f"Stdout length: {len(stdout_data)} chars\n"
+                debug_info += f"Stderr length: {len(stderr_data)} chars\n"
+                debug_info += f"Stdout first 200 chars: {repr(stdout_data[:200])}\n"
+                debug_info += f"Stderr first 200 chars: {repr(stderr_data[:200])}\n"
+                
+                # Try stdout first
+                if stdout_data and len(stdout_data.strip()) > 0:
+                    output = stdout_data
+                    if stderr_data and len(stderr_data.strip()) > 0:
+                        output += f"\n\n--- Stderr Output ---\n{stderr_data}"
+                # Try stderr if no stdout
+                elif stderr_data and len(stderr_data.strip()) > 0:
+                    output = stderr_data
+                # No output at all
+                else:
+                    output = f"Command completed but produced no output.\n\n{debug_info}"
                 
                 # Store results
                 self.trace_results_text = output
