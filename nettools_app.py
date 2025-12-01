@@ -4864,7 +4864,8 @@ class NetToolsApp(ctk.CTk):
             no_data_label.pack(pady=20, padx=15)
             return
         
-        # Store data for pagination
+        # Store data for pagination and filtering
+        self.phpipam_all_results = data  # Keep original for filtering
         self.phpipam_current_results = data
         self.phpipam_current_page = 0
         self.phpipam_items_per_page = 50  # Show 50 items at a time
