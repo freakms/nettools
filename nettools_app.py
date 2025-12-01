@@ -1348,6 +1348,105 @@ class NetToolsApp(ctk.CTk):
             print(f"Error getting interface config: {e}")
             return None
     
+    def refresh_interfaces(self):
+        """Refresh the interface list display"""
+        # Clear existing
+        for widget in self.interfaces_frame.winfo_children():
+            widget.destroy()
+        
+        interfaces = self.get_network_interfaces()
+        
+        if not interfaces:
+            no_interfaces_label = ctk.CTkLabel(
+                self.interfaces_frame,
+                text="No network interfaces found",
+                font=ctk.CTkFont(size=12)
+            )
+            no_interfaces_label.pack(pady=20)
+            return
+        
+        for interface in interfaces:
+            self.create_interface_card(interface)
+    
+    def create_interface_card(self, interface):
+        """Create a card for an interface"""
+        card = ctk.CTkFrame(self.interfaces_frame, corner_radius=8)
+        card.pack(fill="x", pady=5)
+        
+        # Header with name and status
+        header_frame = ctk.CTkFrame(card, fg_color="transparent")
+        header_frame.pack(fill="x", padx=15, pady=(10, 5))
+        
+        name_label = ctk.CTkLabel(
+            header_frame,
+            text=interface["name"],
+            font=ctk.CTkFont(size=14, weight="bold"),
+            anchor="w"
+        )
+        name_label.pack(side="left")
+        
+        status_color = "#4CAF50" if interface["status"] == "connected" else "#757575"
+        status_label = ctk.CTkLabel(
+            header_frame,
+            text=interface["status"].upper(),
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=status_color
+        )
+        status_label.pack(side="right")
+        
+        # Get current config
+        config = self.get_interface_config(interface["name"])
+        
+        if config:
+            # IP info
+            if config["dhcp"]:
+                ip_text = "DHCP Enabled"
+                if config["ip"]:
+                    ip_text += f" (Current IP: {config['ip']})"
+            else:
+                ip_text = f"Static IP: {config['ip'] or 'Not configured'}"
+            
+            ip_label = ctk.CTkLabel(
+                card,
+                text=ip_text,
+                font=ctk.CTkFont(size=12),
+                anchor="w"
+            )
+            ip_label.pack(fill="x", padx=15, pady=(0, 10))
+            
+            # Action buttons
+            button_frame = ctk.CTkFrame(card, fg_color="transparent")
+            button_frame.pack(fill="x", padx=15, pady=(0, 10))
+            
+            if config["dhcp"]:
+                static_btn = ctk.CTkButton(
+                    button_frame,
+                    text="Set Static IP",
+                    command=lambda i=interface["name"]: self.show_static_ip_dialog(i),
+                    width=140,
+                    height=36
+                )
+                static_btn.pack(side="left", padx=(0, 5))
+            else:
+                dhcp_btn = ctk.CTkButton(
+                    button_frame,
+                    text="Switch to DHCP",
+                    command=lambda i=interface["name"]: self.set_dhcp(i),
+                    width=140,
+                    height=36,
+                    fg_color=("#4CAF50", "#388E3C")
+                )
+                dhcp_btn.pack(side="left", padx=(0, 5))
+                
+                edit_btn = ctk.CTkButton(
+                    button_frame,
+                    text="Edit Static IP",
+                    command=lambda i=interface["name"]: self.show_static_ip_dialog(i),
+                    width=140,
+                    height=36
+                )
+                edit_btn.pack(side="left", padx=(0, 5))
+    
     def change_theme(self, theme):
         """Change application theme"""
         ctk.set_appearance_mode(theme)
