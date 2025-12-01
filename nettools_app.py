@@ -2271,21 +2271,41 @@ class NetToolsApp(ctk.CTk):
             else:
                 cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet]
             
-            subprocess.run(cmd, check=True, timeout=10)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            
+            if result.returncode != 0:
+                error_msg = result.stderr or result.stdout
+                if "disconnected" in error_msg.lower():
+                    messagebox.showwarning(
+                        "Interface Disconnected",
+                        f"Cannot configure '{interface_name}' because it is currently disconnected.\n\n"
+                        "Please connect the network cable or enable Wi-Fi, then try again."
+                    )
+                elif "not valid" in error_msg.lower() or "incorrect" in error_msg.lower():
+                    messagebox.showerror(
+                        "Invalid Configuration",
+                        f"The IP configuration is invalid:\n\n{error_msg}\n\n"
+                        "Please check:\n"
+                        "• IP address format (e.g., 192.168.1.100)\n"
+                        "• Subnet mask format (e.g., 255.255.255.0)\n"
+                        "• Gateway is in the same subnet"
+                    )
+                else:
+                    messagebox.showerror("Error", f"Failed to set static IP:\n{error_msg}")
+                return
             
             # Set DNS if provided
             if dns:
                 subprocess.run(
                     ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "static", dns, "primary"],
-                    check=True,
                     timeout=10
                 )
             
             messagebox.showinfo("Success", f"Static IP configured successfully!\n\nIP: {ip}\nSubnet: {subnet}")
             self.refresh_interfaces()
             
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error", f"Failed to set static IP:\n{str(e)}")
+        except subprocess.TimeoutExpired:
+            messagebox.showerror("Timeout", "The command took too long to execute. Please try again.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
     
