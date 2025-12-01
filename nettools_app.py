@@ -4283,6 +4283,408 @@ class NetToolsApp(ctk.CTk):
         )
         close_btn.pack(side="right")
     
+    def create_traceroute_content(self, parent):
+        """Create Traceroute and Pathping page content"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="Traceroute & Pathping",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Trace network path and analyze packet loss and latency",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS["text_secondary"]
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Input Section
+        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        input_frame.pack(fill="x", pady=(0, 15))
+        
+        # Target input
+        target_label = ctk.CTkLabel(
+            input_frame,
+            text="Target Host or IP:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        target_label.pack(anchor="w", padx=15, pady=(15, 5))
+        
+        target_entry_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        target_entry_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        self.traceroute_target_entry = ctk.CTkEntry(
+            target_entry_frame,
+            placeholder_text="e.g., google.com or 8.8.8.8",
+            height=38,
+            font=ctk.CTkFont(size=13)
+        )
+        self.traceroute_target_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        # Tool Selection
+        tool_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        tool_frame.pack(fill="x", pady=(0, 15))
+        
+        tool_label = ctk.CTkLabel(
+            tool_frame,
+            text="Select Tool:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        tool_label.pack(anchor="w", padx=15, pady=(15, 10))
+        
+        # Tool radio buttons
+        self.trace_tool_var = ctk.StringVar(value="tracert")
+        
+        tracert_frame = ctk.CTkFrame(tool_frame, fg_color="transparent")
+        tracert_frame.pack(fill="x", padx=15, pady=(0, 5))
+        
+        tracert_radio = ctk.CTkRadioButton(
+            tracert_frame,
+            text="Traceroute (tracert)",
+            variable=self.trace_tool_var,
+            value="tracert",
+            font=ctk.CTkFont(size=12)
+        )
+        tracert_radio.pack(side="left")
+        
+        tracert_info = ctk.CTkLabel(
+            tracert_frame,
+            text="Fast - Shows route path with latency per hop",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        tracert_info.pack(side="left", padx=(10, 0))
+        
+        pathping_frame = ctk.CTkFrame(tool_frame, fg_color="transparent")
+        pathping_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        pathping_radio = ctk.CTkRadioButton(
+            pathping_frame,
+            text="Pathping",
+            variable=self.trace_tool_var,
+            value="pathping",
+            font=ctk.CTkFont(size=12)
+        )
+        pathping_radio.pack(side="left")
+        
+        pathping_info = ctk.CTkLabel(
+            pathping_frame,
+            text="Detailed - Includes packet loss statistics (takes ~5 minutes)",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        pathping_info.pack(side="left", padx=(10, 0))
+        
+        # Options
+        options_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        options_frame.pack(fill="x", pady=(0, 15))
+        
+        options_label = ctk.CTkLabel(
+            options_frame,
+            text="Options:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        options_label.pack(anchor="w", padx=15, pady=(15, 10))
+        
+        # Max hops option
+        hops_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        hops_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        hops_label = ctk.CTkLabel(
+            hops_frame,
+            text="Max Hops:",
+            font=ctk.CTkFont(size=11)
+        )
+        hops_label.pack(side="left")
+        
+        self.traceroute_maxhops_entry = ctk.CTkEntry(
+            hops_frame,
+            width=80,
+            height=32,
+            placeholder_text="30"
+        )
+        self.traceroute_maxhops_entry.insert(0, "30")
+        self.traceroute_maxhops_entry.pack(side="left", padx=(10, 0))
+        
+        hops_info = ctk.CTkLabel(
+            hops_frame,
+            text="(Default: 30, Range: 1-255)",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        hops_info.pack(side="left", padx=(10, 0))
+        
+        # Action Buttons
+        button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(0, 15))
+        
+        self.trace_start_btn = ctk.CTkButton(
+            button_frame,
+            text="▶ Start Trace",
+            command=self.start_traceroute,
+            width=160,
+            height=42,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
+        )
+        self.trace_start_btn.pack(side="left", padx=(0, 10))
+        
+        self.trace_cancel_btn = ctk.CTkButton(
+            button_frame,
+            text="⏹ Cancel",
+            command=self.cancel_traceroute,
+            width=120,
+            height=42,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            state="disabled",
+            fg_color=COLORS["danger"],
+            hover_color=COLORS["danger_hover"]
+        )
+        self.trace_cancel_btn.pack(side="left", padx=(0, 10))
+        
+        self.trace_export_btn = ctk.CTkButton(
+            button_frame,
+            text="📤 Export Results",
+            command=self.export_traceroute,
+            width=160,
+            height=42,
+            font=ctk.CTkFont(size=14),
+            state="disabled",
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
+        )
+        self.trace_export_btn.pack(side="left")
+        
+        # Progress label
+        self.trace_progress_label = ctk.CTkLabel(
+            scrollable,
+            text="",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS["text_secondary"]
+        )
+        self.trace_progress_label.pack(pady=(0, 10))
+        
+        # Results Section
+        results_title = ctk.CTkLabel(
+            scrollable,
+            text="Results",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        results_title.pack(pady=(10, 10), anchor="w")
+        
+        self.traceroute_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.traceroute_results_frame.pack(fill="both", expand=True)
+        
+        # Initial message
+        no_results_label = ctk.CTkLabel(
+            self.traceroute_results_frame,
+            text="No results yet. Enter a target and start trace.",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS["text_secondary"]
+        )
+        no_results_label.pack(pady=50)
+        
+        # State tracking
+        self.trace_running = False
+        self.trace_process = None
+        self.trace_results_text = ""
+    
+    def start_traceroute(self):
+        """Start traceroute or pathping"""
+        target = self.traceroute_target_entry.get().strip()
+        if not target:
+            messagebox.showwarning("Input Required", "Please enter a target host or IP address")
+            return
+        
+        # Validate max hops
+        try:
+            max_hops = int(self.traceroute_maxhops_entry.get())
+            if not 1 <= max_hops <= 255:
+                raise ValueError()
+        except:
+            messagebox.showwarning("Invalid Input", "Max hops must be between 1 and 255")
+            return
+        
+        # Update UI
+        self.trace_start_btn.configure(state="disabled")
+        self.trace_cancel_btn.configure(state="normal")
+        self.trace_export_btn.configure(state="disabled")
+        self.trace_running = True
+        
+        # Clear previous results
+        for widget in self.traceroute_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show progress
+        tool_name = "Traceroute" if self.trace_tool_var.get() == "tracert" else "Pathping"
+        time_estimate = "~30 seconds" if self.trace_tool_var.get() == "tracert" else "~5 minutes"
+        self.trace_progress_label.configure(
+            text=f"⏳ Running {tool_name} to {target}... (estimated time: {time_estimate})"
+        )
+        
+        # Run in background thread
+        def trace_thread():
+            try:
+                tool = self.trace_tool_var.get()
+                
+                if tool == "tracert":
+                    cmd = ["tracert", "-h", str(max_hops), target]
+                else:
+                    cmd = ["pathping", "-h", str(max_hops), target]
+                
+                # Run command
+                result = self.run_subprocess(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=600  # 10 minute timeout
+                )
+                
+                if result.returncode == 0 or result.stdout:
+                    output = result.stdout
+                else:
+                    output = f"Error: {result.stderr}"
+                
+                # Store results
+                self.trace_results_text = output
+                
+                # Update UI in main thread
+                self.after(0, self.display_traceroute_results, output, True)
+                
+            except subprocess.TimeoutExpired:
+                self.after(0, self.display_traceroute_results, "Error: Command timeout (10 minutes exceeded)", False)
+            except Exception as e:
+                self.after(0, self.display_traceroute_results, f"Error: {str(e)}", False)
+        
+        thread = threading.Thread(target=trace_thread, daemon=True)
+        thread.start()
+    
+    def cancel_traceroute(self):
+        """Cancel running trace"""
+        self.trace_running = False
+        if self.trace_process:
+            try:
+                self.trace_process.terminate()
+            except:
+                pass
+        
+        self.trace_start_btn.configure(state="normal")
+        self.trace_cancel_btn.configure(state="disabled")
+        self.trace_progress_label.configure(text="Trace cancelled")
+    
+    def display_traceroute_results(self, output, success):
+        """Display traceroute/pathping results"""
+        # Clear results frame
+        for widget in self.traceroute_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Update UI state
+        self.trace_start_btn.configure(state="normal")
+        self.trace_cancel_btn.configure(state="disabled")
+        self.trace_running = False
+        
+        if success:
+            self.trace_progress_label.configure(text="✅ Trace complete")
+            self.trace_export_btn.configure(state="normal")
+        else:
+            self.trace_progress_label.configure(text="❌ Trace failed")
+            self.trace_export_btn.configure(state="disabled")
+        
+        # Create scrollable text widget for results
+        results_scroll = ctk.CTkScrollableFrame(self.traceroute_results_frame)
+        results_scroll.pack(fill="both", expand=True, padx=15, pady=15)
+        
+        # Parse and display results with formatting
+        lines = output.split('\n')
+        
+        for line in lines:
+            if not line.strip():
+                continue
+            
+            # Color code different types of lines
+            text_color = COLORS["text_primary"]
+            font_weight = "normal"
+            
+            # Headers
+            if line.startswith("Tracing") or line.startswith("Computing"):
+                text_color = COLORS["primary"]
+                font_weight = "bold"
+            # Hop numbers
+            elif line.strip().startswith(tuple(str(i) for i in range(10))):
+                text_color = COLORS["text_primary"]
+            # Timeouts
+            elif "*" in line or "Request timed out" in line:
+                text_color = COLORS["warning"]
+            # Errors
+            elif "error" in line.lower() or "failed" in line.lower():
+                text_color = COLORS["danger"]
+            # Summary lines (pathping)
+            elif "%" in line or "Loss" in line:
+                text_color = COLORS["success"]
+                font_weight = "bold"
+            
+            line_label = ctk.CTkLabel(
+                results_scroll,
+                text=line,
+                font=ctk.CTkFont(size=10, weight=font_weight, family="Courier New"),
+                anchor="w",
+                justify="left",
+                text_color=text_color
+            )
+            line_label.pack(fill="x", pady=1)
+    
+    def export_traceroute(self):
+        """Export traceroute results"""
+        if not self.trace_results_text:
+            messagebox.showinfo("No Data", "No traceroute data to export")
+            return
+        
+        # Get desktop path
+        desktop = Path.home() / "Desktop"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        target = self.traceroute_target_entry.get().strip().replace(".", "_")
+        tool = "tracert" if self.trace_tool_var.get() == "tracert" else "pathping"
+        default_filename = f"{tool}_{target}_{timestamp}.txt"
+        
+        # Ask for save location
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialdir=desktop,
+            initialfile=default_filename
+        )
+        
+        if not filepath:
+            return
+        
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(f"Traceroute/Pathping Results\n")
+                f.write(f"=" * 60 + "\n")
+                f.write(f"Target: {self.traceroute_target_entry.get()}\n")
+                f.write(f"Tool: {self.trace_tool_var.get()}\n")
+                f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"=" * 60 + "\n\n")
+                f.write(self.trace_results_text)
+            
+            messagebox.showinfo(
+                "Export Successful",
+                f"Results exported to:\n{filepath}"
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Export Error",
+                f"Error exporting results: {str(e)}"
+            )
+    
     def create_phpipam_content(self, parent):
         """Create phpIPAM integration page content"""
         if not PHPIPAM_AVAILABLE:
