@@ -4740,15 +4740,21 @@ class NetToolsApp(ctk.CTk):
             messagebox.showwarning("Input Required", "Please enter an IP address to search")
             return
         
+        # Show loading message
+        self.display_phpipam_loading("Searching for IP address...")
+        
         # Create/get client
         if not self.phpipam_client:
             self.phpipam_client = PHPIPAMClient(self.phpipam_config)
         
-        # Search
-        success, results = self.phpipam_client.search_ip(ip_address)
+        # Run search in background thread
+        def search_thread():
+            success, results = self.phpipam_client.search_ip(ip_address)
+            # Update UI in main thread
+            self.after(0, self.display_phpipam_results, "IP Search Results", results, success)
         
-        # Display results
-        self.display_phpipam_results("IP Search Results", results, success)
+        thread = threading.Thread(target=search_thread, daemon=True)
+        thread.start()
     
     def view_phpipam_subnets(self):
         """View all subnets from phpIPAM"""
