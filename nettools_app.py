@@ -1077,16 +1077,6 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=14, weight="bold")
         )
         compare_btn.pack(pady=20)
-    # Old create_tabs method removed - now using sidebar navigation
-    
-    # Old create_scanner_tab method removed - content moved to create_scanner_content
-        pass  # Content moved to create_scanner_content method
-    
-    def create_mac_tab(self):
-        """Create MAC Formatter tab"""
-        pass  # Content moved to create_mac_content method
-        # Content moved to create_mac_content method
-    
     def create_status_bar(self):
         """Create status bar"""
         status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
