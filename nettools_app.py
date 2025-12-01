@@ -4438,12 +4438,46 @@ class NetToolsApp(ctk.CTk):
         view_subnets_btn.pack(side="left")
         
         # Results Section
+        results_header_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        results_header_frame.pack(fill="x", pady=(10, 10))
+        
         results_title = ctk.CTkLabel(
-            scrollable,
+            results_header_frame,
             text="Results",
             font=ctk.CTkFont(size=16, weight="bold")
         )
-        results_title.pack(pady=(10, 10), anchor="w")
+        results_title.pack(side="left", anchor="w")
+        
+        # Filter box for results
+        filter_frame = ctk.CTkFrame(scrollable, corner_radius=6)
+        filter_frame.pack(fill="x", pady=(0, 10))
+        
+        filter_label = ctk.CTkLabel(
+            filter_frame,
+            text="Filter results:",
+            font=ctk.CTkFont(size=11)
+        )
+        filter_label.pack(side="left", padx=(10, 5))
+        
+        self.phpipam_filter_entry = ctk.CTkEntry(
+            filter_frame,
+            placeholder_text="Type to filter displayed results...",
+            height=32,
+            width=300
+        )
+        self.phpipam_filter_entry.pack(side="left", padx=5)
+        self.phpipam_filter_entry.bind('<KeyRelease>', self._filter_phpipam_results)
+        
+        clear_filter_btn = ctk.CTkButton(
+            filter_frame,
+            text="✕",
+            command=lambda: (self.phpipam_filter_entry.delete(0, 'end'), self._filter_phpipam_results()),
+            width=30,
+            height=32,
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
+        )
+        clear_filter_btn.pack(side="left", padx=(0, 10))
         
         self.phpipam_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
         self.phpipam_results_frame.pack(fill="both", expand=True)
