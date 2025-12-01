@@ -35,7 +35,7 @@ import xml.etree.ElementTree as ET
 
 # Application metadata
 APP_NAME = "NetTools Suite"
-APP_VERSION = "1.8.0"
+APP_VERSION = "1.9.0"
 APP_COMPANY = "Malte Schad"
 
 # Color Palette - Consistent Design System
