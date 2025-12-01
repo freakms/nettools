@@ -1077,18 +1077,7 @@ class NetToolsApp(ctk.CTk):
         
         # Show initial page (scanner)
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
-    def create_tabs(self):
-        """Create tabbed interface"""
-        self.tabview = ctk.CTkTabview(self, command=self.on_tab_change)
-        self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Add tabs
-        self.tab_scanner = self.tabview.add("IPv4 Scanner")
-        self.tab_mac = self.tabview.add("MAC Formatter")
-        
-        # Create tab content
-        self.create_scanner_tab()
-        self.create_mac_tab()
+    # Old create_tabs method removed - now using sidebar navigation
     
     def create_scanner_tab(self):
         """Create IPv4 Scanner tab"""
