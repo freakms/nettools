@@ -502,9 +502,9 @@ class NetToolsApp(ctk.CTk):
         self.mac_scrollable = ctk.CTkScrollableFrame(self.tab_mac)
         self.mac_scrollable.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        # MAC Formats section
-        self.formats_frame = ctk.CTkFrame(self.tab_mac)
-        self.formats_frame.pack(fill="x", padx=15, pady=(0, 15))
+        # MAC Formats section (inside scrollable area)
+        self.formats_frame = ctk.CTkFrame(self.mac_scrollable)
+        self.formats_frame.pack(fill="x", padx=5, pady=(10, 15))
         
         formats_title = ctk.CTkLabel(
             self.formats_frame,
