@@ -2125,9 +2125,10 @@ class NetToolsApp(ctk.CTk):
         # Create dialog window
         dialog = ctk.CTkToplevel(self)
         dialog.title(f"Configure Static IP - {interface_name}")
-        dialog.geometry("500x450")
+        dialog.geometry("550x600")
         dialog.transient(self)
         dialog.grab_set()
+        dialog.resizable(False, False)
         
         # Center window
         dialog.update_idletasks()
