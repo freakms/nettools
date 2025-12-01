@@ -1753,31 +1753,7 @@ class NetToolsApp(ctk.CTk):
         except:
             pass
     
-    def on_tab_change(self):
-        """Handle tab change event"""
-        current_tab = self.tabview.get()
-        
-        # Show/hide status bar elements based on tab
-        if current_tab == "IPv4 Scanner":
-            # Show status label and progress bar for scanner
-            self.status_label.configure(text="Ready.")
-        elif current_tab == "MAC Formatter":
-            # Hide scanning-specific status
-            self.status_label.configure(text="")
-            self.progress_bar.pack_forget()
-    
-    def toggle_commands(self):
-        """Toggle switch commands visibility"""
-        if self.commands_visible:
-            # Hide commands
-            self.commands_frame.pack_forget()
-            self.toggle_commands_btn.configure(text="Show Switch Commands")
-            self.commands_visible = False
-        else:
-            # Show commands
-            self.commands_frame.pack(fill="x", padx=15, pady=(0, 15))
-            self.toggle_commands_btn.configure(text="Hide Switch Commands")
-            self.commands_visible = True
+    # Old tab-based methods removed - now using sidebar navigation
     
     def show_cidr_history(self):
         """Show CIDR history dropdown"""
