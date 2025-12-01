@@ -16,6 +16,7 @@ import ipaddress
 import csv
 import re
 import sys
+import subprocess
 from datetime import datetime
 from pathlib import Path
 import platform
