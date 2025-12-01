@@ -513,7 +513,7 @@ class NetToolsApp(ctk.CTk):
         self.format_entries = []
         for label_text in format_labels:
             row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent")
-            row_frame.pack(fill="x", padx=15, pady=5)
+            row_frame.pack(fill="both", expand=True, padx=15, pady=8)
             
             label = ctk.CTkLabel(row_frame, text=label_text, width=150, anchor="w")
             label.pack(side="left", padx=(0, 10))
