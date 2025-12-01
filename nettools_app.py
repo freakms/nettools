@@ -3197,7 +3197,7 @@ class NetToolsApp(ctk.CTk):
         
         try:
             # Set DHCP for IP
-            result = subprocess.run(
+            result = self.run_subprocess(
                 ["netsh", "interface", "ipv4", "set", "address", interface_name, "dhcp"],
                 capture_output=True,
                 text=True,
