@@ -859,6 +859,16 @@ class NetToolsApp(ctk.CTk):
             textbox.configure(state="normal")
             textbox.delete("1.0", 'end')
             textbox.insert("1.0", value)
+            
+            # Auto-adjust height based on content lines
+            # Count newlines in text to determine height needed
+            lines = value.count('\n') + 1
+            if lines > 1:
+                new_height = min(35 + (lines - 1) * 20, 80)  # Max 80px height
+                textbox.configure(height=new_height)
+            else:
+                textbox.configure(height=35)  # Single line height
+            
             textbox.configure(state="disabled")
     
     def copy_to_clipboard(self, entry):
