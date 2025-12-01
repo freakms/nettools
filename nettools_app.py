@@ -568,6 +568,9 @@ class NetToolsApp(ctk.CTk):
         # Initialize history manager
         self.history = HistoryManager()
         
+        # Initialize scan manager
+        self.scan_manager = ScanManager()
+        
         # Load OUI database
         self.oui_database = self.load_oui_database()
         
