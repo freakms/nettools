@@ -800,7 +800,7 @@ class NetToolsApp(ctk.CTk):
         self.theme_selector.set("Dark")
     
     def switch_page(self, page_id):
-        """Switch between pages with smooth transition"""
+        """Switch between pages with lazy loading"""
         if page_id == self.current_page:
             return
         
@@ -814,6 +814,27 @@ class NetToolsApp(ctk.CTk):
         # Hide all pages
         for page in self.pages.values():
             page.pack_forget()
+        
+        # Lazy load page content if not already loaded
+        if page_id not in self.pages_loaded:
+            if page_id not in self.pages:
+                self.pages[page_id] = ctk.CTkFrame(self.main_content, corner_radius=0)
+            
+            # Load page content based on page_id
+            if page_id == "mac":
+                self.create_mac_content(self.pages[page_id])
+            elif page_id == "compare":
+                self.create_comparison_content(self.pages[page_id])
+            elif page_id == "profiles":
+                self.create_profiles_content(self.pages[page_id])
+            elif page_id == "portscan":
+                self.create_portscan_content(self.pages[page_id])
+            elif page_id == "dns":
+                self.create_dns_content(self.pages[page_id])
+            elif page_id == "subnet":
+                self.create_subnet_content(self.pages[page_id])
+            
+            self.pages_loaded[page_id] = True
         
         # Show selected page
         self.pages[page_id].pack(fill="both", expand=True, padx=0, pady=0)
