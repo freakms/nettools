@@ -1991,7 +1991,7 @@ class NetToolsApp(ctk.CTk):
                     else:
                         cmd = f'dig @{dns_server} {query} +short'
                     
-                    result = subprocess.run(
+                    result = self.run_subprocess(
                         cmd,
                         capture_output=True,
                         text=True,
