@@ -1242,6 +1242,534 @@ class NetToolsApp(ctk.CTk):
         self.refresh_interfaces()
         self.refresh_profiles()
     
+    def create_portscan_content(self, parent):
+        """Create Port Scanner page content"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="Port Scanner",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        # Subtitle
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Scan for open ports on target hosts using multiple methods",
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Input section
+        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        input_frame.pack(fill="x", pady=(0, 15))
+        
+        # Target host
+        target_label = ctk.CTkLabel(
+            input_frame,
+            text="Target Host:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        target_label.pack(pady=(15, 5), padx=15, anchor="w")
+        
+        target_info = ctk.CTkLabel(
+            input_frame,
+            text="Enter IP address or hostname (e.g., 192.168.1.1 or example.com)",
+            font=ctk.CTkFont(size=10),
+            text_color=("gray60", "gray40")
+        )
+        target_info.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        self.port_target_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="192.168.1.1 or example.com",
+            height=40,
+            font=ctk.CTkFont(size=13)
+        )
+        self.port_target_entry.pack(fill="x", padx=15, pady=(0, 15))
+        
+        # Port selection
+        port_label = ctk.CTkLabel(
+            input_frame,
+            text="Port Selection:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        port_label.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        # Port mode selection
+        self.port_mode_var = ctk.StringVar(value="common")
+        
+        port_mode_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        port_mode_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        common_radio = ctk.CTkRadioButton(
+            port_mode_frame,
+            text="Common Ports (21,22,23,25,80,443,3389,...)",
+            variable=self.port_mode_var,
+            value="common",
+            command=self.update_port_mode,
+            font=ctk.CTkFont(size=11)
+        )
+        common_radio.pack(anchor="w", pady=2)
+        
+        range_radio = ctk.CTkRadioButton(
+            port_mode_frame,
+            text="Port Range (e.g., 1-1000)",
+            variable=self.port_mode_var,
+            value="range",
+            command=self.update_port_mode,
+            font=ctk.CTkFont(size=11)
+        )
+        range_radio.pack(anchor="w", pady=2)
+        
+        custom_radio = ctk.CTkRadioButton(
+            port_mode_frame,
+            text="Custom Ports (comma-separated, e.g., 80,443,8080)",
+            variable=self.port_mode_var,
+            value="custom",
+            command=self.update_port_mode,
+            font=ctk.CTkFont(size=11)
+        )
+        custom_radio.pack(anchor="w", pady=2)
+        
+        # Port input (changes based on mode)
+        self.port_input_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="Will scan common ports",
+            height=40,
+            font=ctk.CTkFont(size=13),
+            state="disabled"
+        )
+        self.port_input_entry.pack(fill="x", padx=15, pady=(0, 15))
+        
+        # Scan method
+        method_label = ctk.CTkLabel(
+            input_frame,
+            text="Scan Method:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        method_label.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        self.scan_method_var = ctk.StringVar(value="socket")
+        
+        method_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        method_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        socket_radio = ctk.CTkRadioButton(
+            method_frame,
+            text="Socket Scan (Fast, recommended)",
+            variable=self.scan_method_var,
+            value="socket",
+            font=ctk.CTkFont(size=11)
+        )
+        socket_radio.pack(anchor="w", pady=2)
+        
+        telnet_radio = ctk.CTkRadioButton(
+            method_frame,
+            text="Telnet Test (Connection-based)",
+            variable=self.scan_method_var,
+            value="telnet",
+            font=ctk.CTkFont(size=11)
+        )
+        telnet_radio.pack(anchor="w", pady=2)
+        
+        if platform.system() == "Windows":
+            powershell_radio = ctk.CTkRadioButton(
+                method_frame,
+                text="PowerShell Test-NetConnection (Most reliable on Windows)",
+                variable=self.scan_method_var,
+                value="powershell",
+                font=ctk.CTkFont(size=11)
+            )
+            powershell_radio.pack(anchor="w", pady=2)
+        
+        # Scan buttons
+        button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(0, 15))
+        
+        self.port_scan_btn = ctk.CTkButton(
+            button_frame,
+            text="Start Port Scan",
+            command=self.start_port_scan,
+            width=180,
+            height=48,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=("#2196F3", "#1976D2")
+        )
+        self.port_scan_btn.pack(side="left", padx=(0, 10))
+        
+        self.port_cancel_btn = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=self.cancel_port_scan,
+            width=120,
+            height=48,
+            font=ctk.CTkFont(size=14),
+            state="disabled"
+        )
+        self.port_cancel_btn.pack(side="left")
+        
+        # Progress
+        self.port_progress_label = ctk.CTkLabel(
+            scrollable,
+            text="",
+            font=ctk.CTkFont(size=11)
+        )
+        self.port_progress_label.pack(pady=(0, 5))
+        
+        self.port_progress_bar = ctk.CTkProgressBar(scrollable, width=400, height=20)
+        self.port_progress_bar.pack(pady=(0, 15))
+        self.port_progress_bar.set(0)
+        
+        # Results section
+        results_title = ctk.CTkLabel(
+            scrollable,
+            text="Scan Results",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        results_title.pack(pady=(10, 10), anchor="w")
+        
+        # Results frame
+        self.port_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.port_results_frame.pack(fill="both", expand=True)
+        
+        # Initial message
+        no_results_label = ctk.CTkLabel(
+            self.port_results_frame,
+            text="No scan results yet. Enter a target and start scanning.",
+            font=ctk.CTkFont(size=12),
+            text_color=("gray60", "gray40")
+        )
+        no_results_label.pack(pady=50)
+        
+        # Port scan state
+        self.port_scan_running = False
+        self.port_scan_cancelled = False
+    
+    def update_port_mode(self):
+        """Update port input based on selected mode"""
+        mode = self.port_mode_var.get()
+        
+        if mode == "common":
+            self.port_input_entry.configure(state="disabled", placeholder_text="Will scan common ports")
+            self.port_input_entry.delete(0, 'end')
+        elif mode == "range":
+            self.port_input_entry.configure(state="normal", placeholder_text="e.g., 1-1000 or 80-443")
+            self.port_input_entry.delete(0, 'end')
+        elif mode == "custom":
+            self.port_input_entry.configure(state="normal", placeholder_text="e.g., 21,22,23,80,443,3389")
+            self.port_input_entry.delete(0, 'end')
+    
+    def get_ports_to_scan(self):
+        """Get list of ports based on selection"""
+        mode = self.port_mode_var.get()
+        
+        if mode == "common":
+            # Common ports with services
+            return [
+                21,    # FTP
+                22,    # SSH
+                23,    # Telnet
+                25,    # SMTP
+                53,    # DNS
+                80,    # HTTP
+                110,   # POP3
+                143,   # IMAP
+                443,   # HTTPS
+                445,   # SMB
+                3306,  # MySQL
+                3389,  # RDP
+                5432,  # PostgreSQL
+                5900,  # VNC
+                8080,  # HTTP Alt
+                8443,  # HTTPS Alt
+            ]
+        elif mode == "range":
+            port_range = self.port_input_entry.get().strip()
+            if not port_range:
+                return []
+            
+            try:
+                if '-' in port_range:
+                    start, end = port_range.split('-')
+                    start = int(start.strip())
+                    end = int(end.strip())
+                    if 1 <= start <= end <= 65535:
+                        return list(range(start, end + 1))
+                else:
+                    port = int(port_range)
+                    if 1 <= port <= 65535:
+                        return [port]
+            except:
+                pass
+            return []
+        elif mode == "custom":
+            ports_str = self.port_input_entry.get().strip()
+            if not ports_str:
+                return []
+            
+            try:
+                ports = []
+                for p in ports_str.split(','):
+                    port = int(p.strip())
+                    if 1 <= port <= 65535:
+                        ports.append(port)
+                return ports
+            except:
+                return []
+        
+        return []
+    
+    def start_port_scan(self):
+        """Start port scanning"""
+        target = self.port_target_entry.get().strip()
+        if not target:
+            messagebox.showwarning("Invalid Input", "Please enter a target host (IP or hostname)")
+            return
+        
+        ports = self.get_ports_to_scan()
+        if not ports:
+            messagebox.showwarning("Invalid Ports", "Please specify valid ports to scan")
+            return
+        
+        method = self.scan_method_var.get()
+        
+        # Update UI
+        self.port_scan_btn.configure(state="disabled")
+        self.port_cancel_btn.configure(state="normal")
+        self.port_scan_running = True
+        self.port_scan_cancelled = False
+        self.port_progress_bar.set(0)
+        self.port_progress_label.configure(text=f"Scanning {target} - {len(ports)} port(s)...")
+        
+        # Clear previous results
+        for widget in self.port_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Start scan in background thread
+        scan_thread = threading.Thread(
+            target=self.run_port_scan,
+            args=(target, ports, method),
+            daemon=True
+        )
+        scan_thread.start()
+    
+    def cancel_port_scan(self):
+        """Cancel ongoing port scan"""
+        self.port_scan_cancelled = True
+        self.port_progress_label.configure(text="Cancelling scan...")
+    
+    def run_port_scan(self, target, ports, method):
+        """Run port scan in background"""
+        results = []
+        total_ports = len(ports)
+        
+        for i, port in enumerate(ports):
+            if self.port_scan_cancelled:
+                break
+            
+            # Update progress
+            progress = (i + 1) / total_ports
+            self.after(0, self.port_progress_bar.set, progress)
+            self.after(0, self.port_progress_label.configure, 
+                      {"text": f"Scanning {target}:{port} ({i+1}/{total_ports})..."})
+            
+            # Scan port
+            is_open, service = self.scan_single_port(target, port, method)
+            
+            if is_open:
+                results.append({
+                    "port": port,
+                    "state": "OPEN",
+                    "service": service
+                })
+        
+        # Update UI with results
+        self.after(0, self.display_port_results, target, results, self.port_scan_cancelled)
+    
+    def scan_single_port(self, target, port, method):
+        """Scan a single port using specified method"""
+        if method == "socket":
+            return self.scan_port_socket(target, port)
+        elif method == "telnet":
+            return self.scan_port_telnet(target, port)
+        elif method == "powershell":
+            return self.scan_port_powershell(target, port)
+        return False, "Unknown"
+    
+    def scan_port_socket(self, target, port):
+        """Scan port using socket"""
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((target, port))
+            sock.close()
+            
+            if result == 0:
+                service = self.get_service_name(port)
+                return True, service
+            return False, ""
+        except:
+            return False, ""
+    
+    def scan_port_telnet(self, target, port):
+        """Scan port using telnet"""
+        try:
+            tn = telnetlib.Telnet()
+            tn.open(target, port, timeout=2)
+            tn.close()
+            service = self.get_service_name(port)
+            return True, service
+        except:
+            return False, ""
+    
+    def scan_port_powershell(self, target, port):
+        """Scan port using PowerShell Test-NetConnection"""
+        try:
+            cmd = f'powershell -Command "Test-NetConnection -ComputerName {target} -Port {port} -InformationLevel Quiet"'
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=5,
+                shell=True
+            )
+            
+            if result.stdout.strip().lower() == "true":
+                service = self.get_service_name(port)
+                return True, service
+            return False, ""
+        except:
+            return False, ""
+    
+    def get_service_name(self, port):
+        """Get common service name for port"""
+        services = {
+            21: "FTP",
+            22: "SSH",
+            23: "Telnet",
+            25: "SMTP",
+            53: "DNS",
+            80: "HTTP",
+            110: "POP3",
+            143: "IMAP",
+            443: "HTTPS",
+            445: "SMB",
+            3306: "MySQL",
+            3389: "RDP",
+            5432: "PostgreSQL",
+            5900: "VNC",
+            8080: "HTTP-Alt",
+            8443: "HTTPS-Alt",
+        }
+        return services.get(port, "Unknown")
+    
+    def display_port_results(self, target, results, was_cancelled):
+        """Display port scan results"""
+        # Clear frame
+        for widget in self.port_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Reset UI state
+        self.port_scan_btn.configure(state="normal")
+        self.port_cancel_btn.configure(state="disabled")
+        self.port_scan_running = False
+        
+        if was_cancelled:
+            self.port_progress_label.configure(text="Scan cancelled")
+        else:
+            self.port_progress_label.configure(text="Scan complete")
+        
+        if not results:
+            no_results_label = ctk.CTkLabel(
+                self.port_results_frame,
+                text=f"No open ports found on {target}" if not was_cancelled else "Scan was cancelled",
+                font=ctk.CTkFont(size=12),
+                text_color=("gray60", "gray40")
+            )
+            no_results_label.pack(pady=50)
+            return
+        
+        # Summary
+        summary_frame = ctk.CTkFrame(self.port_results_frame, fg_color="transparent")
+        summary_frame.pack(fill="x", padx=15, pady=15)
+        
+        summary_text = f"Found {len(results)} open port(s) on {target}"
+        summary_label = ctk.CTkLabel(
+            summary_frame,
+            text=summary_text,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        summary_label.pack(anchor="w")
+        
+        # Results table header
+        header_frame = ctk.CTkFrame(self.port_results_frame, corner_radius=0)
+        header_frame.pack(fill="x", padx=15, pady=(0, 5))
+        
+        port_header = ctk.CTkLabel(
+            header_frame,
+            text="Port",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=100,
+            anchor="w"
+        )
+        port_header.pack(side="left", padx=10, pady=10)
+        
+        state_header = ctk.CTkLabel(
+            header_frame,
+            text="State",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=100,
+            anchor="w"
+        )
+        state_header.pack(side="left", padx=10, pady=10)
+        
+        service_header = ctk.CTkLabel(
+            header_frame,
+            text="Service",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=150,
+            anchor="w"
+        )
+        service_header.pack(side="left", padx=10, pady=10)
+        
+        # Results rows
+        for result in results:
+            row_frame = ctk.CTkFrame(self.port_results_frame, corner_radius=4)
+            row_frame.pack(fill="x", padx=15, pady=2)
+            
+            port_label = ctk.CTkLabel(
+                row_frame,
+                text=str(result["port"]),
+                font=ctk.CTkFont(size=12),
+                width=100,
+                anchor="w"
+            )
+            port_label.pack(side="left", padx=10, pady=8)
+            
+            state_label = ctk.CTkLabel(
+                row_frame,
+                text=result["state"],
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=100,
+                anchor="w",
+                text_color=("#4CAF50", "#4CAF50")
+            )
+            state_label.pack(side="left", padx=10, pady=8)
+            
+            service_label = ctk.CTkLabel(
+                row_frame,
+                text=result["service"],
+                font=ctk.CTkFont(size=12),
+                width=150,
+                anchor="w"
+            )
+            service_label.pack(side="left", padx=10, pady=8)
+    
     def create_status_bar(self):
         """Create status bar"""
         status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
