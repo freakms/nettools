@@ -2,9 +2,10 @@
   IMPORTANT: REBUILD REQUIRED TO SEE NEW FEATURES!
 ═══════════════════════════════════════════════════════════════════════════════
 
-New features have been added to the CODE:
+New features have been added to the CODE (v1.2.0):
   ✓ History & Recent Items (with ⏱ buttons)
   ✓ OUI Vendor Lookup (identifies device manufacturers)
+  ✓ Scan Comparison & Export (compare two scans, see changes)
 
 You need to REBUILD the application to see the changes!
 
