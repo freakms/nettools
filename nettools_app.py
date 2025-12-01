@@ -950,23 +950,26 @@ class NetToolsApp(ctk.CTk):
         
         self.start_scan_btn = ctk.CTkButton(
             button_frame,
-            text="Start Scan",
+            text="▶ Start Scan",
             command=self.start_scan,
-            width=120,
-            height=35,
-            font=ctk.CTkFont(size=12, weight="bold")
+            width=140,
+            height=38,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"]
         )
         self.start_scan_btn.pack(side="left", padx=5)
         
         self.cancel_scan_btn = ctk.CTkButton(
             button_frame,
-            text="Cancel",
+            text="⏹ Cancel",
             command=self.cancel_scan,
-            width=100,
-            height=35,
+            width=120,
+            height=38,
             state="disabled",
-            fg_color="#dc3545",
-            hover_color="#c82333"
+            fg_color=COLORS["danger"],
+            hover_color=COLORS["danger_hover"],
+            font=ctk.CTkFont(size=12, weight="bold")
         )
         self.cancel_scan_btn.pack(side="left", padx=5)
         
