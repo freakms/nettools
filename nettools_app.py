@@ -757,6 +757,29 @@ class NetToolsApp(ctk.CTk):
         elif page_id == "compare":
             self.status_label.configure(text="Compare network scans")
     
+    def create_main_content(self):
+        """Create main content area with pages"""
+        # Main content frame
+        self.main_content = ctk.CTkFrame(self, corner_radius=0)
+        self.main_content.pack(side="right", fill="both", expand=True, padx=0, pady=0)
+        
+        # Create pages dictionary
+        self.pages = {}
+        
+        # Create scanner page
+        self.pages["scanner"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_scanner_content(self.pages["scanner"])
+        
+        # Create MAC formatter page
+        self.pages["mac"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_mac_content(self.pages["mac"])
+        
+        # Create comparison page
+        self.pages["compare"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_comparison_content(self.pages["compare"])
+        
+        # Show initial page (scanner)
+        self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     def create_tabs(self):
         """Create tabbed interface"""
         self.tabview = ctk.CTkTabview(self, command=self.on_tab_change)
