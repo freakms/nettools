@@ -1041,8 +1041,8 @@ class NetToolsApp(ctk.CTk):
             label.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'])
         
         # Scrollable results
-        self.results_scrollable = ctk.CTkScrollableFrame(results_frame)
-        self.results_scrollable.pack(fill="both", expand=True, padx=2, pady=(0, 2))
+        self.results_scrollable = ctk.CTkScrollableFrame(results_card)
+        self.results_scrollable.pack(fill="both", expand=True, padx=SPACING['xs'], pady=(0, SPACING['xs']))
         
         self.result_rows = []
     
