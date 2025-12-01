@@ -522,15 +522,14 @@ class NetToolsApp(ctk.CTk):
         
         self.format_entries = []
         for label_text in format_labels:
-            row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent", height=45)
-            row_frame.pack(fill="x", padx=15, pady=6)
-            row_frame.pack_propagate(False)
+            row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent")
+            row_frame.pack(fill="x", padx=15, pady=4)
             
             label = ctk.CTkLabel(row_frame, text=label_text, width=150, anchor="w")
             label.pack(side="left", padx=(0, 10))
             
-            entry = ctk.CTkEntry(row_frame, height=35)
-            entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=5)
+            entry = ctk.CTkEntry(row_frame, height=32)
+            entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
             entry.configure(state="readonly")
             self.format_entries.append(entry)
             
