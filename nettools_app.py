@@ -595,13 +595,28 @@ class NetToolsApp(ctk.CTk):
         )
         mac_label.pack(anchor="w", padx=15, pady=(15, 5))
         
+        # Frame for MAC entry and history button
+        mac_entry_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        mac_entry_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
         self.mac_entry = ctk.CTkEntry(
-            input_frame,
+            mac_entry_frame,
             placeholder_text="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF",
             height=40
         )
-        self.mac_entry.pack(fill="x", padx=15, pady=(0, 10))
+        self.mac_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
         self.mac_entry.bind('<KeyRelease>', self.update_mac_formats)
+        
+        # History button for MAC
+        self.mac_history_btn = ctk.CTkButton(
+            mac_entry_frame,
+            text="⏱",
+            width=40,
+            height=40,
+            command=self.show_mac_history,
+            font=ctk.CTkFont(size=16)
+        )
+        self.mac_history_btn.pack(side="left")
         
         self.mac_warning_label = ctk.CTkLabel(
             input_frame,
