@@ -768,6 +768,15 @@ class NetToolsApp(ctk.CTk):
         )
         self.export_btn.pack(side="right", padx=15, pady=15)
         
+        self.compare_btn = ctk.CTkButton(
+            options_frame,
+            text="Compare Scans",
+            command=self.show_scan_comparison,
+            width=160,
+            state="disabled"
+        )
+        self.compare_btn.pack(side="right", padx=(0, 10), pady=15)
+        
         # Results section
         results_frame = ctk.CTkFrame(self.tab_scanner)
         results_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
