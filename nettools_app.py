@@ -1284,11 +1284,13 @@ class NetToolsApp(ctk.CTk):
         # New profile button
         new_profile_btn = ctk.CTkButton(
             scrollable,
-            text="+ Create New Profile",
+            text="➕ Create New Profile",
             command=self.create_new_profile,
-            width=200,
-            height=40,
-            fg_color=("#2196F3", "#1976D2")
+            width=220,
+            height=42,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
         )
         new_profile_btn.pack(pady=(0, 15))
         
