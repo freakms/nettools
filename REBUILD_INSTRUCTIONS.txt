@@ -34,7 +34,7 @@ Or Simplest:
 Then run: dist\NetToolsSuite.exe (or dist\NetToolsSuite\NetToolsSuite.exe)
 
 ═══════════════════════════════════════════════════════════════════════════════
-  WHERE TO FIND THE HISTORY BUTTONS
+  WHERE TO FIND THE NEW FEATURES
 ═══════════════════════════════════════════════════════════════════════════════
 
 Once rebuilt, you'll see:
@@ -48,6 +48,8 @@ MAC Formatter Tab:
   MAC Input: [AA:BB:CC:DD:EE:FF_______] [⏱]
                                           ↑
                                       Clock icon button!
+  
+  🏢 Vendor: Cisco Systems, Inc   ← Automatically shows device manufacturer!
 
 ═══════════════════════════════════════════════════════════════════════════════
   QUICK TEST
