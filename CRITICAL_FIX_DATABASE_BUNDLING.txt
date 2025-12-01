@@ -1,0 +1,158 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🔧 CRITICAL FIX: OUI Database Not Bundled in Executable
+═══════════════════════════════════════════════════════════════════════════════
+
+**PROBLEM FOUND AND FIXED!**
+
+The OUI database file (oui_database.json) was NOT being included when building
+the .exe file. This is why Palo Alto and other network equipment vendors were
+showing as "Unknown" in the executable.
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHAT WAS WRONG
+═══════════════════════════════════════════════════════════════════════════════
+
+1. PyInstaller build scripts did NOT include --add-data argument
+   → oui_database.json was NOT bundled into the .exe
+   
+2. Database loading code used Path(__file__).parent
+   → This doesn't work in PyInstaller executables
+   → Always returned empty database {}
+
+Result: Executable had NO vendor data, everything showed "Unknown Vendor"
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHAT I FIXED
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Updated build_exe.py:
+   Added: --add-data=oui_database.json;.
+   → Database now bundled in single-file .exe
+
+✅ Updated build_exe_fast.py:
+   Added: --add-data=oui_database.json;.
+   → Database now bundled in directory build
+
+✅ Updated nettools_app.py (2 places):
+   - load_oui_database() method
+   - OUILookup.load_database() class method
+   
+   Now detects if running as executable:
+   if getattr(sys, 'frozen', False):
+       bundle_dir = Path(sys._MEIPASS)  # PyInstaller temp folder
+   else:
+       bundle_dir = Path(__file__).parent  # Script folder
+
+✅ Added sys import to nettools_app.py
+
+═══════════════════════════════════════════════════════════════════════════════
+  HOW TO FIX YOUR INSTALLATION
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Delete Old Build Files
+───────────────────────────────────────────────────────────────────────────────
+cd /app
+rm -rf build/ dist/ *.spec __pycache__/
+
+STEP 2: Rebuild the Executable
+───────────────────────────────────────────────────────────────────────────────
+
+Choose ONE:
+
+A) Single-file build:
+   python build_exe.py
+
+B) Fast directory build:
+   python build_exe_fast.py
+
+C) Simplest batch file:
+   build_fast_simple.bat
+
+STEP 3: Test the New Build
+───────────────────────────────────────────────────────────────────────────────
+
+Run the NEW executable:
+  - Single-file: dist/NetToolsSuite.exe
+  - Directory: dist/NetToolsSuite/NetToolsSuite.exe
+
+Test with MAC address: 00:1b:17:00:03:1e
+Expected result: 🏢 Vendor: Palo Alto Networks
+
+═══════════════════════════════════════════════════════════════════════════════
+  VERIFICATION TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+Before rebuilding, test that Python script works:
+
+python nettools_app.py
+
+Then test these MACs in MAC Formatter tab:
+
+00:1b:17:00:03:1e  →  Palo Alto Networks ✅
+00:14:22:11:22:33  →  Dell Inc. ✅
+00:17:A4:44:55:66  →  Hewlett Packard ✅
+00:1A:8C:77:88:99  →  Sophos ✅
+
+If Python script works but .exe doesn't → You need to rebuild with the FIX!
+
+═══════════════════════════════════════════════════════════════════════════════
+  TECHNICAL DETAILS
+═══════════════════════════════════════════════════════════════════════════════
+
+PyInstaller Bundle Paths:
+  - sys.frozen = True when running as .exe
+  - sys._MEIPASS = temporary folder where bundled files are extracted
+  - Database is extracted to: sys._MEIPASS/oui_database.json
+
+Database Size: 39KB (1,177 vendor entries)
+
+Files Modified:
+  ✓ build_exe.py        (added --add-data)
+  ✓ build_exe_fast.py   (added --add-data)
+  ✓ nettools_app.py     (fixed database loading for .exe)
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHY THIS HAPPENED
+═══════════════════════════════════════════════════════════════════════════════
+
+The original build scripts from v1.2.0 didn't need to bundle additional data
+files because the OUI database didn't exist yet.
+
+When we added the OUI database in v1.1.0 and expanded it in v1.2.1, the build
+scripts were never updated to include it.
+
+This is a CLASSIC PyInstaller gotcha - data files must be explicitly included!
+
+═══════════════════════════════════════════════════════════════════════════════
+  AFTER REBUILDING
+═══════════════════════════════════════════════════════════════════════════════
+
+Your .exe will now:
+  ✅ Include the full OUI database (1,177 vendors)
+  ✅ Correctly identify Palo Alto Networks
+  ✅ Correctly identify Dell, HP, Sophos, Extreme, Aruba, Juniper
+  ✅ Show vendor names for all supported network equipment
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK REBUILD COMMANDS
+═══════════════════════════════════════════════════════════════════════════════
+
+# Clean and rebuild (single-file):
+cd /app && rm -rf build dist *.spec && python build_exe.py
+
+# Clean and rebuild (fast version):
+cd /app && rm -rf build dist *.spec && python build_exe_fast.py
+
+# Test immediately without building:
+cd /app && python nettools_app.py
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 BOTTOM LINE: The code was correct, the database was correct, but the
+   executable wasn't including the database file!
+
+🔧 NOW FIXED: Build scripts updated to bundle oui_database.json
+
+🚀 ACTION: Delete old builds and rebuild with the fixed build scripts!
+
+═══════════════════════════════════════════════════════════════════════════════
