@@ -2200,9 +2200,9 @@ class NetToolsApp(ctk.CTk):
         if current_config and current_config["dns"] and len(current_config["dns"]) > 0:
             dns_entry.insert(0, current_config["dns"][0])
         
-        # Buttons
+        # Button frame (fixed at bottom)
         button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        button_frame.pack(fill="x", side="bottom", padx=20, pady=20)
         
         def apply_static():
             ip = ip_entry.get().strip()
