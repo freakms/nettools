@@ -30,13 +30,23 @@ The **OUI Vendor Lookup** feature automatically identifies the manufacturer of a
 
 ## Database Coverage
 
-The app includes an OUI database (`oui_database.json`) with **940+ manufacturer entries**, including:
+The app includes an OUI database (`oui_database.json`) with **1,177+ manufacturer entries**, including:
 
-- **Network Equipment**: Cisco, Huawei, Dell, HP, Juniper, Aruba
-- **Computer Manufacturers**: Apple, Microsoft, Intel, AMD
+- **Network Equipment**: Cisco, Dell, HP, Palo Alto Networks, Sophos, Extreme Networks, Aruba, Huawei, Juniper
+- **Computer Manufacturers**: Apple, Microsoft, Intel, AMD, Dell, HP
 - **Mobile Devices**: Samsung, Xiaomi, Huawei
 - **IoT & Smart Devices**: Various manufacturers
 - **Special Addresses**: IANA (Internet Assigned Numbers Authority)
+
+**Enterprise Network Equipment Coverage:**
+- Dell Inc. (29 OUI prefixes)
+- Hewlett Packard / HP (87 OUI prefixes)
+- Palo Alto Networks (24 OUI prefixes)
+- Sophos (10 OUI prefixes)
+- Extreme Networks (13 OUI prefixes)
+- Aruba Networks (22 OUI prefixes)
+- Huawei Technologies (103+ OUI prefixes)
+- Juniper Networks (53 OUI prefixes)
 
 ## Usage Example
 
