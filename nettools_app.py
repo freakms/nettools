@@ -269,8 +269,8 @@ class NetToolsApp(ctk.CTk):
         
         # Window configuration
         self.title(f"{APP_NAME} - {APP_COMPANY}")
-        self.geometry("1100x820")
-        self.minsize(1000, 750)
+        self.geometry("1200x900")
+        self.minsize(1000, 800)
         
         # Set icon
         try:
