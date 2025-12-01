@@ -471,7 +471,7 @@ class NetToolsApp(ctk.CTk):
     
     def create_mac_tab(self):
         """Create MAC Formatter tab"""
-        # Input section
+        # Input section (stays at top, not scrollable)
         input_frame = ctk.CTkFrame(self.tab_mac)
         input_frame.pack(fill="x", padx=15, pady=15)
         
@@ -497,6 +497,10 @@ class NetToolsApp(ctk.CTk):
             text_color="#dc3545"
         )
         self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 15))
+        
+        # Scrollable content area for formats and commands
+        self.mac_scrollable = ctk.CTkScrollableFrame(self.tab_mac)
+        self.mac_scrollable.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         # MAC Formats section
         self.formats_frame = ctk.CTkFrame(self.tab_mac)
