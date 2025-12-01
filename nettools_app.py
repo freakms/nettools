@@ -783,6 +783,9 @@ class NetToolsApp(ctk.CTk):
         except ValueError:
             pass
         
+        # Save to history
+        self.history.add_cidr(cidr)
+        
         # Clear previous results
         for row in self.result_rows:
             row.destroy()
