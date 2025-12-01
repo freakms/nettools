@@ -52,7 +52,8 @@ except ImportError:
 # Application metadata
 APP_NAME = "NetTools Suite"
 APP_VERSION = "1.11.0"
-APP_COMPANY = "freakms"
+APP_COMPANY = "Lünefire IT-Media Solutions"
+APP_AUTHOR = "freakms"
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("Dark")
@@ -2421,7 +2422,7 @@ class NetToolsApp(ctk.CTk):
         
         copyright_label = ctk.CTkLabel(
             status_frame,
-            text=f"© {APP_COMPANY}",
+            text=f"© {APP_AUTHOR}" ,
             font=ctk.CTkFont(size=10)
         )
         copyright_label.pack(side="right", padx=15, pady=5)
