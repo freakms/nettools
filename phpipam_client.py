@@ -50,20 +50,14 @@ class PHPIPAMClient:
             )
             
             # Accept various response codes that indicate the server is reachable
-            if response.status_code in [200, 401]:  
+            if response.status_code in [200, 401, 403]:  
                 # 200 = OK (unlikely without auth)
-                # 401 = Unauthorized (means API is working, just needs auth)
-                return True, "✅ Connection successful! Server is reachable."
-            
-            elif response.status_code == 403:
-                # 403 = Forbidden - Could mean App ID doesn't exist or no permissions
-                return False, (
-                    "⚠️ Server reachable but access forbidden (HTTP 403).\n\n"
-                    "Possible causes:\n"
-                    "• App ID doesn't exist in phpIPAM\n"
-                    "• App ID is disabled\n"
-                    "• API is not enabled in phpIPAM\n\n"
-                    "Check: Administration → API in phpIPAM"
+                # 401 = Unauthorized (API working, needs auth)
+                # 403 = Forbidden (API working, needs proper auth - common with static tokens)
+                return True, (
+                    "✅ Connection successful! phpIPAM API is reachable.\n\n"
+                    f"HTTP Status: {response.status_code}\n"
+                    "Next step: Click 'Authenticate' to get API token."
                 )
             
             elif response.status_code == 404:
