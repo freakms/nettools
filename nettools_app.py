@@ -4689,9 +4689,9 @@ class NetToolsApp(ctk.CTk):
         success, message = client.test_connection()
         
         if success:
-            messagebox.showinfo("Success", f"✅ {message}")
+            messagebox.showinfo("Connection Test - Success", message)
         else:
-            messagebox.showerror("Connection Failed", f"❌ {message}")
+            messagebox.showerror("Connection Test - Failed", message)
     
     def authenticate_phpipam(self):
         """Authenticate with phpIPAM"""
