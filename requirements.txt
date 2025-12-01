@@ -10,5 +10,10 @@ Pillow>=10.0.0
 # Network Operations
 pythonping>=1.1.4
 
+# phpIPAM Integration (Optional)
+requests>=2.31.0
+cryptography>=41.0.0
+urllib3>=2.0.0
+
 # Build Tool
 pyinstaller>=6.0.0
