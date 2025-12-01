@@ -288,6 +288,11 @@ class NetToolsApp(ctk.CTk):
         self.scanner = IPScanner()
         self.scan_thread = None
         
+        # Base window size for scaling calculations
+        self.base_width = 1100
+        self.base_height = 820
+        self.current_scale = 1.0
+        
         # Create UI
         self.create_header()
         self.create_tabs()
@@ -296,6 +301,9 @@ class NetToolsApp(ctk.CTk):
         # Bind keyboard shortcuts
         self.bind('<Return>', self.on_enter_key)
         self.bind('<Control-e>', self.export_csv)
+        
+        # Bind window resize for auto-scaling
+        self.bind('<Configure>', self.on_window_resize)
         
     def create_header(self):
         """Create header with title and theme selector"""
