@@ -751,6 +751,8 @@ class NetToolsApp(ctk.CTk):
             ("compare", "📊  Scan Comparison", "Compare network scan results"),
             ("profiles", "⚙️  Network Profiles", "Manage network interface profiles"),
             ("portscan", "🔌  Port Scanner", "Scan for open ports on hosts"),
+            ("dns", "🌐  DNS Lookup", "Resolve hostnames and IP addresses"),
+            ("subnet", "🔢  Subnet Calculator", "Calculate subnet information"),
         ]
         
         self.current_page = "scanner"
