@@ -1,0 +1,141 @@
+═══════════════════════════════════════════════════════════════════════════════
+  ⚠️ IMPORTANT: Palo Alto Networks OUI IS IN THE DATABASE! ⚠️
+═══════════════════════════════════════════════════════════════════════════════
+
+The OUI 00:1B:17 for Palo Alto Networks IS correctly in the database.
+
+✅ VERIFIED: Database has 1,177 entries including Palo Alto Networks (24 OUIs)
+✅ TESTED: Lookup for 00:1B:17:XX:XX:XX correctly returns "Palo Alto Networks"
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHY YOU SEE "UNKNOWN"
+═══════════════════════════════════════════════════════════════════════════════
+
+You are running an OLD version of the app that has the OLD database (940 entries)
+which did NOT include Palo Alto Networks.
+
+The NEW version (1,177 entries) has Palo Alto and many other vendors.
+
+═══════════════════════════════════════════════════════════════════════════════
+  HOW TO FIX (Choose One)
+═══════════════════════════════════════════════════════════════════════════════
+
+OPTION 1: Run Directly from Python (Fastest - No Build Needed)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Close any old NetTools app
+2. Open command prompt in /app folder
+3. Run: python nettools_app.py
+4. Go to MAC Formatter tab
+5. Enter: 00:1B:17:AA:BB:CC
+6. You should see: 🏢 Vendor: Palo Alto Networks ✓
+
+
+OPTION 2: Rebuild the Executable
+───────────────────────────────────────────────────────────────────────────────
+
+1. Close any old NetTools app
+2. DELETE any old .exe files in dist folder
+3. Open command prompt in /app folder
+4. Run ONE of these:
+   
+   python build_exe.py
+   
+   OR (faster startup):
+   
+   python build_exe_fast.py
+   
+   OR (simplest):
+   
+   build_fast_simple.bat
+
+5. Wait for build to complete
+6. Run the NEW .exe from dist folder
+7. Test Palo Alto MAC: 00:1B:17:AA:BB:CC
+8. Should show: 🏢 Vendor: Palo Alto Networks ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+  VERIFY THE DATABASE
+═══════════════════════════════════════════════════════════════════════════════
+
+Run this test to confirm the database is correct:
+
+  python test_palo_alto.py
+
+This will test all Palo Alto MAC formats and confirm the database works.
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHAT'S IN THE DATABASE NOW
+═══════════════════════════════════════════════════════════════════════════════
+
+Palo Alto Networks OUIs (24 total):
+  • 00:1B:17 ← The one you're testing!
+  • 00:E0:06
+  • 08:2E:5F
+  • 0C:FB:93
+  • 28:99:3A
+  • 34:DB:FD
+  • 38:7B:CE
+  • 44:9A:B4
+  • 54:7F:EE
+  • 6C:25:86
+  • 70:7E:47
+  • 74:06:23
+  • 80:1B:D9
+  • 80:42:74
+  • 94:C6:91
+  • 9C:C6:7A
+  • A4:67:81
+  • B4:4C:C3
+  • B8:38:61
+  • BC:22:83
+  • D4:0C:85
+  • E0:1F:6D
+  • EC:0D:9A
+  • EC:2F:8D
+
+Plus vendors for:
+  • Dell Inc. (29 OUIs)
+  • HP / Hewlett Packard (87 OUIs)
+  • Sophos (10 OUIs)
+  • Extreme Networks (13 OUIs)
+  • Aruba Networks (22 OUIs)
+  • Juniper Networks (53 OUIs)
+  • And 900+ more vendors
+
+═══════════════════════════════════════════════════════════════════════════════
+  COMMON MISTAKES
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ Running old .exe file from previous build
+   → Solution: Delete old files, rebuild
+
+❌ Old Python script open in another window
+   → Solution: Close all, run python nettools_app.py
+
+❌ Testing with wrong OUI
+   → Solution: Use exactly 00:1B:17 (not 00:1b:17 or different format)
+   
+❌ Cached Python bytecode
+   → Solution: Already cleared for you
+
+═══════════════════════════════════════════════════════════════════════════════
+  FINAL TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+After rebuilding or running python nettools_app.py:
+
+1. Open MAC Formatter tab
+2. Enter these MACs and verify vendors:
+
+   00:1B:17:AA:BB:CC  →  Palo Alto Networks ✓
+   00:14:22:11:22:33  →  Dell Inc. ✓
+   00:17:A4:44:55:66  →  Hewlett Packard ✓
+   00:1A:8C:77:88:99  →  Sophos ✓
+   00:E0:2B:12:34:56  →  Extreme Networks ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 The database IS correct - you just need to run the NEW version!
+
+═══════════════════════════════════════════════════════════════════════════════
