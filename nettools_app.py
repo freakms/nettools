@@ -1144,6 +1144,95 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=14, weight="bold")
         )
         compare_btn.pack(pady=20)
+    
+    def create_profiles_content(self, parent):
+        """Create Network Profiles page content"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="Network Profile Manager",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        # Subtitle
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Manage network interface configurations and quick-switch profiles",
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Admin warning if not admin
+        if not self.is_admin():
+            warning_frame = ctk.CTkFrame(scrollable, fg_color=("#FFC107", "#FF6F00"), corner_radius=8)
+            warning_frame.pack(fill="x", pady=(0, 15))
+            
+            warning_label = ctk.CTkLabel(
+                warning_frame,
+                text="⚠️ Administrator privileges required to change network settings",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                text_color=("black", "white")
+            )
+            warning_label.pack(pady=10)
+        
+        # Refresh button
+        refresh_btn = ctk.CTkButton(
+            scrollable,
+            text="🔄 Refresh Interfaces",
+            command=self.refresh_interfaces,
+            width=180,
+            height=40
+        )
+        refresh_btn.pack(pady=(0, 15))
+        
+        # Current Interfaces Section
+        interfaces_title = ctk.CTkLabel(
+            scrollable,
+            text="Network Interfaces (Current Status)",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        interfaces_title.pack(pady=(10, 10), anchor="w")
+        
+        # Frame to hold interface cards
+        self.interfaces_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        self.interfaces_frame.pack(fill="x", pady=(0, 20))
+        
+        # Separator
+        separator = ctk.CTkFrame(scrollable, height=2, fg_color=("gray70", "gray30"))
+        separator.pack(fill="x", pady=20)
+        
+        # Saved Profiles Section
+        profiles_title = ctk.CTkLabel(
+            scrollable,
+            text="Saved Profiles",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        profiles_title.pack(pady=(0, 10), anchor="w")
+        
+        # New profile button
+        new_profile_btn = ctk.CTkButton(
+            scrollable,
+            text="+ Create New Profile",
+            command=self.create_new_profile,
+            width=200,
+            height=40,
+            fg_color=("#2196F3", "#1976D2")
+        )
+        new_profile_btn.pack(pady=(0, 15))
+        
+        # Frame to hold profile cards
+        self.profiles_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        self.profiles_frame.pack(fill="x")
+        
+        # Load initial data
+        self.refresh_interfaces()
+        self.refresh_profiles()
+    
     def create_status_bar(self):
         """Create status bar"""
         status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
