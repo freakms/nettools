@@ -4745,12 +4745,12 @@ class NetToolsApp(ctk.CTk):
             line_label = ctk.CTkLabel(
                 results_scroll,
                 text=line,
-                font=ctk.CTkFont(size=10, weight=font_weight, family="Courier New"),
+                font=ctk.CTkFont(size=12, weight=font_weight, family="Courier New"),
                 anchor="w",
                 justify="left",
                 text_color=text_color
             )
-            line_label.pack(fill="x", pady=1)
+            line_label.pack(fill="x", pady=2)
     
     def export_traceroute(self):
         """Export traceroute results"""
