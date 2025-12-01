@@ -1652,7 +1652,7 @@ class NetToolsApp(ctk.CTk):
         """Scan port using PowerShell Test-NetConnection"""
         try:
             cmd = f'powershell -Command "Test-NetConnection -ComputerName {target} -Port {port} -InformationLevel Quiet"'
-            result = subprocess.run(
+            result = self.run_subprocess(
                 cmd,
                 capture_output=True,
                 text=True,
