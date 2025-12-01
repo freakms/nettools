@@ -868,6 +868,33 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Copied to clipboard!")
             self.after(2000, lambda: self.status_label.configure(text="Ready."))
     
+    def on_window_resize(self, event):
+        """Handle window resize for auto-scaling"""
+        # Only process resize events for the main window
+        if event.widget != self:
+            return
+        
+        # Calculate scale factor based on width (primary scaling dimension)
+        new_width = event.width
+        new_height = event.height
+        
+        # Calculate scale (min 0.8, max 1.5)
+        width_scale = new_width / self.base_width
+        height_scale = new_height / self.base_height
+        new_scale = min(width_scale, height_scale)
+        new_scale = max(0.8, min(1.5, new_scale))
+        
+        # Only update if scale changed significantly
+        if abs(new_scale - self.current_scale) > 0.05:
+            self.current_scale = new_scale
+            self.update_fonts_and_sizes()
+    
+    def update_fonts_and_sizes(self):
+        """Update fonts and widget sizes based on current scale"""
+        # This is called when window is resized
+        # The scaling is handled automatically by CustomTkinter's built-in DPI scaling
+        pass
+    
     def on_tab_change(self):
         """Handle tab change event"""
         current_tab = self.tabview.get()
