@@ -830,6 +830,10 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Manage network interface profiles")
         elif page_id == "portscan":
             self.status_label.configure(text="Scan for open ports on target hosts")
+        elif page_id == "dns":
+            self.status_label.configure(text="Resolve hostnames and IP addresses")
+        elif page_id == "subnet":
+            self.status_label.configure(text="Calculate subnet information from CIDR")
     
     def create_main_content(self):
         """Create main content area with pages"""
