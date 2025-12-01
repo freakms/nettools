@@ -18,7 +18,11 @@ import re
 import sys
 import subprocess
 import socket
-import telnetlib
+try:
+    import telnetlib
+    TELNETLIB_AVAILABLE = True
+except ImportError:
+    TELNETLIB_AVAILABLE = False
 from datetime import datetime
 from pathlib import Path
 import platform
