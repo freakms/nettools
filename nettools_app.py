@@ -1250,8 +1250,10 @@ class NetToolsApp(ctk.CTk):
             scrollable,
             text="🔄 Refresh Interfaces",
             command=self.refresh_interfaces,
-            width=180,
-            height=40
+            width=200,
+            height=42,
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
         )
         refresh_btn.pack(pady=(0, 15))
         
