@@ -290,7 +290,7 @@ class NetToolsApp(ctk.CTk):
         
         # Base window size for scaling calculations
         self.base_width = 1200
-        self.base_height = 900
+        self.base_height = 800
         self.current_scale = 1.0
         
         # Store font references for scaling
