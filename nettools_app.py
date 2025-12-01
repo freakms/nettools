@@ -1431,6 +1431,17 @@ class NetToolsApp(ctk.CTk):
         )
         self.port_cancel_btn.pack(side="left")
         
+        self.port_export_btn = ctk.CTkButton(
+            button_frame,
+            text="Export Results",
+            command=self.export_port_scan,
+            width=160,
+            height=48,
+            font=ctk.CTkFont(size=14),
+            state="disabled"
+        )
+        self.port_export_btn.pack(side="left", padx=(10, 0))
+        
         # Progress
         self.port_progress_label = ctk.CTkLabel(
             scrollable,
