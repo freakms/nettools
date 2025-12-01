@@ -2422,7 +2422,7 @@ class NetToolsApp(ctk.CTk):
         
         copyright_label = ctk.CTkLabel(
             status_frame,
-            text=f"© {APP_AUTHOR}" ,
+            text=f"Version: {APP_VERSION} © {APP_AUTHOR}" ,
             font=ctk.CTkFont(size=10)
         )
         copyright_label.pack(side="right", padx=15, pady=5)
