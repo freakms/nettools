@@ -48,6 +48,7 @@ def build_executable():
         '--windowed',                    # No console window (Windows)
         '--name=NetToolsSuite',          # Executable name
         '--clean',                       # Clean build
+        '--add-data=oui_database.json;.',  # Include OUI database (CRITICAL!)
     ]
     
     # Add icon if available
