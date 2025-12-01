@@ -909,17 +909,23 @@ class NetToolsApp(ctk.CTk):
             self.progress_bar.pack_forget()
     
     def toggle_commands(self):
-        """Toggle switch commands visibility"""
+        """Toggle switch commands visibility and expand formats section"""
         if self.commands_visible:
-            for textbox in self.command_textboxes:
-                textbox.master.pack_forget()
+            # Hide commands
+            self.commands_frame.pack_forget()
             self.toggle_commands_btn.configure(text="Show Switch Commands")
             self.commands_visible = False
+            
+            # Expand formats frame to fill available space
+            self.formats_frame.pack_configure(fill="both", expand=True, pady=(0, 15))
         else:
-            for textbox in self.command_textboxes:
-                textbox.master.pack(fill="x", padx=15, pady=5)
+            # Show commands
+            self.commands_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
             self.toggle_commands_btn.configure(text="Hide Switch Commands")
             self.commands_visible = True
+            
+            # Reset formats frame to normal size
+            self.formats_frame.pack_configure(fill="x", expand=False, pady=(0, 15))
     
     def on_enter_key(self, event):
         """Handle Enter key press"""
