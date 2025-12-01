@@ -3217,7 +3217,7 @@ class NetToolsApp(ctk.CTk):
                 return
             
             # Set DHCP for DNS
-            subprocess.run(
+            self.run_subprocess(
                 ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "dhcp"],
                 timeout=10
             )
