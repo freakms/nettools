@@ -4522,6 +4522,14 @@ class NetToolsApp(ctk.CTk):
         )
         appid_label.pack(anchor="w", pady=(0, 5))
         
+        appid_info = ctk.CTkLabel(
+            content,
+            text="Must match an API application created in phpIPAM (Administration → API)",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        appid_info.pack(anchor="w", pady=(0, 5))
+        
         appid_entry = ctk.CTkEntry(
             content,
             placeholder_text="MyApplication",
