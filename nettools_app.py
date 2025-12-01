@@ -34,7 +34,7 @@ import json
 
 # Application metadata
 APP_NAME = "NetTools Suite"
-APP_VERSION = "1.5.0"
+APP_VERSION = "1.5.1"
 APP_COMPANY = "Malte Schad"
 
 # Configure CustomTkinter
