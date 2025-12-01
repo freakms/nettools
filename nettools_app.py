@@ -1034,13 +1034,13 @@ class NetToolsApp(ctk.CTk):
         )
         self.compare_btn.pack(side="right", padx=(0, 10), pady=15)
         
-        # Results section
-        results_frame = ctk.CTkFrame(parent)
-        results_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        # Results section with better styling
+        results_frame = ctk.CTkFrame(parent, corner_radius=8)
+        results_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         
-        # Results header
-        header_frame = ctk.CTkFrame(results_frame, height=40)
-        header_frame.pack(fill="x", padx=2, pady=2)
+        # Results header with enhanced styling
+        header_frame = ctk.CTkFrame(results_frame, height=45, corner_radius=6)
+        header_frame.pack(fill="x", padx=5, pady=5)
         header_frame.pack_propagate(False)
         
         headers = [("●", 50), ("IP Address", 250), ("Status", 200), ("Response (ms)", 150)]
