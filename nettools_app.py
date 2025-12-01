@@ -4766,15 +4766,21 @@ class NetToolsApp(ctk.CTk):
             messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
             return
         
+        # Show loading message
+        self.display_phpipam_loading("Loading subnets from phpIPAM...")
+        
         # Create/get client
         if not self.phpipam_client:
             self.phpipam_client = PHPIPAMClient(self.phpipam_config)
         
-        # Get subnets
-        success, results = self.phpipam_client.get_all_subnets()
+        # Get subnets in background thread
+        def subnets_thread():
+            success, results = self.phpipam_client.get_all_subnets()
+            # Update UI in main thread
+            self.after(0, self.display_phpipam_results, "All Subnets", results, success)
         
-        # Display results
-        self.display_phpipam_results("All Subnets", results, success)
+        thread = threading.Thread(target=subnets_thread, daemon=True)
+        thread.start()
     
     def display_phpipam_results(self, title, data, success):
         """Display phpIPAM operation results"""
