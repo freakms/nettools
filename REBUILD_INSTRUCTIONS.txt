@@ -1,0 +1,64 @@
+═══════════════════════════════════════════════════════════════════════════════
+  IMPORTANT: REBUILD REQUIRED TO SEE HISTORY BUTTONS!
+═══════════════════════════════════════════════════════════════════════════════
+
+The history feature has been added to the CODE, but you need to REBUILD the
+application to see the changes!
+
+═══════════════════════════════════════════════════════════════════════════════
+  OPTION 1: Test Without Building (Quickest)
+═══════════════════════════════════════════════════════════════════════════════
+
+Run directly from Python to see the new features immediately:
+
+    python nettools_app.py
+
+This will show the history buttons right away!
+
+═══════════════════════════════════════════════════════════════════════════════
+  OPTION 2: Rebuild the .exe (For Distribution)
+═══════════════════════════════════════════════════════════════════════════════
+
+Single File Version:
+    python build_exe.py
+
+Fast Version (Folder):
+    python build_exe_fast.py
+
+Or Simplest:
+    build_fast_simple.bat
+
+Then run: dist\NetToolsSuite.exe (or dist\NetToolsSuite\NetToolsSuite.exe)
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHERE TO FIND THE HISTORY BUTTONS
+═══════════════════════════════════════════════════════════════════════════════
+
+Once rebuilt, you'll see:
+
+IPv4 Scanner Tab:
+  CIDR Input: [192.168.1.0/24_______] [⏱]
+                                       ↑
+                                   Clock icon button!
+
+MAC Formatter Tab:
+  MAC Input: [AA:BB:CC:DD:EE:FF_______] [⏱]
+                                          ↑
+                                      Clock icon button!
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Open Command Prompt in this folder
+2. Run: python nettools_app.py
+3. Look for ⏱ buttons next to input fields
+4. Try scanning or formatting to build history
+5. Click ⏱ to see your history!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+If you're running the OLD .exe file, it won't have the new features.
+You MUST rebuild or run from Python!
+
+═══════════════════════════════════════════════════════════════════════════════
