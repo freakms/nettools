@@ -836,41 +836,19 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Calculate subnet information from CIDR")
     
     def create_main_content(self):
-        """Create main content area with pages"""
+        """Create main content area with pages (lazy loading for faster startup)"""
         # Main content frame
         self.main_content = ctk.CTkFrame(self, corner_radius=0)
         self.main_content.pack(side="right", fill="both", expand=True, padx=0, pady=0)
         
-        # Create pages dictionary
+        # Create pages dictionary (empty frames, content loaded on demand)
         self.pages = {}
+        self.pages_loaded = {}  # Track which pages have been loaded
         
-        # Create scanner page
+        # Pre-create only the scanner page for fast initial display
         self.pages["scanner"] = ctk.CTkFrame(self.main_content, corner_radius=0)
         self.create_scanner_content(self.pages["scanner"])
-        
-        # Create MAC formatter page
-        self.pages["mac"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_mac_content(self.pages["mac"])
-        
-        # Create comparison page
-        self.pages["compare"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_comparison_content(self.pages["compare"])
-        
-        # Create network profiles page
-        self.pages["profiles"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_profiles_content(self.pages["profiles"])
-        
-        # Create port scanner page
-        self.pages["portscan"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_portscan_content(self.pages["portscan"])
-        
-        # Create DNS lookup page
-        self.pages["dns"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_dns_content(self.pages["dns"])
-        
-        # Create subnet calculator page
-        self.pages["subnet"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_subnet_content(self.pages["subnet"])
+        self.pages_loaded["scanner"] = True
         
         # Show the initial page (scanner)
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
