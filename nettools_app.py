@@ -600,10 +600,21 @@ class NetToolsApp(ctk.CTk):
     def load_oui_database(self):
         """Load OUI database from JSON file"""
         try:
-            oui_path = Path(__file__).parent / "oui_database.json"
+            # Handle both development and PyInstaller bundled environments
+            if getattr(sys, 'frozen', False):
+                # Running as compiled executable
+                bundle_dir = Path(sys._MEIPASS)
+            else:
+                # Running as script
+                bundle_dir = Path(__file__).parent
+            
+            oui_path = bundle_dir / "oui_database.json"
+            
             if oui_path.exists():
                 with open(oui_path, 'r', encoding='utf-8') as f:
                     return json.load(f)
+            else:
+                print(f"OUI database not found at: {oui_path}")
         except Exception as e:
             print(f"Could not load OUI database: {e}")
         return {}
