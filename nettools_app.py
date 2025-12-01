@@ -1521,6 +1521,262 @@ class NetToolsApp(ctk.CTk):
             window.destroy()
             messagebox.showinfo("History", "MAC history cleared.")
     
+    def show_scan_comparison(self):
+        """Show scan comparison window"""
+        scans = self.scan_manager.get_scans()
+        
+        if len(scans) < 2:
+            messagebox.showinfo("Scan Comparison", "You need at least 2 saved scans to compare. Run more scans first.")
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self)
+        comp_window.title("Scan Comparison")
+        comp_window.geometry("900x700")
+        comp_window.transient(self)
+        comp_window.grab_set()
+        
+        # Center window
+        comp_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            comp_window,
+            text="Compare Network Scans",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Selection frame
+        select_frame = ctk.CTkFrame(comp_window)
+        select_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        # Prepare scan options
+        scan_options = [f"{s['id']} - {s['cidr']} ({s['summary']['online']}/{s['summary']['total']} online)" for s in scans]
+        
+        # Scan 1 selection
+        scan1_label = ctk.CTkLabel(select_frame, text="Scan 1:", font=ctk.CTkFont(size=12, weight="bold"))
+        scan1_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        
+        scan1_var = ctk.StringVar(value=scan_options[0])
+        scan1_menu = ctk.CTkOptionMenu(select_frame, variable=scan1_var, values=scan_options, width=400)
+        scan1_menu.grid(row=0, column=1, padx=10, pady=10)
+        
+        # Scan 2 selection
+        scan2_label = ctk.CTkLabel(select_frame, text="Scan 2:", font=ctk.CTkFont(size=12, weight="bold"))
+        scan2_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        
+        scan2_var = ctk.StringVar(value=scan_options[-1] if len(scan_options) > 1 else scan_options[0])
+        scan2_menu = ctk.CTkOptionMenu(select_frame, variable=scan2_var, values=scan_options, width=400)
+        scan2_menu.grid(row=1, column=1, padx=10, pady=10)
+        
+        # Results area
+        results_frame = ctk.CTkFrame(comp_window)
+        results_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        results_scroll = ctk.CTkScrollableFrame(results_frame)
+        results_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        results_label = ctk.CTkLabel(
+            results_scroll,
+            text="Select two scans and click 'Compare' to see differences",
+            font=ctk.CTkFont(size=12)
+        )
+        results_label.pack(pady=50)
+        
+        def do_comparison():
+            """Perform the comparison"""
+            # Get selected scan IDs
+            scan1_id = scan1_var.get().split(" - ")[0]
+            scan2_id = scan2_var.get().split(" - ")[0]
+            
+            if scan1_id == scan2_id:
+                messagebox.showwarning("Same Scan", "Please select two different scans to compare.")
+                return
+            
+            # Perform comparison
+            comparison_result = self.scan_manager.compare_scans(scan1_id, scan2_id)
+            
+            if not comparison_result:
+                messagebox.showerror("Error", "Could not load scan data.")
+                return
+            
+            # Clear results
+            for widget in results_scroll.winfo_children():
+                widget.destroy()
+            
+            # Summary
+            summary_frame = ctk.CTkFrame(results_scroll)
+            summary_frame.pack(fill="x", padx=5, pady=10)
+            
+            summary_title = ctk.CTkLabel(
+                summary_frame,
+                text="Summary",
+                font=ctk.CTkFont(size=14, weight="bold")
+            )
+            summary_title.pack(pady=(10, 5))
+            
+            summary = comparison_result["summary"]
+            summary_text = f"✅ Unchanged: {summary['unchanged']}  |  "
+            summary_text += f"🆕 New: {summary['new']}  |  "
+            summary_text += f"❌ Missing: {summary['missing']}  |  "
+            summary_text += f"🔄 Changed: {summary['changed']}"
+            
+            summary_label = ctk.CTkLabel(
+                summary_frame,
+                text=summary_text,
+                font=ctk.CTkFont(size=12)
+            )
+            summary_label.pack(pady=(0, 10))
+            
+            # Details header
+            details_header = ctk.CTkFrame(results_scroll)
+            details_header.pack(fill="x", padx=5, pady=5)
+            
+            headers = [
+                ("Change", 100),
+                ("IP Address", 150),
+                ("Scan 1 Status", 150),
+                ("Scan 2 Status", 150),
+                ("Scan 1 RTT", 120),
+                ("Scan 2 RTT", 120)
+            ]
+            
+            for text, width in headers:
+                label = ctk.CTkLabel(
+                    details_header,
+                    text=text,
+                    font=ctk.CTkFont(size=11, weight="bold"),
+                    width=width
+                )
+                label.pack(side="left", padx=5)
+            
+            # Details rows
+            for item in comparison_result["comparison"]:
+                # Skip unchanged if there are too many
+                if item["change"] == "unchanged" and summary["unchanged"] > 50:
+                    # Only show first 10 unchanged
+                    continue
+                
+                row_frame = ctk.CTkFrame(results_scroll)
+                row_frame.pack(fill="x", padx=5, pady=2)
+                
+                # Change indicator
+                change_icons = {
+                    "unchanged": "✅",
+                    "new": "🆕",
+                    "missing": "❌",
+                    "changed": "🔄"
+                }
+                change_colors = {
+                    "unchanged": "#4CAF50",
+                    "new": "#2196F3",
+                    "missing": "#dc3545",
+                    "changed": "#FF9800"
+                }
+                
+                change_label = ctk.CTkLabel(
+                    row_frame,
+                    text=change_icons.get(item["change"], "?"),
+                    width=100,
+                    text_color=change_colors.get(item["change"], "#FFFFFF")
+                )
+                change_label.pack(side="left", padx=5)
+                
+                # IP
+                ip_label = ctk.CTkLabel(row_frame, text=item["ip"], width=150)
+                ip_label.pack(side="left", padx=5)
+                
+                # Scan 1 Status
+                s1_label = ctk.CTkLabel(row_frame, text=item["scan1_status"], width=150)
+                s1_label.pack(side="left", padx=5)
+                
+                # Scan 2 Status
+                s2_label = ctk.CTkLabel(row_frame, text=item["scan2_status"], width=150)
+                s2_label.pack(side="left", padx=5)
+                
+                # Scan 1 RTT
+                s1_rtt = item["scan1_rtt"] if item["scan1_rtt"] else "-"
+                s1_rtt_label = ctk.CTkLabel(row_frame, text=s1_rtt, width=120)
+                s1_rtt_label.pack(side="left", padx=5)
+                
+                # Scan 2 RTT
+                s2_rtt = item["scan2_rtt"] if item["scan2_rtt"] else "-"
+                s2_rtt_label = ctk.CTkLabel(row_frame, text=s2_rtt, width=120)
+                s2_rtt_label.pack(side="left", padx=5)
+        
+        def export_comparison():
+            """Export comparison to file"""
+            scan1_id = scan1_var.get().split(" - ")[0]
+            scan2_id = scan2_var.get().split(" - ")[0]
+            
+            if scan1_id == scan2_id:
+                messagebox.showwarning("Same Scan", "Please select two different scans to compare.")
+                return
+            
+            comparison_result = self.scan_manager.compare_scans(scan1_id, scan2_id)
+            if not comparison_result:
+                messagebox.showerror("Error", "Could not load scan data.")
+                return
+            
+            # Ask for save location
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                initialfile=f"comparison_{scan1_id}_vs_{scan2_id}.csv"
+            )
+            
+            if filename:
+                try:
+                    with open(filename, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['Change', 'IP Address', 'Scan 1 Status', 'Scan 2 Status', 'Scan 1 RTT', 'Scan 2 RTT'])
+                        
+                        for item in comparison_result["comparison"]:
+                            writer.writerow([
+                                item["change"],
+                                item["ip"],
+                                item["scan1_status"],
+                                item["scan2_status"],
+                                item["scan1_rtt"] or "-",
+                                item["scan2_rtt"] or "-"
+                            ])
+                    
+                    messagebox.showinfo("Success", f"Comparison exported to:\n{filename}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Could not export comparison:\n{str(e)}")
+        
+        # Action buttons
+        button_frame = ctk.CTkFrame(comp_window)
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        compare_btn = ctk.CTkButton(
+            button_frame,
+            text="Compare",
+            command=do_comparison,
+            width=150
+        )
+        compare_btn.pack(side="left", padx=(0, 10))
+        
+        export_btn = ctk.CTkButton(
+            button_frame,
+            text="Export Comparison",
+            command=export_comparison,
+            width=150
+        )
+        export_btn.pack(side="left", padx=(0, 10))
+        
+        close_btn = ctk.CTkButton(
+            button_frame,
+            text="Close",
+            command=comp_window.destroy,
+            width=100
+        )
+        close_btn.pack(side="right")
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.tabview.get() == "IPv4 Scanner":
