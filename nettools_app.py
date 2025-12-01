@@ -783,6 +783,7 @@ class NetToolsApp(ctk.CTk):
             ("compare", "📊  Scan Comparison", "Compare network scan results"),
             ("profiles", "⚙️  Network Profiles", "Manage network interface profiles"),
             ("subnet", "🔢  Subnet Calculator", "Calculate subnet information"),
+            ("phpipam", "📡  phpIPAM", "Manage IP addresses with phpIPAM"),
         ]
         
         self.current_page = "scanner"
