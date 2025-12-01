@@ -20,7 +20,7 @@ echo Building FAST version with PyInstaller...
 echo.
 
 REM Direct PyInstaller command
-pyinstaller --onedir --windowed --name=NetToolsSuite --clean --icon=nettools_icon.ico --version-file=version_info.txt --hidden-import=PIL._tkinter_finder --hidden-import=customtkinter --hidden-import=pythonping nettools_app.py
+pyinstaller --onedir --windowed --name=NetToolsSuite --clean --add-data=oui_database.json;. --icon=nettools_icon.ico --version-file=version_info.txt --hidden-import=PIL._tkinter_finder --hidden-import=customtkinter --hidden-import=pythonping nettools_app.py
 
 if errorlevel 1 (
     echo.
