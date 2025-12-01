@@ -955,30 +955,24 @@ class NetToolsApp(ctk.CTk):
         button_frame.grid(row=0, column=3, rowspan=2, padx=15, pady=15, sticky="e")
         input_frame.grid_columnconfigure(3, weight=1)
         
-        self.start_scan_btn = ctk.CTkButton(
+        self.start_scan_btn = StyledButton(
             button_frame,
             text="▶ Start Scan",
             command=self.start_scan,
-            width=140,
-            height=38,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="medium",
+            variant="primary"
         )
-        self.start_scan_btn.pack(side="left", padx=5)
+        self.start_scan_btn.pack(side="left", padx=SPACING['xs'])
         
-        self.cancel_scan_btn = ctk.CTkButton(
+        self.cancel_scan_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
             command=self.cancel_scan,
-            width=120,
-            height=38,
-            state="disabled",
-            fg_color=COLORS["danger"],
-            hover_color=COLORS["danger_hover"],
-            font=ctk.CTkFont(size=12, weight="bold")
+            size="medium",
+            variant="danger",
+            state="disabled"
         )
-        self.cancel_scan_btn.pack(side="left", padx=5)
+        self.cancel_scan_btn.pack(side="left", padx=SPACING['xs'])
         
         # Options section
         options_frame = ctk.CTkFrame(parent)
