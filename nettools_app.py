@@ -3372,7 +3372,7 @@ class NetToolsApp(ctk.CTk):
             else:
                 cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet]
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            result = self.run_subprocess(cmd, capture_output=True, text=True, timeout=10)
             
             if result.returncode != 0:
                 error_msg = result.stderr or result.stdout
