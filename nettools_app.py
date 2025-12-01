@@ -744,6 +744,7 @@ class NetToolsApp(ctk.CTk):
             ("mac", "🏷️  MAC Formatter", "Format and analyze MAC addresses"),
             ("compare", "📊  Scan Comparison", "Compare network scan results"),
             ("profiles", "⚙️  Network Profiles", "Manage network interface profiles"),
+            ("portscan", "🔌  Port Scanner", "Scan for open ports on hosts"),
         ]
         
         self.current_page = "scanner"
