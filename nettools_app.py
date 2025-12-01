@@ -940,20 +940,20 @@ class NetToolsApp(ctk.CTk):
         self.host_count_label.grid(row=0, column=3, padx=SPACING['md'], pady=SPACING['md'], sticky="w")
         
         # Aggression selector
-        aggro_label = ctk.CTkLabel(input_frame, text="Aggressiveness:", font=ctk.CTkFont(size=12))
-        aggro_label.grid(row=1, column=0, padx=15, pady=15, sticky="w")
+        aggro_label = ctk.CTkLabel(input_card, text="Aggressiveness:", font=ctk.CTkFont(size=FONTS['body']))
+        aggro_label.grid(row=1, column=0, padx=SPACING['md'], pady=SPACING['md'], sticky="w")
         
         self.aggro_selector = ctk.CTkOptionMenu(
-            input_frame,
+            input_card,
             values=["Gentle (longer timeout)", "Medium", "Aggressive (short timeout)"]
         )
         self.aggro_selector.set("Medium")
-        self.aggro_selector.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
+        self.aggro_selector.grid(row=1, column=1, padx=SPACING['md'], pady=SPACING['md'], sticky="ew")
         
         # Scan buttons
-        button_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        button_frame.grid(row=0, column=3, rowspan=2, padx=15, pady=15, sticky="e")
-        input_frame.grid_columnconfigure(3, weight=1)
+        button_frame = ctk.CTkFrame(input_card, fg_color="transparent")
+        button_frame.grid(row=0, column=3, rowspan=2, padx=SPACING['md'], pady=SPACING['md'], sticky="e")
+        input_card.grid_columnconfigure(3, weight=1)
         
         self.start_scan_btn = StyledButton(
             button_frame,
