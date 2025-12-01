@@ -906,16 +906,25 @@ class NetToolsApp(ctk.CTk):
     
     def create_scanner_content(self, parent):
         """Create IPv4 Scanner page content"""
-        # Input section
-        input_frame = ctk.CTkFrame(parent)
-        input_frame.pack(fill="x", padx=15, pady=15)
+        # Input section with better spacing
+        input_frame = ctk.CTkFrame(parent, corner_radius=8)
+        input_frame.pack(fill="x", padx=20, pady=20)
         
         # CIDR input
-        cidr_label = ctk.CTkLabel(input_frame, text="IPv4 / CIDR:", font=ctk.CTkFont(size=12))
-        cidr_label.grid(row=0, column=0, padx=15, pady=15, sticky="w")
+        cidr_label = ctk.CTkLabel(
+            input_frame,
+            text="IPv4 / CIDR:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        cidr_label.grid(row=0, column=0, padx=15, pady=18, sticky="w")
         
-        self.cidr_entry = ctk.CTkEntry(input_frame, placeholder_text="e.g., 192.168.1.0/24")
-        self.cidr_entry.grid(row=0, column=1, padx=(15, 5), pady=15, sticky="ew")
+        self.cidr_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="e.g., 192.168.1.0/24",
+            height=38,
+            font=ctk.CTkFont(size=13)
+        )
+        self.cidr_entry.grid(row=0, column=1, padx=(15, 5), pady=18, sticky="ew")
         input_frame.grid_columnconfigure(1, weight=1)
         self.cidr_entry.bind('<KeyRelease>', self.update_host_count)
         
@@ -923,14 +932,22 @@ class NetToolsApp(ctk.CTk):
         self.cidr_history_btn = ctk.CTkButton(
             input_frame,
             text="⏱",
-            width=35,
+            width=40,
+            height=38,
             command=self.show_cidr_history,
-            font=ctk.CTkFont(size=16)
+            font=ctk.CTkFont(size=16),
+            fg_color=COLORS["neutral"],
+            hover_color=COLORS["neutral_hover"]
         )
-        self.cidr_history_btn.grid(row=0, column=2, padx=(0, 15), pady=15)
+        self.cidr_history_btn.grid(row=0, column=2, padx=(0, 15), pady=18)
         
-        self.host_count_label = ctk.CTkLabel(input_frame, text="", font=ctk.CTkFont(size=11))
-        self.host_count_label.grid(row=0, column=3, padx=15, pady=15, sticky="w")
+        self.host_count_label = ctk.CTkLabel(
+            input_frame,
+            text="",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS["text_secondary"]
+        )
+        self.host_count_label.grid(row=0, column=3, padx=15, pady=18, sticky="w")
         
         # Aggression selector
         aggro_label = ctk.CTkLabel(input_frame, text="Aggressiveness:", font=ctk.CTkFont(size=12))
