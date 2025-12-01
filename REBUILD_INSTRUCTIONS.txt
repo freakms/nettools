@@ -41,16 +41,20 @@ Then run: dist\NetToolsSuite.exe (or dist\NetToolsSuite\NetToolsSuite.exe)
 Once rebuilt, you'll see:
 
 IPv4 Scanner Tab:
-  CIDR Input: [192.168.1.0/24_______] [⏱]
-                                       ↑
-                                   Clock icon button!
+  CIDR Input: [192.168.1.0/24_______] [⏱]  ← History button!
+  
+  After scanning:
+  [Compare Scans] button appears!  ← NEW in v1.2!
+  
+  Compare Scans window:
+  - Select two scans to compare
+  - See what changed (new/missing/changed devices)
+  - Export comparison as CSV
 
 MAC Formatter Tab:
-  MAC Input: [AA:BB:CC:DD:EE:FF_______] [⏱]
-                                          ↑
-                                      Clock icon button!
+  MAC Input: [AA:BB:CC:DD:EE:FF_______] [⏱]  ← History button!
   
-  🏢 Vendor: Cisco Systems, Inc   ← Automatically shows device manufacturer!
+  🏢 Vendor: Cisco Systems, Inc   ← Device manufacturer!
 
 ═══════════════════════════════════════════════════════════════════════════════
   QUICK TEST
