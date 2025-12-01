@@ -903,48 +903,41 @@ class NetToolsApp(ctk.CTk):
     
     def create_scanner_content(self, parent):
         """Create IPv4 Scanner page content"""
-        # Input section with better spacing
-        input_frame = ctk.CTkFrame(parent, corner_radius=8)
-        input_frame.pack(fill="x", padx=20, pady=20)
+        # Input section with styled card
+        input_card = StyledCard(parent)
+        input_card.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
         
         # CIDR input
         cidr_label = ctk.CTkLabel(
-            input_frame,
+            input_card,
             text="IPv4 / CIDR:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        cidr_label.grid(row=0, column=0, padx=15, pady=18, sticky="w")
+        cidr_label.grid(row=0, column=0, padx=SPACING['md'], pady=SPACING['md'], sticky="w")
         
-        self.cidr_entry = ctk.CTkEntry(
-            input_frame,
-            placeholder_text="e.g., 192.168.1.0/24",
-            height=38,
-            font=ctk.CTkFont(size=13)
+        self.cidr_entry = StyledEntry(
+            input_card,
+            placeholder_text="e.g., 192.168.1.0/24"
         )
-        self.cidr_entry.grid(row=0, column=1, padx=(15, 5), pady=18, sticky="ew")
-        input_frame.grid_columnconfigure(1, weight=1)
+        self.cidr_entry.grid(row=0, column=1, padx=(SPACING['md'], SPACING['xs']), pady=SPACING['md'], sticky="ew")
+        input_card.grid_columnconfigure(1, weight=1)
         self.cidr_entry.bind('<KeyRelease>', self.update_host_count)
         
         # History button for CIDR
-        self.cidr_history_btn = ctk.CTkButton(
-            input_frame,
+        self.cidr_history_btn = StyledButton(
+            input_card,
             text="⏱",
-            width=40,
-            height=38,
-            command=self.show_cidr_history,
-            font=ctk.CTkFont(size=16),
-            fg_color=COLORS["neutral"],
-            hover_color=COLORS["neutral_hover"]
+            size="small",
+            variant="neutral",
+            command=self.show_cidr_history
         )
-        self.cidr_history_btn.grid(row=0, column=2, padx=(0, 15), pady=18)
+        self.cidr_history_btn.grid(row=0, column=2, padx=(0, SPACING['md']), pady=SPACING['md'])
         
-        self.host_count_label = ctk.CTkLabel(
-            input_frame,
-            text="",
-            font=ctk.CTkFont(size=11),
-            text_color=COLORS["text_secondary"]
+        self.host_count_label = SubTitle(
+            input_card,
+            text=""
         )
-        self.host_count_label.grid(row=0, column=3, padx=15, pady=18, sticky="w")
+        self.host_count_label.grid(row=0, column=3, padx=SPACING['md'], pady=SPACING['md'], sticky="w")
         
         # Aggression selector
         aggro_label = ctk.CTkLabel(input_frame, text="Aggressiveness:", font=ctk.CTkFont(size=12))
