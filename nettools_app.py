@@ -4622,18 +4622,48 @@ class NetToolsApp(ctk.CTk):
             self.trace_progress_label.configure(text="✅ Trace complete")
             self.trace_export_btn.configure(state="normal")
         else:
-            self.trace_progress_label.configure(text="❌ Trace failed")
-            self.trace_export_btn.configure(state="disabled")
+            self.trace_progress_label.configure(text="❌ Trace failed or encountered errors")
+            # Still allow export even if there are errors - might have partial results
+            if output and len(output) > 50:
+                self.trace_export_btn.configure(state="normal")
+            else:
+                self.trace_export_btn.configure(state="disabled")
+        
+        # Create info header
+        info_frame = ctk.CTkFrame(self.traceroute_results_frame, fg_color="transparent")
+        info_frame.pack(fill="x", padx=15, pady=(15, 5))
+        
+        info_label = ctk.CTkLabel(
+            info_frame,
+            text=f"Output length: {len(output)} characters",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS["text_secondary"]
+        )
+        info_label.pack(side="left")
         
         # Create scrollable text widget for results
         results_scroll = ctk.CTkScrollableFrame(self.traceroute_results_frame)
-        results_scroll.pack(fill="both", expand=True, padx=15, pady=15)
+        results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # If output is empty or very short, show helpful message
+        if not output or len(output) < 10:
+            error_label = ctk.CTkLabel(
+                results_scroll,
+                text="No output received from command.\n\nPossible causes:\n• Command not found on system\n• Insufficient permissions\n• Network adapter issue\n\nTry running NetTools as Administrator.",
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS["danger"],
+                justify="left"
+            )
+            error_label.pack(pady=20)
+            return
         
         # Parse and display results with formatting
         lines = output.split('\n')
         
         for line in lines:
+            # Keep empty lines for spacing
             if not line.strip():
+                ctk.CTkLabel(results_scroll, text=" ", height=5).pack()
                 continue
             
             # Color code different types of lines
@@ -4641,20 +4671,24 @@ class NetToolsApp(ctk.CTk):
             font_weight = "normal"
             
             # Headers
-            if line.startswith("Tracing") or line.startswith("Computing"):
+            if "Tracing" in line or "Computing" in line or "over a maximum" in line:
                 text_color = COLORS["primary"]
                 font_weight = "bold"
-            # Hop numbers
-            elif line.strip().startswith(tuple(str(i) for i in range(10))):
+            # Hop numbers (lines starting with numbers)
+            elif line.strip() and line.strip()[0].isdigit():
                 text_color = COLORS["text_primary"]
             # Timeouts
-            elif "*" in line or "Request timed out" in line:
+            elif "*" in line or "Request timed out" in line or "timed out" in line.lower():
                 text_color = COLORS["warning"]
             # Errors
-            elif "error" in line.lower() or "failed" in line.lower():
+            elif "error" in line.lower() or "failed" in line.lower() or "unable" in line.lower():
                 text_color = COLORS["danger"]
+                font_weight = "bold"
             # Summary lines (pathping)
-            elif "%" in line or "Loss" in line:
+            elif "%" in line or "Loss" in line or "Sent" in line:
+                text_color = COLORS["success"]
+            # Complete messages
+            elif "complete" in line.lower():
                 text_color = COLORS["success"]
                 font_weight = "bold"
             
