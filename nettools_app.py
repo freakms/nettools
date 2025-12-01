@@ -787,6 +787,7 @@ class NetToolsApp(ctk.CTk):
         nav_items = [
             ("scanner", "🔍  IPv4 Scanner", "Scan network for active hosts"),
             ("portscan", "🔌  Port Scanner", "Scan for open ports on hosts"),
+            ("traceroute", "🛣️  Traceroute & Pathping", "Trace network path to host"),
             ("dns", "🌐  DNS Lookup", "Resolve hostnames and IP addresses"),
             ("mac", "🏷️  MAC Formatter", "Format and analyze MAC addresses"),
             ("compare", "📊  Scan Comparison", "Compare network scan results"),
