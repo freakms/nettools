@@ -467,11 +467,21 @@ class OUILookup:
             return cls._database
         
         try:
-            db_path = Path(__file__).parent / "oui_database.json"
+            # Handle both development and PyInstaller bundled environments
+            if getattr(sys, 'frozen', False):
+                # Running as compiled executable
+                bundle_dir = Path(sys._MEIPASS)
+            else:
+                # Running as script
+                bundle_dir = Path(__file__).parent
+            
+            db_path = bundle_dir / "oui_database.json"
+            
             if db_path.exists():
                 with open(db_path, 'r', encoding='utf-8') as f:
                     cls._database = json.load(f)
             else:
+                print(f"OUI database not found at: {db_path}")
                 cls._database = {}
         except Exception as e:
             print(f"Could not load OUI database: {e}")
