@@ -492,11 +492,11 @@ class NetToolsApp(ctk.CTk):
         self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 15))
         
         # MAC Formats section
-        formats_frame = ctk.CTkFrame(self.tab_mac)
-        formats_frame.pack(fill="x", padx=15, pady=(0, 15))
+        self.formats_frame = ctk.CTkFrame(self.tab_mac)
+        self.formats_frame.pack(fill="x", padx=15, pady=(0, 15))
         
         formats_title = ctk.CTkLabel(
-            formats_frame,
+            self.formats_frame,
             text="Standard MAC Formats",
             font=ctk.CTkFont(size=14, weight="bold")
         )
