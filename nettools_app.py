@@ -33,6 +33,15 @@ import io
 import json
 import xml.etree.ElementTree as ET
 
+# phpIPAM integration
+try:
+    from phpipam_config import PHPIPAMConfig
+    from phpipam_client import PHPIPAMClient
+    PHPIPAM_AVAILABLE = True
+except ImportError:
+    PHPIPAM_AVAILABLE = False
+    print("phpIPAM modules not found. Integration will be disabled.")
+
 # Application metadata
 APP_NAME = "NetTools Suite"
 APP_VERSION = "1.9.0"
