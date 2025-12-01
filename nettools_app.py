@@ -764,15 +764,15 @@ class NetToolsApp(ctk.CTk):
         # Navigation buttons (reordered for better workflow)
         self.nav_buttons = {}
         nav_items = [
-            ("scanner", "🔍  IPv4 Scanner", "Scan network for active hosts"),
-            ("portscan", "🔌  Port Scanner", "Scan for open ports on hosts"),
-            ("traceroute", "🛣️  Traceroute & Pathping", "Trace network path to host"),
-            ("dns", "🌐  DNS Lookup", "Resolve hostnames and IP addresses"),
-            ("mac", "🏷️  MAC Formatter", "Format and analyze MAC addresses"),
-            ("compare", "📊  Scan Comparison", "Compare network scan results"),
-            ("profiles", "⚙️  Network Profiles", "Manage network interface profiles"),
-            ("subnet", "🔢  Subnet Calculator", "Calculate subnet information"),
-            ("phpipam", "📡  phpIPAM", "Manage IP addresses with phpIPAM"),
+            ("scanner", "🔍   IPv4 Scanner", "Scan network for active hosts"),
+            ("portscan", "🔌   Port Scanner", "Scan for open ports on hosts"),
+            ("traceroute", "🛣️   Traceroute & Pathping", "Trace network path to host"),
+            ("dns", "🌐   DNS Lookup", "Resolve hostnames and IP addresses"),
+            ("mac", "🏷️   MAC Formatter", "Format and analyze MAC addresses"),
+            ("compare", "📊   Scan Comparison", "Compare network scan results"),
+            ("profiles", "⚙️   Network Profiles", "Manage network interface profiles"),
+            ("subnet", "🔢   Subnet Calculator", "Calculate subnet information"),
+            ("phpipam", "📡   phpIPAM", "Manage IP addresses with phpIPAM"),
         ]
         
         self.current_page = "scanner"
@@ -788,7 +788,8 @@ class NetToolsApp(ctk.CTk):
                 font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
+                hover_color=("gray70", "gray30"),
+                padx=20  # Add consistent left padding
             )
             btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
