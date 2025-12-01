@@ -564,15 +564,14 @@ class NetToolsApp(ctk.CTk):
         
         self.command_textboxes = []
         for label_text in command_labels:
-            row_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent", height=70)
-            row_frame.pack(fill="x", padx=15, pady=6)
-            row_frame.pack_propagate(False)
+            row_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent")
+            row_frame.pack(fill="x", padx=15, pady=4)
             
             label = ctk.CTkLabel(row_frame, text=label_text, width=200, anchor="w")
             label.pack(side="left", padx=(0, 10))
             
-            textbox = ctk.CTkTextbox(row_frame, height=60)
-            textbox.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=5)
+            textbox = ctk.CTkTextbox(row_frame, height=35, wrap="word")
+            textbox.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
             textbox.configure(state="disabled")
             self.command_textboxes.append(textbox)
             
