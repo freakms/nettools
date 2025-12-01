@@ -388,6 +388,9 @@ class NetToolsApp(ctk.CTk):
         self.scanner = IPScanner()
         self.scan_thread = None
         
+        # Initialize history manager
+        self.history = HistoryManager()
+        
         # Base window size for scaling calculations
         self.base_width = 1200
         self.base_height = 800
