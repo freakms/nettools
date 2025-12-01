@@ -757,6 +757,8 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Ready to format MAC address")
         elif page_id == "compare":
             self.status_label.configure(text="Compare network scans")
+        elif page_id == "profiles":
+            self.status_label.configure(text="Manage network interface profiles")
     
     def create_main_content(self):
         """Create main content area with pages"""
