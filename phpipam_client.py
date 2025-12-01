@@ -41,7 +41,7 @@ class PHPIPAMClient:
             return False, "phpIPAM URL or App ID not configured"
         
         try:
-            # Try to ping the API
+            # Try to ping the API - use a simple endpoint
             url = f"{self.base_url}/api/{self.app_id}/user/"
             response = self.session.get(
                 url,
@@ -49,19 +49,82 @@ class PHPIPAMClient:
                 timeout=5
             )
             
-            if response.status_code in [200, 401]:  # 401 means API is reachable
-                return True, "Connection successful"
+            # Accept various response codes that indicate the server is reachable
+            if response.status_code in [200, 401]:  
+                # 200 = OK (unlikely without auth)
+                # 401 = Unauthorized (means API is working, just needs auth)
+                return True, "✅ Connection successful! Server is reachable."
+            
+            elif response.status_code == 403:
+                # 403 = Forbidden - Could mean App ID doesn't exist or no permissions
+                return False, (
+                    "⚠️ Server reachable but access forbidden (HTTP 403).\n\n"
+                    "Possible causes:\n"
+                    "• App ID doesn't exist in phpIPAM\n"
+                    "• App ID is disabled\n"
+                    "• API is not enabled in phpIPAM\n\n"
+                    "Check: Administration → API in phpIPAM"
+                )
+            
+            elif response.status_code == 404:
+                # 404 = Not Found - Wrong URL or App ID
+                return False, (
+                    "⚠️ API endpoint not found (HTTP 404).\n\n"
+                    "Possible causes:\n"
+                    "• Wrong phpIPAM URL\n"
+                    "• Wrong App ID\n"
+                    "• API not enabled\n\n"
+                    "Verify your URL format: https://your-server.com\n"
+                    "(without /api/ at the end)"
+                )
+            
             else:
-                return False, f"Unexpected response: {response.status_code}"
+                return False, (
+                    f"❌ Unexpected response: HTTP {response.status_code}\n\n"
+                    f"Response: {response.text[:200]}"
+                )
         
-        except requests.exceptions.SSLError:
-            return False, "SSL verification failed. Check certificate or disable SSL verify."
-        except requests.exceptions.ConnectionError:
-            return False, "Cannot connect to phpIPAM server. Check URL."
+        except requests.exceptions.SSLError as e:
+            ssl_error = str(e)
+            return False, (
+                "❌ SSL Certificate Verification Failed\n\n"
+                "Your phpIPAM server's SSL certificate cannot be verified.\n\n"
+                "Solutions:\n"
+                "1. If using self-signed certificate (development):\n"
+                "   → Go to Settings\n"
+                "   → Uncheck 'Verify SSL Certificates'\n"
+                "   → Save and try again\n\n"
+                "2. If production server:\n"
+                "   → Install valid SSL certificate on phpIPAM server\n"
+                "   → Or add your CA certificate to system trust store\n\n"
+                f"Technical details: {ssl_error[:100]}"
+            )
+        
+        except requests.exceptions.ConnectionError as e:
+            return False, (
+                "❌ Cannot Connect to Server\n\n"
+                "Unable to reach the phpIPAM server.\n\n"
+                "Check:\n"
+                "• Is the URL correct?\n"
+                "• Is phpIPAM server running?\n"
+                "• Can you access the URL in a web browser?\n"
+                "• Are you on the correct network?\n"
+                "• Is there a firewall blocking access?\n\n"
+                f"Technical details: {str(e)[:100]}"
+            )
+        
         except requests.exceptions.Timeout:
-            return False, "Connection timeout. Server not responding."
+            return False, (
+                "❌ Connection Timeout\n\n"
+                "The server is not responding within 5 seconds.\n\n"
+                "Check:\n"
+                "• Is the server running?\n"
+                "• Is the network connection slow?\n"
+                "• Is there a firewall causing delays?"
+            )
+        
         except Exception as e:
-            return False, f"Connection error: {str(e)}"
+            return False, f"❌ Connection error: {str(e)}"
     
     def authenticate(self) -> tuple[bool, str]:
         """Authenticate with phpIPAM and obtain API token"""
