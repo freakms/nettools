@@ -530,7 +530,7 @@ class NetToolsApp(ctk.CTk):
             )
             copy_btn.pack(side="left")
         
-        formats_frame.pack_configure(pady=(0, 10))
+        self.formats_frame.pack_configure(pady=(0, 10))
         
         # Switch Commands section
         self.commands_frame = ctk.CTkFrame(self.tab_mac)
