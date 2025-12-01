@@ -2768,7 +2768,7 @@ class NetToolsApp(ctk.CTk):
         self.filter_results()
     
     def export_csv(self, event=None):
-        """Export results to CSV"""
+        """Export scanner results in multiple formats"""
         if not self.scanner.results:
             messagebox.showinfo("Information", "No data to export.")
             return
@@ -2776,13 +2776,18 @@ class NetToolsApp(ctk.CTk):
         # Get desktop path
         desktop = Path.home() / "Desktop"
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_filename = f"NetToolsScan_{timestamp}.csv"
-        default_path = desktop / default_filename
+        default_filename = f"NetToolsScan_{timestamp}"
         
-        # Ask for save location
+        # Ask for save location with format selection
         filepath = filedialog.asksaveasfilename(
             defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            filetypes=[
+                ("CSV files", "*.csv"),
+                ("JSON files", "*.json"),
+                ("XML files", "*.xml"),
+                ("Text files", "*.txt"),
+                ("All files", "*.*")
+            ],
             initialdir=desktop,
             initialfile=default_filename
         )
@@ -2791,20 +2796,95 @@ class NetToolsApp(ctk.CTk):
             return
         
         try:
-            with open(filepath, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=['ip', 'status', 'rtt'])
-                writer.writeheader()
-                writer.writerows(self.scanner.results)
+            file_ext = Path(filepath).suffix.lower()
+            
+            if file_ext == ".csv":
+                self._export_scan_csv(filepath)
+            elif file_ext == ".json":
+                self._export_scan_json(filepath)
+            elif file_ext == ".xml":
+                self._export_scan_xml(filepath)
+            elif file_ext == ".txt":
+                self._export_scan_txt(filepath)
+            else:
+                # Default to CSV for unknown extensions
+                self._export_scan_csv(filepath)
             
             messagebox.showinfo(
                 "Export Successful",
-                f"CSV successfully exported to:\n{filepath}"
+                f"Scan results successfully exported to:\n{filepath}"
             )
         except Exception as e:
             messagebox.showerror(
                 "Export Error",
-                f"Error exporting CSV: {str(e)}"
+                f"Error exporting scan results: {str(e)}"
             )
+    
+    def _export_scan_csv(self, filepath):
+        """Export IP scan to CSV format"""
+        with open(filepath, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=['ip', 'status', 'rtt'])
+            writer.writeheader()
+            writer.writerows(self.scanner.results)
+    
+    def _export_scan_json(self, filepath):
+        """Export IP scan to JSON format"""
+        export_data = {
+            'scan_info': {
+                'cidr': self.cidr_entry.get(),
+                'timestamp': datetime.now().isoformat(),
+                'total_hosts': len(self.scanner.results),
+                'online': sum(1 for r in self.scanner.results if r['status'] == 'Online'),
+                'offline': sum(1 for r in self.scanner.results if r['status'] == 'Offline')
+            },
+            'results': self.scanner.results
+        }
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(export_data, f, indent=2)
+    
+    def _export_scan_xml(self, filepath):
+        """Export IP scan to XML format"""
+        root = ET.Element('ipscan')
+        
+        # Add scan info
+        info = ET.SubElement(root, 'scan_info')
+        ET.SubElement(info, 'cidr').text = self.cidr_entry.get()
+        ET.SubElement(info, 'timestamp').text = datetime.now().isoformat()
+        ET.SubElement(info, 'total_hosts').text = str(len(self.scanner.results))
+        ET.SubElement(info, 'online').text = str(sum(1 for r in self.scanner.results if r['status'] == 'Online'))
+        ET.SubElement(info, 'offline').text = str(sum(1 for r in self.scanner.results if r['status'] == 'Offline'))
+        
+        # Add results
+        results = ET.SubElement(root, 'results')
+        for result in self.scanner.results:
+            host = ET.SubElement(results, 'host')
+            ET.SubElement(host, 'ip').text = result['ip']
+            ET.SubElement(host, 'status').text = result['status']
+            ET.SubElement(host, 'rtt').text = str(result.get('rtt', ''))
+        
+        # Write to file
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space='  ')
+        tree.write(filepath, encoding='utf-8', xml_declaration=True)
+    
+    def _export_scan_txt(self, filepath):
+        """Export IP scan to plain text format"""
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"IP Network Scan Results\n")
+            f.write(f"=" * 60 + "\n")
+            f.write(f"CIDR: {self.cidr_entry.get()}\n")
+            f.write(f"Scan Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Total Hosts: {len(self.scanner.results)}\n")
+            f.write(f"Online: {sum(1 for r in self.scanner.results if r['status'] == 'Online')}\n")
+            f.write(f"Offline: {sum(1 for r in self.scanner.results if r['status'] == 'Offline')}\n")
+            f.write(f"=" * 60 + "\n\n")
+            
+            f.write(f"{'IP Address':<18} {'Status':<10} {'RTT (ms)':<15}\n")
+            f.write(f"{'-' * 18} {'-' * 10} {'-' * 15}\n")
+            
+            for result in self.scanner.results:
+                rtt_str = str(result.get('rtt', 'N/A'))
+                f.write(f"{result['ip']:<18} {result['status']:<10} {rtt_str:<15}\n")
     
     def export_port_scan(self):
         """Export port scan results in multiple formats"""
