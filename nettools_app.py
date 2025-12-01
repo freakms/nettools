@@ -4797,7 +4797,7 @@ class NetToolsApp(ctk.CTk):
         loading_label.pack(pady=50)
     
     def display_phpipam_results(self, title, data, success):
-        """Display phpIPAM operation results with nice card layout"""
+        """Display phpIPAM operation results with pagination for large datasets"""
         # Clear existing results
         for widget in self.phpipam_results_frame.winfo_children():
             widget.destroy()
@@ -4830,34 +4830,40 @@ class NetToolsApp(ctk.CTk):
             no_data_label.pack(pady=20, padx=15)
             return
         
-        # Count label at top
+        # Store data for pagination
+        self.phpipam_current_results = data
+        self.phpipam_current_page = 0
+        self.phpipam_items_per_page = 50  # Show 50 items at a time
+        
+        # Info bar with count and warning for large datasets
+        info_frame = ctk.CTkFrame(self.phpipam_results_frame, fg_color="transparent")
+        info_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        count_text = f"Found {len(data)} result(s)"
+        if len(data) > 100:
+            count_text += f" • Showing {self.phpipam_items_per_page} per page for performance"
+        
         count_label = ctk.CTkLabel(
-            self.phpipam_results_frame,
-            text=f"Found {len(data)} result(s)",
+            info_frame,
+            text=count_text,
             font=ctk.CTkFont(size=11, weight="bold"),
             text_color=COLORS["text_secondary"]
         )
-        count_label.pack(pady=(0, 10), padx=15, anchor="w")
+        count_label.pack(side="left")
         
-        # Scrollable results
-        results_scroll = ctk.CTkScrollableFrame(self.phpipam_results_frame, height=300)
-        results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        # Scrollable results container
+        self.phpipam_results_scroll = ctk.CTkScrollableFrame(
+            self.phpipam_results_frame, 
+            height=300
+        )
+        self.phpipam_results_scroll.pack(fill="both", expand=True, padx=15, pady=(0, 10))
         
-        # Display data as nice cards
-        for item in data:
-            # Create card for each item
-            item_card = ctk.CTkFrame(results_scroll, corner_radius=8, fg_color=COLORS["bg_card"])
-            item_card.pack(fill="x", pady=5, padx=2)
-            
-            # Determine if this is a subnet or IP address
-            is_subnet = "subnet" in item or "mask" in item
-            
-            if is_subnet:
-                # Subnet card layout
-                self._create_subnet_card(item_card, item)
-            else:
-                # IP address card layout
-                self._create_ip_card(item_card, item)
+        # Display first page
+        self._display_phpipam_page()
+        
+        # Pagination controls if needed
+        if len(data) > self.phpipam_items_per_page:
+            self._create_pagination_controls()
     
     def _create_subnet_card(self, parent, subnet_data):
         """Create formatted card for subnet display"""
