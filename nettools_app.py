@@ -1792,6 +1792,541 @@ class NetToolsApp(ctk.CTk):
             )
             service_label.pack(side="left", padx=10, pady=8)
     
+    def create_dns_content(self, parent):
+        """Create DNS Lookup page content"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="DNS Lookup",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        # Subtitle
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Resolve hostnames to IP addresses and vice versa",
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Input section
+        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        input_frame.pack(fill="x", pady=(0, 15))
+        
+        # Query input
+        query_label = ctk.CTkLabel(
+            input_frame,
+            text="Enter Hostname or IP Address:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        query_label.pack(pady=(15, 5), padx=15, anchor="w")
+        
+        query_info = ctk.CTkLabel(
+            input_frame,
+            text="Examples: google.com, 8.8.8.8, github.com, 192.168.1.1",
+            font=ctk.CTkFont(size=10),
+            text_color=("gray60", "gray40")
+        )
+        query_info.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        self.dns_query_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="google.com or 8.8.8.8",
+            height=40,
+            font=ctk.CTkFont(size=13)
+        )
+        self.dns_query_entry.pack(fill="x", padx=15, pady=(0, 15))
+        self.dns_query_entry.bind('<Return>', lambda e: self.perform_dns_lookup())
+        
+        # DNS server selection
+        dns_server_label = ctk.CTkLabel(
+            input_frame,
+            text="DNS Server (Optional):",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        dns_server_label.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        dns_server_info = ctk.CTkLabel(
+            input_frame,
+            text="Leave empty to use system default, or specify custom DNS server",
+            font=ctk.CTkFont(size=10),
+            text_color=("gray60", "gray40")
+        )
+        dns_server_info.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        dns_server_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        dns_server_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        self.dns_server_var = ctk.StringVar(value="system")
+        
+        system_dns = ctk.CTkRadioButton(
+            dns_server_frame,
+            text="System Default",
+            variable=self.dns_server_var,
+            value="system",
+            font=ctk.CTkFont(size=11)
+        )
+        system_dns.pack(anchor="w", pady=2)
+        
+        google_dns = ctk.CTkRadioButton(
+            dns_server_frame,
+            text="Google DNS (8.8.8.8)",
+            variable=self.dns_server_var,
+            value="8.8.8.8",
+            font=ctk.CTkFont(size=11)
+        )
+        google_dns.pack(anchor="w", pady=2)
+        
+        cloudflare_dns = ctk.CTkRadioButton(
+            dns_server_frame,
+            text="Cloudflare DNS (1.1.1.1)",
+            variable=self.dns_server_var,
+            value="1.1.1.1",
+            font=ctk.CTkFont(size=11)
+        )
+        cloudflare_dns.pack(anchor="w", pady=2)
+        
+        # Lookup button
+        lookup_btn = ctk.CTkButton(
+            scrollable,
+            text="Lookup",
+            command=self.perform_dns_lookup,
+            width=180,
+            height=48,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=("#4CAF50", "#388E3C")
+        )
+        lookup_btn.pack(pady=(0, 15))
+        
+        # Results section
+        results_title = ctk.CTkLabel(
+            scrollable,
+            text="Results",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        results_title.pack(pady=(10, 10), anchor="w")
+        
+        # Results frame
+        self.dns_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.dns_results_frame.pack(fill="both", expand=True)
+        
+        # Initial message
+        no_results_label = ctk.CTkLabel(
+            self.dns_results_frame,
+            text="No lookup performed yet. Enter a hostname or IP address and click Lookup.",
+            font=ctk.CTkFont(size=12),
+            text_color=("gray60", "gray40")
+        )
+        no_results_label.pack(pady=50)
+    
+    def perform_dns_lookup(self):
+        """Perform DNS lookup"""
+        query = self.dns_query_entry.get().strip()
+        if not query:
+            messagebox.showwarning("Invalid Input", "Please enter a hostname or IP address")
+            return
+        
+        dns_server = self.dns_server_var.get()
+        
+        # Clear previous results
+        for widget in self.dns_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show loading
+        loading_label = ctk.CTkLabel(
+            self.dns_results_frame,
+            text=f"Looking up {query}...",
+            font=ctk.CTkFont(size=12)
+        )
+        loading_label.pack(pady=50)
+        
+        # Perform lookup in background
+        lookup_thread = threading.Thread(
+            target=self.run_dns_lookup,
+            args=(query, dns_server),
+            daemon=True
+        )
+        lookup_thread.start()
+    
+    def run_dns_lookup(self, query, dns_server):
+        """Run DNS lookup in background"""
+        results = {}
+        
+        # Determine if query is IP or hostname
+        try:
+            ipaddress.ip_address(query)
+            is_ip = True
+        except:
+            is_ip = False
+        
+        if is_ip:
+            # Reverse lookup (IP to hostname)
+            try:
+                hostname = socket.gethostbyaddr(query)[0]
+                results["type"] = "Reverse Lookup"
+                results["query"] = query
+                results["result"] = hostname
+                results["success"] = True
+            except socket.herror:
+                results["type"] = "Reverse Lookup"
+                results["query"] = query
+                results["result"] = "No hostname found"
+                results["success"] = False
+            except Exception as e:
+                results["type"] = "Reverse Lookup"
+                results["query"] = query
+                results["result"] = f"Error: {str(e)}"
+                results["success"] = False
+        else:
+            # Forward lookup (hostname to IP)
+            try:
+                if dns_server != "system":
+                    # Use custom DNS server via nslookup
+                    if platform.system() == "Windows":
+                        cmd = f'nslookup {query} {dns_server}'
+                    else:
+                        cmd = f'dig @{dns_server} {query} +short'
+                    
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=True
+                    )
+                    
+                    if platform.system() == "Windows":
+                        # Parse nslookup output
+                        lines = result.stdout.split('\n')
+                        ips = []
+                        for line in lines:
+                            if 'Address:' in line and not dns_server in line:
+                                ip = line.split('Address:')[1].strip()
+                                if ip:
+                                    ips.append(ip)
+                        
+                        if ips:
+                            results["type"] = "Forward Lookup"
+                            results["query"] = query
+                            results["result"] = ips
+                            results["dns_server"] = dns_server
+                            results["success"] = True
+                        else:
+                            results["type"] = "Forward Lookup"
+                            results["query"] = query
+                            results["result"] = "No IP addresses found"
+                            results["success"] = False
+                    else:
+                        # Parse dig output
+                        ips = [line.strip() for line in result.stdout.split('\n') if line.strip()]
+                        if ips:
+                            results["type"] = "Forward Lookup"
+                            results["query"] = query
+                            results["result"] = ips
+                            results["dns_server"] = dns_server
+                            results["success"] = True
+                        else:
+                            results["type"] = "Forward Lookup"
+                            results["query"] = query
+                            results["result"] = "No IP addresses found"
+                            results["success"] = False
+                else:
+                    # Use system DNS
+                    ip_addresses = socket.gethostbyname_ex(query)[2]
+                    results["type"] = "Forward Lookup"
+                    results["query"] = query
+                    results["result"] = ip_addresses
+                    results["dns_server"] = "System Default"
+                    results["success"] = True
+            except socket.gaierror:
+                results["type"] = "Forward Lookup"
+                results["query"] = query
+                results["result"] = "Hostname not found"
+                results["success"] = False
+            except Exception as e:
+                results["type"] = "Forward Lookup"
+                results["query"] = query
+                results["result"] = f"Error: {str(e)}"
+                results["success"] = False
+        
+        # Display results in UI
+        self.after(0, self.display_dns_results, results)
+    
+    def display_dns_results(self, results):
+        """Display DNS lookup results"""
+        # Clear frame
+        for widget in self.dns_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Result type
+        type_label = ctk.CTkLabel(
+            self.dns_results_frame,
+            text=results["type"],
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        type_label.pack(pady=(20, 10), padx=20, anchor="w")
+        
+        # Query
+        query_frame = ctk.CTkFrame(self.dns_results_frame, fg_color="transparent")
+        query_frame.pack(fill="x", padx=20, pady=5)
+        
+        query_title = ctk.CTkLabel(
+            query_frame,
+            text="Query:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=120,
+            anchor="w"
+        )
+        query_title.pack(side="left")
+        
+        query_value = ctk.CTkLabel(
+            query_frame,
+            text=results["query"],
+            font=ctk.CTkFont(size=12),
+            anchor="w"
+        )
+        query_value.pack(side="left", fill="x", expand=True)
+        
+        # DNS Server (if applicable)
+        if "dns_server" in results:
+            dns_frame = ctk.CTkFrame(self.dns_results_frame, fg_color="transparent")
+            dns_frame.pack(fill="x", padx=20, pady=5)
+            
+            dns_title = ctk.CTkLabel(
+                dns_frame,
+                text="DNS Server:",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=120,
+                anchor="w"
+            )
+            dns_title.pack(side="left")
+            
+            dns_value = ctk.CTkLabel(
+                dns_frame,
+                text=results["dns_server"],
+                font=ctk.CTkFont(size=12),
+                anchor="w"
+            )
+            dns_value.pack(side="left", fill="x", expand=True)
+        
+        # Result
+        result_frame = ctk.CTkFrame(self.dns_results_frame, fg_color="transparent")
+        result_frame.pack(fill="x", padx=20, pady=5)
+        
+        result_title = ctk.CTkLabel(
+            result_frame,
+            text="Result:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=120,
+            anchor="w"
+        )
+        result_title.pack(side="left")
+        
+        result_color = ("#4CAF50", "#4CAF50") if results["success"] else ("#F44336", "#F44336")
+        
+        if isinstance(results["result"], list):
+            # Multiple IPs
+            result_text = ", ".join(results["result"])
+        else:
+            result_text = results["result"]
+        
+        result_value = ctk.CTkLabel(
+            result_frame,
+            text=result_text,
+            font=ctk.CTkFont(size=12, weight="bold" if results["success"] else "normal"),
+            anchor="w",
+            text_color=result_color
+        )
+        result_value.pack(side="left", fill="x", expand=True)
+        
+        # Status icon
+        status_text = "✅ Success" if results["success"] else "❌ Failed"
+        status_label = ctk.CTkLabel(
+            self.dns_results_frame,
+            text=status_text,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=result_color
+        )
+        status_label.pack(pady=(20, 20), padx=20, anchor="w")
+    
+    def create_subnet_content(self, parent):
+        """Create Subnet Calculator page content"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent)
+        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scrollable,
+            text="Subnet Calculator",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(0, 5))
+        
+        # Subtitle
+        subtitle_label = ctk.CTkLabel(
+            scrollable,
+            text="Calculate subnet information from CIDR notation",
+            font=ctk.CTkFont(size=12)
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Input section
+        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        input_frame.pack(fill="x", pady=(0, 15))
+        
+        # CIDR input
+        cidr_label = ctk.CTkLabel(
+            input_frame,
+            text="Enter Network in CIDR Notation:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        cidr_label.pack(pady=(15, 5), padx=15, anchor="w")
+        
+        cidr_info = ctk.CTkLabel(
+            input_frame,
+            text="Examples: 192.168.1.0/24, 10.0.0.0/8, 172.16.0.0/16",
+            font=ctk.CTkFont(size=10),
+            text_color=("gray60", "gray40")
+        )
+        cidr_info.pack(pady=(0, 5), padx=15, anchor="w")
+        
+        self.subnet_cidr_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="192.168.1.0/24",
+            height=40,
+            font=ctk.CTkFont(size=13)
+        )
+        self.subnet_cidr_entry.pack(fill="x", padx=15, pady=(0, 15))
+        self.subnet_cidr_entry.bind('<Return>', lambda e: self.calculate_subnet())
+        
+        # Calculate button
+        calc_btn = ctk.CTkButton(
+            scrollable,
+            text="Calculate",
+            command=self.calculate_subnet,
+            width=180,
+            height=48,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=("#FF9800", "#F57C00")
+        )
+        calc_btn.pack(pady=(0, 15))
+        
+        # Results section
+        results_title = ctk.CTkLabel(
+            scrollable,
+            text="Subnet Information",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        results_title.pack(pady=(10, 10), anchor="w")
+        
+        # Results frame
+        self.subnet_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.subnet_results_frame.pack(fill="both", expand=True)
+        
+        # Initial message
+        no_results_label = ctk.CTkLabel(
+            self.subnet_results_frame,
+            text="No calculation performed yet. Enter a network in CIDR notation and click Calculate.",
+            font=ctk.CTkFont(size=12),
+            text_color=("gray60", "gray40")
+        )
+        no_results_label.pack(pady=50)
+    
+    def calculate_subnet(self):
+        """Calculate subnet information"""
+        cidr = self.subnet_cidr_entry.get().strip()
+        if not cidr:
+            messagebox.showwarning("Invalid Input", "Please enter a network in CIDR notation (e.g., 192.168.1.0/24)")
+            return
+        
+        try:
+            network = ipaddress.ip_network(cidr, strict=False)
+            
+            # Calculate subnet information
+            info = {
+                "network": str(network.network_address),
+                "netmask": str(network.netmask),
+                "cidr": f"/{network.prefixlen}",
+                "wildcard": str(network.hostmask),
+                "broadcast": str(network.broadcast_address),
+                "first_host": str(network.network_address + 1) if network.num_addresses > 2 else "N/A",
+                "last_host": str(network.broadcast_address - 1) if network.num_addresses > 2 else "N/A",
+                "total_hosts": network.num_addresses,
+                "usable_hosts": max(0, network.num_addresses - 2),
+                "network_class": self.get_network_class(network.network_address),
+                "type": "Private" if network.is_private else "Public"
+            }
+            
+            self.display_subnet_results(info)
+            
+        except ValueError as e:
+            messagebox.showerror("Invalid CIDR", f"Invalid CIDR notation:\n{str(e)}")
+    
+    def get_network_class(self, ip):
+        """Get network class from IP address"""
+        first_octet = int(str(ip).split('.')[0])
+        
+        if 1 <= first_octet <= 126:
+            return "A"
+        elif 128 <= first_octet <= 191:
+            return "B"
+        elif 192 <= first_octet <= 223:
+            return "C"
+        elif 224 <= first_octet <= 239:
+            return "D (Multicast)"
+        elif 240 <= first_octet <= 255:
+            return "E (Reserved)"
+        else:
+            return "Unknown"
+    
+    def display_subnet_results(self, info):
+        """Display subnet calculation results"""
+        # Clear frame
+        for widget in self.subnet_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Create result rows
+        results = [
+            ("Network Address", info["network"]),
+            ("Subnet Mask", info["netmask"]),
+            ("CIDR Notation", info["cidr"]),
+            ("Wildcard Mask", info["wildcard"]),
+            ("Broadcast Address", info["broadcast"]),
+            ("First Usable Host", info["first_host"]),
+            ("Last Usable Host", info["last_host"]),
+            ("Total Addresses", f"{info['total_hosts']:,}"),
+            ("Usable Hosts", f"{info['usable_hosts']:,}"),
+            ("Network Class", info["network_class"]),
+            ("IP Type", info["type"]),
+        ]
+        
+        for label, value in results:
+            row_frame = ctk.CTkFrame(self.subnet_results_frame, fg_color="transparent")
+            row_frame.pack(fill="x", padx=20, pady=5)
+            
+            label_widget = ctk.CTkLabel(
+                row_frame,
+                text=f"{label}:",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=180,
+                anchor="w"
+            )
+            label_widget.pack(side="left")
+            
+            value_widget = ctk.CTkLabel(
+                row_frame,
+                text=value,
+                font=ctk.CTkFont(size=12),
+                anchor="w"
+            )
+            value_widget.pack(side="left", fill="x", expand=True)
+    
     def create_status_bar(self):
         """Create status bar"""
         status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
