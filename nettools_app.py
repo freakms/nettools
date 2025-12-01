@@ -2201,10 +2201,10 @@ class NetToolsApp(ctk.CTk):
     
     def on_enter_key(self, event):
         """Handle Enter key press"""
-        if self.tabview.get() == "IPv4 Scanner":
+        if self.current_page == "scanner":
             if self.start_scan_btn.cget("state") == "normal":
                 self.start_scan()
-        elif self.tabview.get() == "MAC Formatter":
+        elif self.current_page == "mac":
             if self.format_entries[0].get():
                 self.copy_to_clipboard(self.format_entries[0])
 
