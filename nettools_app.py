@@ -698,7 +698,16 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=11),
             text_color="#dc3545"
         )
-        self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 15))
+        self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 5))
+        
+        # Vendor information display
+        self.vendor_label = ctk.CTkLabel(
+            input_frame,
+            text="",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#28a745"
+        )
+        self.vendor_label.pack(anchor="w", padx=15, pady=(0, 15))
         
         # Scrollable content area for formats and commands
         self.mac_scrollable = ctk.CTkScrollableFrame(self.tab_mac)
