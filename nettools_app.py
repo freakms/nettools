@@ -647,49 +647,115 @@ class NetToolsApp(ctk.CTk):
         
         return "Unknown"
         
-    def create_header(self):
-        """Create header with title and theme selector"""
-        header = ctk.CTkFrame(self, height=80, corner_radius=0)
-        header.pack(fill="x", padx=0, pady=0)
-        header.pack_propagate(False)
+    def create_sidebar(self):
+        """Create modern sidebar navigation"""
+        # Sidebar frame
+        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0)
+        self.sidebar.pack(side="left", fill="y", padx=0, pady=0)
+        self.sidebar.pack_propagate(False)
         
-        # Title
+        # Logo/Title section
+        logo_frame = ctk.CTkFrame(self.sidebar, height=100, corner_radius=0, fg_color="transparent")
+        logo_frame.pack(fill="x", padx=0, pady=0)
+        logo_frame.pack_propagate(False)
+        
         title_label = ctk.CTkLabel(
-            header, 
-            text="NetTools Suite",
-            font=ctk.CTkFont(size=24, weight="bold")
+            logo_frame,
+            text="NetTools",
+            font=ctk.CTkFont(size=28, weight="bold")
         )
-        title_label.pack(side="left", padx=20, pady=(15, 0), anchor="nw")
+        title_label.pack(padx=20, pady=(25, 5))
         
-        # Subtitle
         subtitle_label = ctk.CTkLabel(
-            header,
-            text="IPv4 Scanner & MAC Formatter",
-            font=ctk.CTkFont(size=12)
+            logo_frame,
+            text="Professional Suite",
+            font=ctk.CTkFont(size=13)
         )
-        subtitle_label.place(x=20, y=50)
+        subtitle_label.pack(padx=20, pady=(0, 10))
         
-        # Theme selector (right side)
-        theme_label = ctk.CTkLabel(header, text="Theme:", font=ctk.CTkFont(size=11))
-        theme_label.pack(side="right", padx=(10, 20), pady=20)
+        # Separator
+        separator = ctk.CTkFrame(self.sidebar, height=2, corner_radius=0)
+        separator.pack(fill="x", padx=10, pady=10)
+        
+        # Navigation buttons
+        self.nav_buttons = {}
+        nav_items = [
+            ("scanner", "🔍  IPv4 Scanner", "Scan network for active hosts"),
+            ("mac", "🏷️  MAC Formatter", "Format and analyze MAC addresses"),
+            ("compare", "📊  Scan Comparison", "Compare network scan results"),
+        ]
+        
+        self.current_page = "scanner"
+        
+        for page_id, label, tooltip in nav_items:
+            btn = ctk.CTkButton(
+                self.sidebar,
+                text=label,
+                command=lambda p=page_id: self.switch_page(p),
+                height=50,
+                corner_radius=8,
+                anchor="w",
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent",
+                text_color=("gray10", "gray90"),
+                hover_color=("gray70", "gray30")
+            )
+            btn.pack(fill="x", padx=10, pady=5)
+            self.nav_buttons[page_id] = btn
+        
+        # Update initial button state
+        self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
+        
+        # Spacer to push theme selector to bottom
+        spacer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        spacer.pack(fill="both", expand=True)
+        
+        # Theme selector at bottom
+        theme_frame = ctk.CTkFrame(self.sidebar, corner_radius=0, fg_color="transparent")
+        theme_frame.pack(fill="x", padx=10, pady=20)
+        
+        theme_label = ctk.CTkLabel(theme_frame, text="Theme", font=ctk.CTkFont(size=12))
+        theme_label.pack(pady=(0, 5))
         
         self.theme_selector = ctk.CTkOptionMenu(
-            header,
+            theme_frame,
             values=["Dark", "Light"],
             command=self.change_theme,
-            width=120
+            width=220,
+            height=40,
+            corner_radius=8,
+            font=ctk.CTkFont(size=13)
         )
+        self.theme_selector.pack()
         self.theme_selector.set("Dark")
-        self.theme_selector.pack(side="right", padx=(0, 10), pady=20)
+    
+    def switch_page(self, page_id):
+        """Switch between pages with smooth transition"""
+        if page_id == self.current_page:
+            return
         
-        # Toggle Commands button (for MAC formatter)
-        self.toggle_commands_btn = ctk.CTkButton(
-            header,
-            text="Hide Switch Commands",
-            width=180,
-            command=self.toggle_commands
-        )
-        self.toggle_commands_btn.pack(side="right", padx=(0, 20), pady=20)
+        # Update button states
+        for btn_id, btn in self.nav_buttons.items():
+            if btn_id == page_id:
+                btn.configure(fg_color=("gray75", "gray25"))
+            else:
+                btn.configure(fg_color="transparent")
+        
+        # Hide all pages
+        for page in self.pages.values():
+            page.pack_forget()
+        
+        # Show selected page
+        self.pages[page_id].pack(fill="both", expand=True, padx=0, pady=0)
+        self.current_page = page_id
+        
+        # Update status bar based on page
+        if page_id == "scanner":
+            self.status_label.configure(text="Ready to scan network")
+        elif page_id == "mac":
+            self.status_label.configure(text="Ready to format MAC address")
+        elif page_id == "compare":
+            self.status_label.configure(text="Compare network scans")
     
     def create_tabs(self):
         """Create tabbed interface"""
