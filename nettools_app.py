@@ -1372,14 +1372,15 @@ class NetToolsApp(ctk.CTk):
         )
         socket_radio.pack(anchor="w", pady=2)
         
-        telnet_radio = ctk.CTkRadioButton(
-            method_frame,
-            text="Telnet Test (Connection-based)",
-            variable=self.scan_method_var,
-            value="telnet",
-            font=ctk.CTkFont(size=11)
-        )
-        telnet_radio.pack(anchor="w", pady=2)
+        if TELNETLIB_AVAILABLE:
+            telnet_radio = ctk.CTkRadioButton(
+                method_frame,
+                text="Telnet Test (Connection-based)",
+                variable=self.scan_method_var,
+                value="telnet",
+                font=ctk.CTkFont(size=11)
+            )
+            telnet_radio.pack(anchor="w", pady=2)
         
         if platform.system() == "Windows":
             powershell_radio = ctk.CTkRadioButton(
