@@ -2136,24 +2136,31 @@ class NetToolsApp(ctk.CTk):
         y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
         dialog.geometry(f"+{x}+{y}")
         
-        # Title
+        # Title section (fixed at top)
+        title_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        title_frame.pack(fill="x", padx=20, pady=(20, 0))
+        
         title_label = ctk.CTkLabel(
-            dialog,
+            title_frame,
             text=f"Static IP Configuration",
             font=ctk.CTkFont(size=18, weight="bold")
         )
-        title_label.pack(pady=(20, 5))
+        title_label.pack(pady=(0, 5))
         
         subtitle_label = ctk.CTkLabel(
-            dialog,
+            title_frame,
             text=interface_name,
             font=ctk.CTkFont(size=12)
         )
-        subtitle_label.pack(pady=(0, 20))
+        subtitle_label.pack(pady=(0, 15))
         
-        # Form frame
-        form_frame = ctk.CTkFrame(dialog)
-        form_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        # Scrollable form frame
+        form_scroll = ctk.CTkScrollableFrame(dialog, height=380)
+        form_scroll.pack(fill="both", expand=True, padx=20, pady=(0, 15))
+        
+        # Inner form frame for consistent padding
+        form_frame = ctk.CTkFrame(form_scroll, fg_color="transparent")
+        form_frame.pack(fill="both", expand=True)
         
         # IP Address
         ip_label = ctk.CTkLabel(form_frame, text="IP Address:", font=ctk.CTkFont(size=12, weight="bold"))
