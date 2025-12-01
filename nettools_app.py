@@ -22,6 +22,7 @@ import os
 from pythonping import ping
 from PIL import Image, ImageDraw
 import io
+import json
 
 # Application metadata
 APP_NAME = "NetTools Suite"
