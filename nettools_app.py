@@ -848,6 +848,10 @@ class NetToolsApp(ctk.CTk):
         self.pages["profiles"] = ctk.CTkFrame(self.main_content, corner_radius=0)
         self.create_profiles_content(self.pages["profiles"])
         
+        # Create port scanner page
+        self.pages["portscan"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_portscan_content(self.pages["portscan"])
+        
         # Show the initial page (scanner)
         self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     
