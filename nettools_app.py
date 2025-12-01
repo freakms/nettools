@@ -2768,12 +2768,12 @@ class NetToolsApp(ctk.CTk):
     
     def add_result_row(self, result):
         """Add a result row to the display"""
-        row_frame = ctk.CTkFrame(self.results_scrollable, height=35)
-        row_frame.pack(fill="x", padx=2, pady=1)
+        row_frame = ctk.CTkFrame(self.results_scrollable, height=38, corner_radius=4)
+        row_frame.pack(fill="x", padx=2, pady=2)
         row_frame.pack_propagate(False)
         
-        # Status dot
-        status_color = "#4CAF50" if result['status'] == 'Online' else "#8C8C8C"
+        # Status dot with better colors
+        status_color = COLORS["online"] if result['status'] == 'Online' else COLORS["offline"]
         dot_label = ctk.CTkLabel(
             row_frame,
             text="●",
@@ -2783,16 +2783,36 @@ class NetToolsApp(ctk.CTk):
         )
         dot_label.pack(side="left", padx=5)
         
-        # IP Address
-        ip_label = ctk.CTkLabel(row_frame, text=result['ip'], width=250, anchor="w")
+        # IP Address with better font
+        ip_label = ctk.CTkLabel(
+            row_frame,
+            text=result['ip'],
+            width=250,
+            anchor="w",
+            font=ctk.CTkFont(size=12)
+        )
         ip_label.pack(side="left", padx=5)
         
-        # Status
-        status_label = ctk.CTkLabel(row_frame, text=result['status'], width=200, anchor="w")
+        # Status with color and bold font
+        status_label = ctk.CTkLabel(
+            row_frame,
+            text=result['status'],
+            width=200,
+            anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=status_color
+        )
         status_label.pack(side="left", padx=5)
         
-        # RTT
-        rtt_label = ctk.CTkLabel(row_frame, text=result['rtt'], width=150, anchor="w")
+        # RTT with subtle color
+        rtt_label = ctk.CTkLabel(
+            row_frame,
+            text=result['rtt'],
+            width=150,
+            anchor="w",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS["text_secondary"]
+        )
         rtt_label.pack(side="left", padx=5)
         
         # Store reference
