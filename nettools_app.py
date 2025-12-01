@@ -897,6 +897,8 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Resolve hostnames and IP addresses")
         elif page_id == "subnet":
             self.status_label.configure(text="Calculate subnet information from CIDR")
+        elif page_id == "phpipam":
+            self.status_label.configure(text="Manage IP addresses with phpIPAM")
     
     def create_main_content(self):
         """Create main content area with pages (lazy loading for faster startup)"""
