@@ -776,6 +776,10 @@ class NetToolsApp(ctk.CTk):
         
         # Create comparison page
         self.pages["compare"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_comparison_content(self.pages["compare"])
+        
+        # Show the initial page (scanner)
+        self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
     
     def create_scanner_content(self, parent):
         """Create IPv4 Scanner page content"""
