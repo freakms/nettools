@@ -38,6 +38,35 @@ APP_NAME = "NetTools Suite"
 APP_VERSION = "1.8.0"
 APP_COMPANY = "Malte Schad"
 
+# Color Palette - Consistent Design System
+COLORS = {
+    # Primary Colors
+    "primary": ("#2196F3", "#1976D2"),       # Blue (light, dark)
+    "primary_hover": ("#42A5F5", "#2196F3"), # Blue hover
+    
+    # Semantic Colors
+    "success": ("#4CAF50", "#388E3C"),       # Green
+    "success_hover": ("#66BB6A", "#4CAF50"),
+    "warning": ("#FFC107", "#FF6F00"),       # Orange
+    "warning_hover": ("#FFD54F", "#FFC107"),
+    "danger": ("#F44336", "#D32F2F"),        # Red
+    "danger_hover": ("#EF5350", "#F44336"),
+    
+    # Neutral Colors
+    "neutral": ("#757575", "#616161"),       # Gray
+    "neutral_hover": ("#9E9E9E", "#757575"),
+    
+    # Status Colors
+    "online": "#4CAF50",
+    "offline": "#757575",
+    "scanning": "#2196F3",
+    
+    # Background & Text
+    "bg_card": ("gray90", "gray17"),
+    "text_primary": ("gray10", "gray90"),
+    "text_secondary": ("gray60", "gray40"),
+}
+
 # Configure CustomTkinter
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
