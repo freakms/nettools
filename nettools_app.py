@@ -320,6 +320,49 @@ class IPScanner:
         self.cancel_flag = True
 
 
+class OUILookup:
+    """OUI Vendor Lookup"""
+    
+    _database = None
+    
+    @classmethod
+    def load_database(cls):
+        """Load OUI database from file"""
+        if cls._database is not None:
+            return cls._database
+        
+        try:
+            db_path = Path(__file__).parent / "oui_database.json"
+            if db_path.exists():
+                with open(db_path, 'r', encoding='utf-8') as f:
+                    cls._database = json.load(f)
+            else:
+                cls._database = {}
+        except Exception as e:
+            print(f"Could not load OUI database: {e}")
+            cls._database = {}
+        
+        return cls._database
+    
+    @classmethod
+    def lookup_vendor(cls, mac):
+        """Lookup vendor from MAC address"""
+        if cls._database is None:
+            cls.load_database()
+        
+        # Extract OUI (first 3 bytes)
+        # MAC can be in any format, so we normalize it first
+        hex_only = re.sub(r'[^0-9A-Fa-f]', '', mac).upper()
+        
+        if len(hex_only) < 6:
+            return "Unknown"
+        
+        # Format as XX:XX:XX
+        oui = ':'.join([hex_only[i:i+2] for i in range(0, 6, 2)])
+        
+        return cls._database.get(oui, "Unknown Vendor")
+
+
 class MACFormatter:
     """MAC Address Formatter"""
     
