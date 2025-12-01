@@ -17,6 +17,8 @@ import csv
 import re
 import sys
 import subprocess
+import socket
+import telnetlib
 from datetime import datetime
 from pathlib import Path
 import platform
