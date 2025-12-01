@@ -4692,7 +4692,10 @@ class NetToolsApp(ctk.CTk):
             messagebox.showwarning("Not Enabled", "phpIPAM integration is disabled. Enable it in Settings.")
             return
         
-        # Create client and test
+        # Reload config to get latest SSL settings
+        self.phpipam_config.config = self.phpipam_config.load_config()
+        
+        # Create fresh client with updated config and test
         client = PHPIPAMClient(self.phpipam_config)
         success, message = client.test_connection()
         
