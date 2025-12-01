@@ -757,7 +757,16 @@ class NetToolsApp(ctk.CTk):
             text="Show only responding hosts",
             command=self.filter_results
         )
+        self.only_responding_check.select()  # Check by default
         self.only_responding_check.pack(side="left", padx=15, pady=15)
+        
+        self.show_all_btn = ctk.CTkButton(
+            options_frame,
+            text="Show All Addresses",
+            command=self.show_all_addresses,
+            width=160
+        )
+        self.show_all_btn.pack(side="left", padx=(10, 15), pady=15)
         
         self.export_btn = ctk.CTkButton(
             options_frame,
