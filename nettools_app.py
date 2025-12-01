@@ -4686,7 +4686,7 @@ class NetToolsApp(ctk.CTk):
         info_label = ctk.CTkLabel(
             info_frame,
             text=f"Output length: {len(output)} characters",
-            font=ctk.CTkFont(size=10),
+            font=ctk.CTkFont(size=11),
             text_color=COLORS["text_secondary"]
         )
         info_label.pack(side="left")
