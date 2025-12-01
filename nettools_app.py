@@ -597,8 +597,8 @@ class NetToolsApp(ctk.CTk):
         self.label_font_size = 12
         
         # Create UI
-        self.create_header()
-        self.create_tabs()
+        self.create_sidebar()
+        self.create_main_content()
         self.create_status_bar()
         
         # Bind keyboard shortcuts
