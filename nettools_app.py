@@ -1704,6 +1704,10 @@ class NetToolsApp(ctk.CTk):
     
     def display_port_results(self, target, results, was_cancelled):
         """Display port scan results"""
+        # Store results for export
+        self.port_scan_results = results
+        self.port_scan_target = target
+        
         # Clear frame
         for widget in self.port_results_frame.winfo_children():
             widget.destroy()
@@ -1712,6 +1716,12 @@ class NetToolsApp(ctk.CTk):
         self.port_scan_btn.configure(state="normal")
         self.port_cancel_btn.configure(state="disabled")
         self.port_scan_running = False
+        
+        # Enable/disable export button
+        if results and not was_cancelled:
+            self.port_export_btn.configure(state="normal")
+        else:
+            self.port_export_btn.configure(state="disabled")
         
         if was_cancelled:
             self.port_progress_label.configure(text="Scan cancelled")
