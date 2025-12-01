@@ -1623,6 +1623,9 @@ class NetToolsApp(ctk.CTk):
     
     def scan_port_telnet(self, target, port):
         """Scan port using telnet"""
+        if not TELNETLIB_AVAILABLE:
+            return False, ""
+        
         try:
             tn = telnetlib.Telnet()
             tn.open(target, port, timeout=2)
