@@ -3783,10 +3783,134 @@ class NetToolsApp(ctk.CTk):
     def apply_profile(self, profile):
         """Apply a saved profile"""
         if not self.is_admin():
-            messagebox.showerror("Admin Required", "Administrator privileges are required to apply profiles.")
+            # Offer to restart as admin
+            result = messagebox.askyesno(
+                "Admin Required",
+                "Administrator privileges are required to apply profiles.\n\nWould you like to restart the application as administrator?"
+            )
+            if result:
+                self.restart_as_admin()
             return
         
-        messagebox.showinfo("Coming Soon", "Profile application will be implemented in the next iteration.")
+        # Confirmation dialog
+        result = messagebox.askyesno(
+            "Apply Profile",
+            f"Are you sure you want to apply the profile '{profile['name']}'?\n\nThis will change network settings for all configured interfaces."
+        )
+        
+        if not result:
+            return
+        
+        # Apply profile in background thread
+        def apply_in_background():
+            try:
+                success_count = 0
+                error_count = 0
+                errors = []
+                
+                for interface_data in profile["interfaces"]:
+                    interface_name = interface_data["name"]
+                    config = interface_data["config"]
+                    
+                    try:
+                        # Check if interface still exists
+                        current_interfaces = self.get_network_interfaces()
+                        if not any(i["name"] == interface_name for i in current_interfaces):
+                            errors.append(f"{interface_name}: Interface not found")
+                            error_count += 1
+                            continue
+                        
+                        # Apply configuration
+                        if config["dhcp"]:
+                            # Set to DHCP
+                            result = self.run_subprocess(
+                                ["netsh", "interface", "ipv4", "set", "address", 
+                                 interface_name, "dhcp"],
+                                capture_output=True,
+                                text=True,
+                                timeout=10
+                            )
+                            
+                            if result.returncode == 0:
+                                # Set DNS to DHCP
+                                self.run_subprocess(
+                                    ["netsh", "interface", "ipv4", "set", "dnsservers",
+                                     interface_name, "dhcp"],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=10
+                                )
+                                success_count += 1
+                            else:
+                                errors.append(f"{interface_name}: Failed to set DHCP")
+                                error_count += 1
+                        else:
+                            # Set static IP
+                            if config["ip"] and config["subnet"]:
+                                # Determine subnet mask from prefix or use default
+                                subnet_mask = config.get("subnet_mask", "255.255.255.0")
+                                
+                                cmd = ["netsh", "interface", "ipv4", "set", "address",
+                                      interface_name, "static", config["ip"], subnet_mask]
+                                
+                                if config.get("gateway"):
+                                    cmd.append(config["gateway"])
+                                
+                                result = self.run_subprocess(
+                                    cmd,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=10
+                                )
+                                
+                                if result.returncode == 0:
+                                    # Set DNS if configured
+                                    if config.get("dns"):
+                                        for i, dns in enumerate(config["dns"]):
+                                            dns_cmd = ["netsh", "interface", "ipv4", "set", "dnsservers",
+                                                      interface_name, "static", dns]
+                                            if i == 0:
+                                                dns_cmd.append("primary")
+                                            self.run_subprocess(dns_cmd, capture_output=True, timeout=10)
+                                    
+                                    success_count += 1
+                                else:
+                                    errors.append(f"{interface_name}: Failed to set static IP")
+                                    error_count += 1
+                            else:
+                                errors.append(f"{interface_name}: Invalid configuration")
+                                error_count += 1
+                    
+                    except Exception as e:
+                        errors.append(f"{interface_name}: {str(e)}")
+                        error_count += 1
+                
+                # Show results
+                self.after(0, self.refresh_interfaces)
+                
+                if error_count == 0:
+                    self.after(0, lambda: messagebox.showinfo(
+                        "Success",
+                        f"Profile '{profile['name']}' applied successfully!\n\n{success_count} interface(s) configured."
+                    ))
+                else:
+                    error_msg = f"Profile partially applied.\n\nSuccessful: {success_count}\nFailed: {error_count}"
+                    if errors:
+                        error_msg += f"\n\nErrors:\n" + "\n".join(errors[:5])
+                    self.after(0, lambda: messagebox.showwarning(
+                        "Partial Success",
+                        error_msg
+                    ))
+            
+            except Exception as e:
+                self.after(0, lambda: messagebox.showerror(
+                    "Error",
+                    f"Error applying profile: {str(e)}"
+                ))
+        
+        # Run in thread
+        thread = threading.Thread(target=apply_in_background, daemon=True)
+        thread.start()
     
     def delete_profile_confirm(self, profile):
         """Confirm and delete a profile"""
