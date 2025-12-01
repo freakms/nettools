@@ -1268,6 +1268,35 @@ class NetToolsApp(ctk.CTk):
         except:
             return False
     
+    def restart_as_admin(self):
+        """Restart application with administrator privileges (Windows UAC)"""
+        try:
+            if platform.system() == "Windows":
+                import ctypes
+                
+                # Get the path to the executable or script
+                if getattr(sys, 'frozen', False):
+                    # Running as exe
+                    script = sys.executable
+                else:
+                    # Running as script
+                    script = os.path.abspath(sys.argv[0])
+                
+                # Trigger UAC elevation
+                ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",
+                    sys.executable if getattr(sys, 'frozen', False) else "python",
+                    script if not getattr(sys, 'frozen', False) else "",
+                    None,
+                    1  # SW_SHOWNORMAL
+                )
+                
+                # Close current instance
+                self.quit()
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not restart with admin privileges:\n{str(e)}")
+    
     def get_network_interfaces(self):
         """Get list of network interfaces (Windows)"""
         try:
