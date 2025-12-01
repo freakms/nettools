@@ -3397,7 +3397,7 @@ class NetToolsApp(ctk.CTk):
             
             # Set DNS if provided
             if dns:
-                subprocess.run(
+                self.run_subprocess(
                     ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "static", dns, "primary"],
                     timeout=10
                 )
