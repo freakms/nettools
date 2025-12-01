@@ -1034,10 +1034,11 @@ class NetToolsApp(ctk.CTk):
             label = ctk.CTkLabel(
                 header_frame,
                 text=text,
-                font=ctk.CTkFont(size=12, weight="bold"),
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
+                text_color="white",
                 width=width
             )
-            label.pack(side="left", padx=5, pady=5)
+            label.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'])
         
         # Scrollable results
         self.results_scrollable = ctk.CTkScrollableFrame(results_frame)
