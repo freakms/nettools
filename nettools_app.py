@@ -5161,10 +5161,6 @@ class NetToolsApp(ctk.CTk):
         dialog.lift()
         dialog.focus_force()
         
-        # Ensure dialog is on top and focused
-        dialog.lift()
-        dialog.focus_force()
-        
         # Content
         content = ctk.CTkScrollableFrame(dialog)
         content.pack(fill="both", expand=True, padx=20, pady=20)
