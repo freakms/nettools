@@ -5,7 +5,7 @@ Handles network scanning functionality
 
 import ipaddress
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from icmplib import ping
+from pythonping import ping
 
 
 class IPv4Scanner:
