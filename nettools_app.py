@@ -1177,23 +1177,40 @@ class NetToolsApp(ctk.CTk):
         self.command_textboxes = []
         for label_text in command_labels:
             row_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent")
-            row_frame.pack(fill="x", padx=15, pady=4)
+            row_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['xs'])
             
-            label = ctk.CTkLabel(row_frame, text=label_text, width=200, anchor="w")
-            label.pack(side="left", padx=(0, 10))
+            label = ctk.CTkLabel(
+                row_frame,
+                text=label_text,
+                width=200,
+                anchor="w",
+                font=ctk.CTkFont(size=FONTS['body'])
+            )
+            label.pack(side="left", padx=(0, SPACING['md']))
             
-            textbox = ctk.CTkTextbox(row_frame, height=35, wrap="word")
-            textbox.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
+            textbox = ctk.CTkTextbox(
+                row_frame,
+                height=35,
+                wrap="word",
+                font=ctk.CTkFont(size=FONTS['body']),
+                corner_radius=RADIUS['medium']
+            )
+            textbox.pack(side="left", fill="x", expand=True, padx=(0, SPACING['md']))
             textbox.configure(state="disabled")
             self.command_textboxes.append(textbox)
             
-            copy_btn = ctk.CTkButton(
+            copy_btn = StyledButton(
                 row_frame,
                 text="Copy",
-                width=80,
+                size="small",
+                variant="neutral",
                 command=lambda tb=textbox: self.copy_textbox_to_clipboard(tb)
             )
             copy_btn.pack(side="left")
+        
+        # Add bottom padding
+        padding_frame = ctk.CTkFrame(self.commands_frame, fg_color="transparent", height=SPACING['md'])
+        padding_frame.pack()
         
         self.commands_visible = True
     
