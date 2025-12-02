@@ -3709,7 +3709,7 @@ class NetToolsApp(ctk.CTk):
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
     
     def create_new_profile(self):
-        """Show dialog to create a new profile"""
+        """Show dialog to create and configure a new profile"""
         # Get current interfaces
         interfaces = self.get_network_interfaces()
         
@@ -3720,7 +3720,7 @@ class NetToolsApp(ctk.CTk):
         # Create dialog window
         dialog = ctk.CTkToplevel(self)
         dialog.title("Create Network Profile")
-        dialog.geometry("700x600")
+        dialog.geometry("800x700")
         dialog.transient(self)
         dialog.grab_set()
         
@@ -3733,14 +3733,14 @@ class NetToolsApp(ctk.CTk):
         # Title
         title_label = ctk.CTkLabel(
             dialog,
-            text="Create New Network Profile",
+            text="Create Network Profile",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         title_label.pack(padx=20, pady=(20, 10))
         
         # Profile name
         name_frame = ctk.CTkFrame(dialog)
-        name_frame.pack(fill="x", padx=20, pady=(0, 10))
+        name_frame.pack(fill="x", padx=20, pady=(0, 15))
         
         name_label = ctk.CTkLabel(
             name_frame,
@@ -3760,89 +3760,165 @@ class NetToolsApp(ctk.CTk):
         # Instructions
         info_label = ctk.CTkLabel(
             dialog,
-            text="This will save the current configuration of all interfaces:",
+            text="Select interfaces to configure and set their network settings:",
             font=ctk.CTkFont(size=11),
             text_color=("gray60", "gray40")
         )
-        info_label.pack(padx=20, pady=(10, 5))
+        info_label.pack(padx=20, pady=(0, 10))
         
         # Scrollable frame for interfaces
-        scroll_frame = ctk.CTkScrollableFrame(dialog, height=300)
-        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(5, 10))
+        scroll_frame = ctk.CTkScrollableFrame(dialog, height=400)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
         
-        # Display current interfaces with their configs
+        # Store interface configurations
+        interface_configs = {}
+        
+        # Display configurable interfaces
         for interface in interfaces:
             interface_frame = ctk.CTkFrame(scroll_frame, corner_radius=8)
             interface_frame.pack(fill="x", pady=5)
             
-            # Interface name
-            interface_label = ctk.CTkLabel(
+            # Checkbox to include this interface
+            include_var = ctk.BooleanVar(value=True)
+            include_check = ctk.CTkCheckBox(
                 interface_frame,
                 text=f"📶 {interface['name']}",
-                font=ctk.CTkFont(size=12, weight="bold"),
-                anchor="w"
+                variable=include_var,
+                font=ctk.CTkFont(size=12, weight="bold")
             )
-            interface_label.pack(fill="x", padx=10, pady=(10, 5))
+            include_check.pack(anchor="w", padx=10, pady=(10, 5))
             
-            # Get and display config
-            config = self.get_interface_config(interface["name"])
-            if config:
-                if config["dhcp"]:
-                    config_text = f"DHCP Enabled"
-                    if config["ip"]:
-                        config_text += f"\nCurrent IP: {config['ip']}"
-                else:
-                    config_text = f"Static IP: {config['ip'] or 'Not configured'}"
-                    if config["gateway"]:
-                        config_text += f"\nGateway: {config['gateway']}"
-                    if config["dns"]:
-                        config_text += f"\nDNS: {', '.join(config['dns'][:2])}"
-                
-                config_label = ctk.CTkLabel(
-                    interface_frame,
-                    text=config_text,
-                    font=ctk.CTkFont(size=11),
-                    anchor="w",
-                    justify="left"
-                )
-                config_label.pack(fill="x", padx=10, pady=(0, 10))
+            # Configuration section
+            config_frame = ctk.CTkFrame(interface_frame, fg_color="transparent")
+            config_frame.pack(fill="x", padx=20, pady=(0, 10))
+            
+            # DHCP or Static
+            dhcp_var = ctk.StringVar(value="dhcp")
+            
+            dhcp_radio = ctk.CTkRadioButton(
+                config_frame,
+                text="DHCP (Automatic)",
+                variable=dhcp_var,
+                value="dhcp"
+            )
+            dhcp_radio.pack(anchor="w", pady=2)
+            
+            static_radio = ctk.CTkRadioButton(
+                config_frame,
+                text="Static (Manual)",
+                variable=dhcp_var,
+                value="static"
+            )
+            static_radio.pack(anchor="w", pady=2)
+            
+            # Static IP fields
+            static_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
+            static_frame.pack(fill="x", pady=(10, 0))
+            
+            # IP Address
+            ip_label = ctk.CTkLabel(static_frame, text="IP Address:", font=ctk.CTkFont(size=11))
+            ip_label.grid(row=0, column=0, sticky="w", pady=2)
+            ip_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.100", width=150)
+            ip_entry.grid(row=0, column=1, padx=(10, 0), pady=2)
+            
+            # Subnet Mask
+            mask_label = ctk.CTkLabel(static_frame, text="Subnet Mask:", font=ctk.CTkFont(size=11))
+            mask_label.grid(row=1, column=0, sticky="w", pady=2)
+            mask_entry = ctk.CTkEntry(static_frame, placeholder_text="255.255.255.0", width=150)
+            mask_entry.grid(row=1, column=1, padx=(10, 0), pady=2)
+            
+            # Gateway
+            gateway_label = ctk.CTkLabel(static_frame, text="Gateway:", font=ctk.CTkFont(size=11))
+            gateway_label.grid(row=2, column=0, sticky="w", pady=2)
+            gateway_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.1", width=150)
+            gateway_entry.grid(row=2, column=1, padx=(10, 0), pady=2)
+            
+            # DNS
+            dns_label = ctk.CTkLabel(static_frame, text="DNS Server:", font=ctk.CTkFont(size=11))
+            dns_label.grid(row=3, column=0, sticky="w", pady=2)
+            dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8", width=150)
+            dns_entry.grid(row=3, column=1, padx=(10, 0), pady=2)
+            
+            # Store references
+            interface_configs[interface['name']] = {
+                'include': include_var,
+                'dhcp_var': dhcp_var,
+                'ip_entry': ip_entry,
+                'mask_entry': mask_entry,
+                'gateway_entry': gateway_entry,
+                'dns_entry': dns_entry
+            }
         
         # Button frame
         button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         button_frame.pack(fill="x", padx=20, pady=(0, 20))
         
         def save_profile():
-            """Save the profile"""
+            """Save the configured profile"""
             name = name_entry.get().strip()
             if not name:
                 messagebox.showerror("Error", "Please enter a profile name.")
                 return
             
-            # Collect all interface configurations
+            # Collect selected interface configurations
             saved_interfaces = []
-            for interface in interfaces:
-                config = self.get_interface_config(interface["name"])
-                if config:
-                    saved_interfaces.append({
-                        "name": interface["name"],
-                        "config": config
-                    })
+            for interface_name, config_refs in interface_configs.items():
+                if not config_refs['include'].get():
+                    continue  # Skip unchecked interfaces
+                
+                # Build configuration
+                if config_refs['dhcp_var'].get() == "dhcp":
+                    config = {
+                        "dhcp": True,
+                        "ip": None,
+                        "subnet": None,
+                        "gateway": None,
+                        "dns": []
+                    }
+                else:
+                    ip = config_refs['ip_entry'].get().strip()
+                    mask = config_refs['mask_entry'].get().strip()
+                    gateway = config_refs['gateway_entry'].get().strip()
+                    dns = config_refs['dns_entry'].get().strip()
+                    
+                    if not ip or not mask:
+                        messagebox.showwarning("Warning", f"Static IP requires IP address and subnet mask for {interface_name}")
+                        return
+                    
+                    config = {
+                        "dhcp": False,
+                        "ip": ip,
+                        "subnet": mask,
+                        "subnet_mask": mask,
+                        "gateway": gateway if gateway else None,
+                        "dns": [dns] if dns else []
+                    }
+                
+                saved_interfaces.append({
+                    "name": interface_name,
+                    "config": config
+                })
+            
+            if not saved_interfaces:
+                messagebox.showwarning("Warning", "Please select at least one interface to configure.")
+                return
             
             # Save profile
             self.profile_manager.add_profile(name, saved_interfaces)
             self.refresh_profiles()
             
             dialog.destroy()
-            messagebox.showinfo("Success", f"Profile '{name}' created successfully!")
+            messagebox.showinfo("Success", f"Profile '{name}' created with {len(saved_interfaces)} interface(s)!")
         
         save_btn = ctk.CTkButton(
             button_frame,
-            text="Create Profile",
+            text="💾 Create Profile",
             command=save_profile,
             width=160,
             height=40,
             font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=("#2196F3", "#1976D2")
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"]
         )
         save_btn.pack(side="right", padx=(10, 0))
         
