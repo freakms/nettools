@@ -1400,7 +1400,7 @@ class NetToolsApp(ctk.CTk):
             variable=self.port_mode_var,
             value="common",
             command=self.update_port_mode,
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         common_radio.pack(anchor="w", pady=2)
         
@@ -1410,7 +1410,7 @@ class NetToolsApp(ctk.CTk):
             variable=self.port_mode_var,
             value="range",
             command=self.update_port_mode,
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         range_radio.pack(anchor="w", pady=2)
         
@@ -1420,19 +1420,17 @@ class NetToolsApp(ctk.CTk):
             variable=self.port_mode_var,
             value="custom",
             command=self.update_port_mode,
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         custom_radio.pack(anchor="w", pady=2)
         
         # Port input (changes based on mode)
-        self.port_input_entry = ctk.CTkEntry(
+        self.port_input_entry = StyledEntry(
             input_frame,
             placeholder_text="Will scan common ports",
-            height=40,
-            font=ctk.CTkFont(size=13),
             state="disabled"
         )
-        self.port_input_entry.pack(fill="x", padx=15, pady=(0, 15))
+        self.port_input_entry.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         # Scan method
         method_label = ctk.CTkLabel(
