@@ -1436,14 +1436,14 @@ class NetToolsApp(ctk.CTk):
         method_label = ctk.CTkLabel(
             input_frame,
             text="Scan Method:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        method_label.pack(pady=(0, 5), padx=15, anchor="w")
+        method_label.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         self.scan_method_var = ctk.StringVar(value="socket")
         
         method_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        method_frame.pack(fill="x", padx=15, pady=(0, 15))
+        method_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         socket_radio = ctk.CTkRadioButton(
             method_frame,
