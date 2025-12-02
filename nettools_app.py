@@ -3886,28 +3886,28 @@ class NetToolsApp(ctk.CTk):
             static_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
             static_frame.pack(fill="x", pady=(10, 0))
             
-            # IP Address
-            ip_label = ctk.CTkLabel(static_frame, text="IP Address:", font=ctk.CTkFont(size=11))
+            # IP Address (Required)
+            ip_label = ctk.CTkLabel(static_frame, text="IP Address: *", font=ctk.CTkFont(size=11))
             ip_label.grid(row=0, column=0, sticky="w", pady=2)
             ip_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.100", width=150, state="disabled")
             ip_entry.grid(row=0, column=1, padx=(10, 0), pady=2)
             
-            # Subnet Mask
-            mask_label = ctk.CTkLabel(static_frame, text="Subnet Mask:", font=ctk.CTkFont(size=11))
+            # Subnet Mask (Required)
+            mask_label = ctk.CTkLabel(static_frame, text="Subnet Mask: *", font=ctk.CTkFont(size=11))
             mask_label.grid(row=1, column=0, sticky="w", pady=2)
             mask_entry = ctk.CTkEntry(static_frame, placeholder_text="255.255.255.0", width=150, state="disabled")
             mask_entry.grid(row=1, column=1, padx=(10, 0), pady=2)
             
-            # Gateway
-            gateway_label = ctk.CTkLabel(static_frame, text="Gateway:", font=ctk.CTkFont(size=11))
+            # Gateway (Optional)
+            gateway_label = ctk.CTkLabel(static_frame, text="Gateway (Optional):", font=ctk.CTkFont(size=11))
             gateway_label.grid(row=2, column=0, sticky="w", pady=2)
             gateway_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.1", width=150, state="disabled")
             gateway_entry.grid(row=2, column=1, padx=(10, 0), pady=2)
             
-            # DNS
-            dns_label = ctk.CTkLabel(static_frame, text="DNS Server:", font=ctk.CTkFont(size=11))
+            # DNS (Optional)
+            dns_label = ctk.CTkLabel(static_frame, text="DNS Server (Optional):", font=ctk.CTkFont(size=11))
             dns_label.grid(row=3, column=0, sticky="w", pady=2)
-            dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8", width=150, state="disabled")
+            dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8, 8.8.4.4", width=150, state="disabled")
             dns_entry.grid(row=3, column=1, padx=(10, 0), pady=2)
             
             # Store references
