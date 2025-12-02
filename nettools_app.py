@@ -777,72 +777,30 @@ class NetToolsApp(ctk.CTk):
         self.current_page = "scanner"
         
         for page_id, label, tooltip in nav_items:
-            # Split emoji and text
+            # Split emoji and text for better alignment
             parts = label.split("  ", 1)
             if len(parts) == 2:
                 emoji, text = parts
+                # Pad emoji to fixed width using spaces for alignment
+                # Emojis are typically 2 characters wide, pad to align text
+                display_text = f"{emoji}    {text}"
             else:
-                emoji, text = "", label
+                display_text = label
             
-            # Create container frame for button with labels
-            container = ctk.CTkFrame(self.sidebar, height=50, corner_radius=8, fg_color="transparent")
-            container.pack(fill="x", padx=10, pady=5)
-            
-            # Create button
+            # Simple button approach - no complex layering
             btn = ctk.CTkButton(
-                container,
-                text="",
+                self.sidebar,
+                text=display_text,
                 command=lambda p=page_id: self.switch_page(p),
                 height=50,
                 corner_radius=8,
+                anchor="w",
+                font=ctk.CTkFont(size=14, weight="bold", family="Segoe UI"),
                 fg_color="transparent",
-                hover_color=("gray70", "gray30"),
-                border_width=0,
-                border_spacing=0
-            )
-            btn.pack(fill="both", expand=True)
-            
-            # Create inner frame for content (inside button, without pointer events blocking)
-            # Using a regular frame with grid layout for better alignment
-            inner_frame = ctk.CTkFrame(btn, fg_color="transparent")
-            inner_frame.place(relx=0, rely=0.5, anchor="w", x=15)
-            
-            # Make inner frame non-interactive (pass clicks through)
-            inner_frame.configure(cursor="hand2")
-            
-            # Emoji with fixed width
-            emoji_lbl = ctk.CTkLabel(
-                inner_frame,
-                text=emoji,
-                font=ctk.CTkFont(size=16),
-                width=25,
-                anchor="w",
-                cursor="hand2"
-            )
-            emoji_lbl.pack(side="left", padx=(0, 15))
-            
-            # Text label
-            text_lbl = ctk.CTkLabel(
-                inner_frame,
-                text=text,
-                font=ctk.CTkFont(size=14, weight="bold"),
                 text_color=("gray10", "gray90"),
-                anchor="w",
-                cursor="hand2"
+                hover_color=("gray70", "gray30")
             )
-            text_lbl.pack(side="left")
-            
-            # Bind click events to all elements to ensure clicks work everywhere
-            def make_click_handler(page):
-                return lambda e: self.switch_page(page)
-            
-            click_handler = make_click_handler(page_id)
-            emoji_lbl.bind("<Button-1>", click_handler)
-            text_lbl.bind("<Button-1>", click_handler)
-            inner_frame.bind("<Button-1>", click_handler)
-            container.bind("<Button-1>", click_handler)
-            
-            # Store button reference
+            btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
         
         # Update initial button state
