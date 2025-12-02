@@ -4138,7 +4138,8 @@ class NetToolsApp(ctk.CTk):
                         errors.append(f"{interface_name}: {str(e)}")
                         error_count += 1
                 
-                # Show results
+                # Hide progress and show results
+                self.after(0, lambda: progress_label.destroy())
                 self.after(0, self.refresh_interfaces)
                 
                 if error_count == 0:
