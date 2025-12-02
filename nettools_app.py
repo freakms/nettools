@@ -3950,11 +3950,16 @@ class NetToolsApp(ctk.CTk):
                     ip = config_refs['ip_entry'].get().strip()
                     mask = config_refs['mask_entry'].get().strip()
                     gateway = config_refs['gateway_entry'].get().strip()
-                    dns = config_refs['dns_entry'].get().strip()
+                    dns_input = config_refs['dns_entry'].get().strip()
                     
                     if not ip or not mask:
                         messagebox.showwarning("Warning", f"Static IP requires IP address and subnet mask for {interface_name}")
                         return
+                    
+                    # Parse DNS servers (support comma-separated list)
+                    dns_servers = []
+                    if dns_input:
+                        dns_servers = [d.strip() for d in dns_input.split(',') if d.strip()]
                     
                     config = {
                         "dhcp": False,
@@ -3962,7 +3967,7 @@ class NetToolsApp(ctk.CTk):
                         "subnet": mask,
                         "subnet_mask": mask,
                         "gateway": gateway if gateway else None,
-                        "dns": [dns] if dns else []
+                        "dns": dns_servers
                     }
                 
                 saved_interfaces.append({
