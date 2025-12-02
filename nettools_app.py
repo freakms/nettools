@@ -4964,44 +4964,38 @@ class NetToolsApp(ctk.CTk):
         self.phpipam_status_label = ctk.CTkLabel(
             status_frame,
             text="⚪ Not configured" if not self.phpipam_config.is_enabled() else "🟢 Enabled",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=FONTS['body'])
         )
-        self.phpipam_status_label.pack(pady=(0, 15), padx=15, anchor="w")
+        self.phpipam_status_label.pack(pady=(0, SPACING['lg']), padx=SPACING['lg'], anchor="w")
         
         # Action buttons
         button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(0, 15))
+        button_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
-        settings_btn = ctk.CTkButton(
+        settings_btn = StyledButton(
             button_frame,
             text="⚙️ Settings",
             command=self.show_phpipam_settings,
-            width=140,
-            height=42,
-            fg_color=COLORS["neutral"],
-            hover_color=COLORS["neutral_hover"]
+            size="medium",
+            variant="neutral"
         )
-        settings_btn.pack(side="left", padx=(0, 10))
+        settings_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        test_btn = ctk.CTkButton(
+        test_btn = StyledButton(
             button_frame,
             text="🔌 Test Connection",
             command=self.test_phpipam_connection,
-            width=180,
-            height=42,
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="large",
+            variant="primary"
         )
-        test_btn.pack(side="left", padx=(0, 10))
+        test_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        auth_btn = ctk.CTkButton(
+        auth_btn = StyledButton(
             button_frame,
             text="🔑 Authenticate",
             command=self.authenticate_phpipam,
-            width=160,
-            height=42,
-            fg_color=COLORS["success"],
-            hover_color=COLORS["success_hover"]
+            size="medium",
+            variant="success"
         )
         auth_btn.pack(side="left")
         
