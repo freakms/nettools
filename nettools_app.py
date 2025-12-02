@@ -1247,23 +1247,22 @@ class NetToolsApp(ctk.CTk):
         """Create Network Profiles page content"""
         # Scrollable content area
         scrollable = ctk.CTkScrollableFrame(parent)
-        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        scrollable.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
         
         # Title
         title_label = ctk.CTkLabel(
             scrollable,
             text="Network Profile Manager",
-            font=ctk.CTkFont(size=24, weight="bold")
+            font=ctk.CTkFont(size=FONTS['title'], weight="bold")
         )
-        title_label.pack(pady=(0, 5))
+        title_label.pack(pady=(0, SPACING['xs']))
         
         # Subtitle
-        subtitle_label = ctk.CTkLabel(
+        subtitle_label = SubTitle(
             scrollable,
-            text="Manage network interface configurations and quick-switch profiles",
-            font=ctk.CTkFont(size=12)
+            text="Manage network interface configurations and quick-switch profiles"
         )
-        subtitle_label.pack(pady=(0, 20))
+        subtitle_label.pack(pady=(0, SPACING['lg']))
         
         # Admin warning if not admin
         if not self.is_admin():
