@@ -3306,6 +3306,10 @@ class NetToolsApp(ctk.CTk):
         y = self.winfo_y() + (self.winfo_height() - history_window.winfo_height()) // 2
         history_window.geometry(f"+{x}+{y}")
         
+        # Ensure dialog is on top and focused
+        history_window.lift()
+        history_window.focus_force()
+        
         # Title
         title_label = ctk.CTkLabel(
             history_window,
@@ -3387,6 +3391,10 @@ class NetToolsApp(ctk.CTk):
         x = self.winfo_x() + (self.winfo_width() - history_window.winfo_width()) // 2
         y = self.winfo_y() + (self.winfo_height() - history_window.winfo_height()) // 2
         history_window.geometry(f"+{x}+{y}")
+        
+        # Ensure dialog is on top and focused
+        history_window.lift()
+        history_window.focus_force()
         
         # Title
         title_label = ctk.CTkLabel(
