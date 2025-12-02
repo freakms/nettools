@@ -1392,7 +1392,7 @@ class NetToolsApp(ctk.CTk):
         self.port_mode_var = ctk.StringVar(value="common")
         
         port_mode_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        port_mode_frame.pack(fill="x", padx=15, pady=(0, 10))
+        port_mode_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
         
         common_radio = ctk.CTkRadioButton(
             port_mode_frame,
