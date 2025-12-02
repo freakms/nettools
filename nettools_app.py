@@ -1508,27 +1508,25 @@ class NetToolsApp(ctk.CTk):
         self.port_export_btn.pack(side="left", padx=(SPACING['md'], 0))
         
         # Progress
-        self.port_progress_label = ctk.CTkLabel(
+        self.port_progress_label = SubTitle(
             scrollable,
-            text="",
-            font=ctk.CTkFont(size=11)
+            text=""
         )
-        self.port_progress_label.pack(pady=(0, 5))
+        self.port_progress_label.pack(pady=(0, SPACING['xs']))
         
         self.port_progress_bar = ctk.CTkProgressBar(scrollable, width=400, height=20)
-        self.port_progress_bar.pack(pady=(0, 15))
+        self.port_progress_bar.pack(pady=(0, SPACING['lg']))
         self.port_progress_bar.set(0)
         
         # Results section
-        results_title = ctk.CTkLabel(
+        results_title = SectionTitle(
             scrollable,
-            text="Scan Results",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="Scan Results"
         )
-        results_title.pack(pady=(10, 10), anchor="w")
+        results_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
-        # Results frame
-        self.port_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        # Results frame with styled card
+        self.port_results_frame = StyledCard(scrollable)
         self.port_results_frame.pack(fill="both", expand=True)
         
         # Initial message
