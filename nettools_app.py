@@ -784,23 +784,56 @@ class NetToolsApp(ctk.CTk):
             else:
                 emoji, text = "", label
             
-            # Format text with fixed-width spacing for alignment
-            # Use monospace-style spacing: emoji gets padded to align text
-            display_text = f"{emoji:<3} {text}"
+            # Create container frame for button with labels
+            container = ctk.CTkFrame(self.sidebar, height=50, corner_radius=8, fg_color="transparent")
+            container.pack(fill="x", padx=10, pady=5)
             
+            # Create button
             btn = ctk.CTkButton(
-                self.sidebar,
-                text=display_text,
+                container,
+                text="",
                 command=lambda p=page_id: self.switch_page(p),
                 height=50,
                 corner_radius=8,
-                anchor="w",
-                font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
+                hover_color=("gray70", "gray30"),
+                border_width=0
             )
-            btn.pack(fill="x", padx=10, pady=5)
+            btn.pack(fill="both", expand=True)
+            
+            # Create inner frame for content (inside button)
+            inner_frame = ctk.CTkFrame(btn, fg_color="transparent")
+            inner_frame.place(relx=0, rely=0.5, anchor="w", x=15)
+            
+            # Emoji with fixed width
+            emoji_lbl = ctk.CTkLabel(
+                inner_frame,
+                text=emoji,
+                font=ctk.CTkFont(size=16),
+                width=25,
+                anchor="w"
+            )
+            emoji_lbl.pack(side="left", padx=(0, 15))
+            
+            # Text label
+            text_lbl = ctk.CTkLabel(
+                inner_frame,
+                text=text,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                text_color=("gray10", "gray90"),
+                anchor="w"
+            )
+            text_lbl.pack(side="left")
+            
+            # Bind click events to labels to pass through to button
+            def make_click_handler(page):
+                return lambda e: self.switch_page(page)
+            
+            emoji_lbl.bind("<Button-1>", make_click_handler(page_id))
+            text_lbl.bind("<Button-1>", make_click_handler(page_id))
+            inner_frame.bind("<Button-1>", make_click_handler(page_id))
+            
+            # Store button reference
             self.nav_buttons[page_id] = btn
         
         # Update initial button state
