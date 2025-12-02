@@ -1110,18 +1110,17 @@ class NetToolsApp(ctk.CTk):
         
         # Scrollable content area for formats and commands
         self.mac_scrollable = ctk.CTkScrollableFrame(parent)
-        self.mac_scrollable.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        self.mac_scrollable.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
-        # MAC Formats section (inside scrollable area)
-        self.formats_frame = ctk.CTkFrame(self.mac_scrollable)
-        self.formats_frame.pack(fill="x", padx=5, pady=(10, 15))
+        # MAC Formats section with styled card
+        self.formats_frame = StyledCard(self.mac_scrollable)
+        self.formats_frame.pack(fill="x", padx=SPACING['xs'], pady=(SPACING['md'], SPACING['lg']))
         
-        formats_title = ctk.CTkLabel(
+        formats_title = SectionTitle(
             self.formats_frame,
-            text="Standard MAC Formats",
-            font=ctk.CTkFont(size=14, weight="bold")
+            text="Standard MAC Formats"
         )
-        formats_title.pack(anchor="w", padx=15, pady=(15, 10))
+        formats_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
         
         format_labels = [
             "Format 1 (Plain):",
