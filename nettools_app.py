@@ -2252,57 +2252,50 @@ class NetToolsApp(ctk.CTk):
         )
         subtitle_label.pack(pady=(0, 20))
         
-        # Input section
-        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        input_frame.pack(fill="x", pady=(0, 15))
+        # Input section with styled card
+        input_frame = StyledCard(scrollable)
+        input_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         # CIDR input
         cidr_label = ctk.CTkLabel(
             input_frame,
             text="Enter Network in CIDR Notation:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        cidr_label.pack(pady=(15, 5), padx=15, anchor="w")
+        cidr_label.pack(pady=(SPACING['lg'], SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        cidr_info = ctk.CTkLabel(
+        cidr_info = SubTitle(
             input_frame,
-            text="Examples: 192.168.1.0/24, 10.0.0.0/8, 172.16.0.0/16",
-            font=ctk.CTkFont(size=10),
-            text_color=("gray60", "gray40")
+            text="Examples: 192.168.1.0/24, 10.0.0.0/8, 172.16.0.0/16"
         )
-        cidr_info.pack(pady=(0, 5), padx=15, anchor="w")
+        cidr_info.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        self.subnet_cidr_entry = ctk.CTkEntry(
+        self.subnet_cidr_entry = StyledEntry(
             input_frame,
-            placeholder_text="192.168.1.0/24",
-            height=40,
-            font=ctk.CTkFont(size=13)
+            placeholder_text="192.168.1.0/24"
         )
-        self.subnet_cidr_entry.pack(fill="x", padx=15, pady=(0, 15))
+        self.subnet_cidr_entry.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         self.subnet_cidr_entry.bind('<Return>', lambda e: self.calculate_subnet())
         
         # Calculate button
-        calc_btn = ctk.CTkButton(
+        calc_btn = StyledButton(
             scrollable,
-            text="Calculate",
+            text="🔢 Calculate",
             command=self.calculate_subnet,
-            width=180,
-            height=48,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=("#FF9800", "#F57C00")
+            size="large",
+            variant="warning"
         )
-        calc_btn.pack(pady=(0, 15))
+        calc_btn.pack(pady=(0, SPACING['lg']))
         
         # Results section
-        results_title = ctk.CTkLabel(
+        results_title = SectionTitle(
             scrollable,
-            text="Subnet Information",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="Subnet Information"
         )
-        results_title.pack(pady=(10, 10), anchor="w")
+        results_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
-        # Results frame
-        self.subnet_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        # Results frame with styled card
+        self.subnet_results_frame = StyledCard(scrollable)
         self.subnet_results_frame.pack(fill="both", expand=True)
         
         # Initial message
