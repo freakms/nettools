@@ -1059,56 +1059,54 @@ class NetToolsApp(ctk.CTk):
     
     def create_mac_content(self, parent):
         """Create MAC Formatter page content"""
-        # Input section (stays at top, not scrollable)
-        input_frame = ctk.CTkFrame(parent)
-        input_frame.pack(fill="x", padx=15, pady=15)
+        # Input section with styled card
+        input_card = StyledCard(parent)
+        input_card.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
         
         mac_label = ctk.CTkLabel(
-            input_frame,
+            input_card,
             text="Enter MAC Address:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        mac_label.pack(anchor="w", padx=15, pady=(15, 5))
+        mac_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
         
         # Frame for MAC entry and history button
-        mac_entry_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        mac_entry_frame.pack(fill="x", padx=15, pady=(0, 10))
+        mac_entry_frame = ctk.CTkFrame(input_card, fg_color="transparent")
+        mac_entry_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
         
-        self.mac_entry = ctk.CTkEntry(
+        self.mac_entry = StyledEntry(
             mac_entry_frame,
-            placeholder_text="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF",
-            height=40
+            placeholder_text="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF"
         )
-        self.mac_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.mac_entry.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
         self.mac_entry.bind('<KeyRelease>', self.update_mac_formats)
         
         # History button for MAC
-        self.mac_history_btn = ctk.CTkButton(
+        self.mac_history_btn = StyledButton(
             mac_entry_frame,
             text="⏱",
-            width=40,
-            height=40,
-            command=self.show_mac_history,
-            font=ctk.CTkFont(size=16)
+            size="small",
+            variant="neutral",
+            command=self.show_mac_history
         )
         self.mac_history_btn.pack(side="left")
         
         self.mac_warning_label = ctk.CTkLabel(
-            input_frame,
+            input_card,
             text="",
-            font=ctk.CTkFont(size=11),
-            text_color="#dc3545"
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['danger']
         )
-        self.mac_warning_label.pack(anchor="w", padx=15, pady=(0, 5))
+        self.mac_warning_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
         
         # Vendor information display
         self.vendor_label = ctk.CTkLabel(
-            input_frame,
+            input_card,
             text="",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            text_color="#28a745"
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
+            text_color=COLORS['success']
         )
-        self.vendor_label.pack(anchor="w", padx=15, pady=(0, 15))
+        self.vendor_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         # Scrollable content area for formats and commands
         self.mac_scrollable = ctk.CTkScrollableFrame(parent)
