@@ -1364,25 +1364,21 @@ class NetToolsApp(ctk.CTk):
         target_label = ctk.CTkLabel(
             input_frame,
             text="Target Host:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        target_label.pack(pady=(15, 5), padx=15, anchor="w")
+        target_label.pack(pady=(SPACING['lg'], SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        target_info = ctk.CTkLabel(
+        target_info = SubTitle(
             input_frame,
-            text="Enter IP address or hostname (e.g., 192.168.1.1 or example.com)",
-            font=ctk.CTkFont(size=10),
-            text_color=("gray60", "gray40")
+            text="Enter IP address or hostname (e.g., 192.168.1.1 or example.com)"
         )
-        target_info.pack(pady=(0, 5), padx=15, anchor="w")
+        target_info.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        self.port_target_entry = ctk.CTkEntry(
+        self.port_target_entry = StyledEntry(
             input_frame,
-            placeholder_text="192.168.1.1 or example.com",
-            height=40,
-            font=ctk.CTkFont(size=13)
+            placeholder_text="192.168.1.1 or example.com"
         )
-        self.port_target_entry.pack(fill="x", padx=15, pady=(0, 15))
+        self.port_target_entry.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         # Port selection
         port_label = ctk.CTkLabel(
