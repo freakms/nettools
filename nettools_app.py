@@ -4175,6 +4175,10 @@ class NetToolsApp(ctk.CTk):
         y = self.winfo_y() + (self.winfo_height() - comp_window.winfo_height()) // 2
         comp_window.geometry(f"+{x}+{y}")
         
+        # Ensure dialog is on top and focused
+        comp_window.lift()
+        comp_window.focus_force()
+        
         # Title
         title_label = ctk.CTkLabel(
             comp_window,
