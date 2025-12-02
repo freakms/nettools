@@ -1266,28 +1266,22 @@ class NetToolsApp(ctk.CTk):
         
         # Admin warning if not admin
         if not self.is_admin():
-            warning_frame = ctk.CTkFrame(scrollable, fg_color=("#FFC107", "#FF6F00"), corner_radius=8)
-            warning_frame.pack(fill="x", pady=(0, 15))
-            
-            warning_label = ctk.CTkLabel(
-                warning_frame,
-                text="⚠️ Administrator privileges required to change network settings",
-                font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=("black", "white")
+            warning_frame = InfoBox(
+                scrollable,
+                message="⚠️ Administrator privileges required to change network settings",
+                box_type="warning"
             )
-            warning_label.pack(pady=10)
+            warning_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         # Refresh button
-        refresh_btn = ctk.CTkButton(
+        refresh_btn = StyledButton(
             scrollable,
             text="🔄 Refresh Interfaces",
             command=self.refresh_interfaces,
-            width=200,
-            height=42,
-            fg_color=COLORS["neutral"],
-            hover_color=COLORS["neutral_hover"]
+            size="large",
+            variant="neutral"
         )
-        refresh_btn.pack(pady=(0, 15))
+        refresh_btn.pack(pady=(0, SPACING['lg']))
         
         # Current Interfaces Section
         interfaces_title = ctk.CTkLabel(
