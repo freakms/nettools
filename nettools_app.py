@@ -4944,23 +4944,22 @@ class NetToolsApp(ctk.CTk):
         )
         title_label.pack(pady=(0, 5))
         
-        subtitle_label = ctk.CTkLabel(
+        subtitle_label = SubTitle(
             scrollable,
-            text="Manage IP addresses with phpIPAM API",
-            font=ctk.CTkFont(size=12)
+            text="Manage IP addresses with phpIPAM API"
         )
-        subtitle_label.pack(pady=(0, 20))
+        subtitle_label.pack(pady=(0, SPACING['lg']))
         
-        # Status Section
-        status_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        status_frame.pack(fill="x", pady=(0, 15))
+        # Status Section with styled card
+        status_frame = StyledCard(scrollable)
+        status_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         status_title = ctk.CTkLabel(
             status_frame,
             text="Connection Status",
-            font=ctk.CTkFont(size=14, weight="bold")
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
         )
-        status_title.pack(pady=(15, 5), padx=15, anchor="w")
+        status_title.pack(pady=(SPACING['lg'], SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         self.phpipam_status_label = ctk.CTkLabel(
             status_frame,
