@@ -3833,11 +3833,54 @@ class NetToolsApp(ctk.CTk):
             # DHCP or Static
             dhcp_var = ctk.StringVar(value="dhcp")
             
+            # Static IP fields frame
+            static_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
+            static_frame.pack(fill="x", pady=(10, 0))
+            
+            # IP Address
+            ip_label = ctk.CTkLabel(static_frame, text="IP Address:", font=ctk.CTkFont(size=11))
+            ip_label.grid(row=0, column=0, sticky="w", pady=2)
+            ip_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.100", width=150, state="disabled")
+            ip_entry.grid(row=0, column=1, padx=(10, 0), pady=2)
+            
+            # Subnet Mask
+            mask_label = ctk.CTkLabel(static_frame, text="Subnet Mask:", font=ctk.CTkFont(size=11))
+            mask_label.grid(row=1, column=0, sticky="w", pady=2)
+            mask_entry = ctk.CTkEntry(static_frame, placeholder_text="255.255.255.0", width=150, state="disabled")
+            mask_entry.grid(row=1, column=1, padx=(10, 0), pady=2)
+            
+            # Gateway
+            gateway_label = ctk.CTkLabel(static_frame, text="Gateway:", font=ctk.CTkFont(size=11))
+            gateway_label.grid(row=2, column=0, sticky="w", pady=2)
+            gateway_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.1", width=150, state="disabled")
+            gateway_entry.grid(row=2, column=1, padx=(10, 0), pady=2)
+            
+            # DNS
+            dns_label = ctk.CTkLabel(static_frame, text="DNS Server:", font=ctk.CTkFont(size=11))
+            dns_label.grid(row=3, column=0, sticky="w", pady=2)
+            dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8", width=150, state="disabled")
+            dns_entry.grid(row=3, column=1, padx=(10, 0), pady=2)
+            
+            # Function to toggle static fields
+            def toggle_static_fields(*args):
+                if dhcp_var.get() == "static":
+                    ip_entry.configure(state="normal")
+                    mask_entry.configure(state="normal")
+                    gateway_entry.configure(state="normal")
+                    dns_entry.configure(state="normal")
+                else:
+                    ip_entry.configure(state="disabled")
+                    mask_entry.configure(state="disabled")
+                    gateway_entry.configure(state="disabled")
+                    dns_entry.configure(state="disabled")
+            
+            # Radio buttons with command callback
             dhcp_radio = ctk.CTkRadioButton(
                 config_frame,
                 text="DHCP (Automatic)",
                 variable=dhcp_var,
-                value="dhcp"
+                value="dhcp",
+                command=toggle_static_fields
             )
             dhcp_radio.pack(anchor="w", pady=2)
             
@@ -3845,37 +3888,10 @@ class NetToolsApp(ctk.CTk):
                 config_frame,
                 text="Static (Manual)",
                 variable=dhcp_var,
-                value="static"
+                value="static",
+                command=toggle_static_fields
             )
             static_radio.pack(anchor="w", pady=2)
-            
-            # Static IP fields
-            static_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
-            static_frame.pack(fill="x", pady=(10, 0))
-            
-            # IP Address
-            ip_label = ctk.CTkLabel(static_frame, text="IP Address:", font=ctk.CTkFont(size=11))
-            ip_label.grid(row=0, column=0, sticky="w", pady=2)
-            ip_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.100", width=150)
-            ip_entry.grid(row=0, column=1, padx=(10, 0), pady=2)
-            
-            # Subnet Mask
-            mask_label = ctk.CTkLabel(static_frame, text="Subnet Mask:", font=ctk.CTkFont(size=11))
-            mask_label.grid(row=1, column=0, sticky="w", pady=2)
-            mask_entry = ctk.CTkEntry(static_frame, placeholder_text="255.255.255.0", width=150)
-            mask_entry.grid(row=1, column=1, padx=(10, 0), pady=2)
-            
-            # Gateway
-            gateway_label = ctk.CTkLabel(static_frame, text="Gateway:", font=ctk.CTkFont(size=11))
-            gateway_label.grid(row=2, column=0, sticky="w", pady=2)
-            gateway_entry = ctk.CTkEntry(static_frame, placeholder_text="192.168.1.1", width=150)
-            gateway_entry.grid(row=2, column=1, padx=(10, 0), pady=2)
-            
-            # DNS
-            dns_label = ctk.CTkLabel(static_frame, text="DNS Server:", font=ctk.CTkFont(size=11))
-            dns_label.grid(row=3, column=0, sticky="w", pady=2)
-            dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8", width=150)
-            dns_entry.grid(row=3, column=1, padx=(10, 0), pady=2)
             
             # Store references
             interface_configs[interface['name']] = {
