@@ -1339,27 +1339,26 @@ class NetToolsApp(ctk.CTk):
         """Create Port Scanner page content"""
         # Scrollable content area
         scrollable = ctk.CTkScrollableFrame(parent)
-        scrollable.pack(fill="both", expand=True, padx=20, pady=20)
+        scrollable.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
         
         # Title
         title_label = ctk.CTkLabel(
             scrollable,
             text="Port Scanner",
-            font=ctk.CTkFont(size=24, weight="bold")
+            font=ctk.CTkFont(size=FONTS['title'], weight="bold")
         )
-        title_label.pack(pady=(0, 5))
+        title_label.pack(pady=(0, SPACING['xs']))
         
         # Subtitle
-        subtitle_label = ctk.CTkLabel(
+        subtitle_label = SubTitle(
             scrollable,
-            text="Scan for open ports on target hosts using multiple methods",
-            font=ctk.CTkFont(size=12)
+            text="Scan for open ports on target hosts using multiple methods"
         )
-        subtitle_label.pack(pady=(0, 20))
+        subtitle_label.pack(pady=(0, SPACING['lg']))
         
-        # Input section
-        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        input_frame.pack(fill="x", pady=(0, 15))
+        # Input section with styled card
+        input_frame = StyledCard(scrollable)
+        input_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         # Target host
         target_label = ctk.CTkLabel(
