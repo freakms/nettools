@@ -777,9 +777,17 @@ class NetToolsApp(ctk.CTk):
         self.current_page = "scanner"
         
         for page_id, label, tooltip in nav_items:
+            # Split emoji and text for better control
+            parts = label.split("  ", 1)
+            if len(parts) == 2:
+                emoji, text = parts
+                display_text = f"{emoji}  {text}"
+            else:
+                display_text = label
+            
             btn = ctk.CTkButton(
                 self.sidebar,
-                text=label,
+                text=display_text,
                 command=lambda p=page_id: self.switch_page(p),
                 height=50,
                 corner_radius=8,
@@ -787,7 +795,8 @@ class NetToolsApp(ctk.CTk):
                 font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
+                hover_color=("gray70", "gray30"),
+                compound="left"  # Align content to left
             )
             btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
