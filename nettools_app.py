@@ -4516,36 +4516,35 @@ class NetToolsApp(ctk.CTk):
         )
         pathping_info.pack(side="left", padx=(10, 0))
         
-        # Options
-        options_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        options_frame.pack(fill="x", pady=(0, 15))
+        # Options with styled card
+        options_frame = StyledCard(scrollable)
+        options_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         options_label = ctk.CTkLabel(
             options_frame,
             text="Options:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        options_label.pack(anchor="w", padx=15, pady=(15, 10))
+        options_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
         
         # Max hops option
         hops_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
-        hops_frame.pack(fill="x", padx=15, pady=(0, 15))
+        hops_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         hops_label = ctk.CTkLabel(
             hops_frame,
             text="Max Hops:",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         hops_label.pack(side="left")
         
-        self.traceroute_maxhops_entry = ctk.CTkEntry(
+        self.traceroute_maxhops_entry = StyledEntry(
             hops_frame,
             width=80,
-            height=32,
             placeholder_text="30"
         )
         self.traceroute_maxhops_entry.insert(0, "30")
-        self.traceroute_maxhops_entry.pack(side="left", padx=(10, 0))
+        self.traceroute_maxhops_entry.pack(side="left", padx=(SPACING['md'], 0))
         
         hops_info = ctk.CTkLabel(
             hops_frame,
