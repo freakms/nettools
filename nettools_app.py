@@ -4999,62 +4999,55 @@ class NetToolsApp(ctk.CTk):
         )
         auth_btn.pack(side="left")
         
-        # Operations Section
-        ops_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        ops_frame.pack(fill="x", pady=(0, 15))
+        # Operations Section with styled card
+        ops_frame = StyledCard(scrollable)
+        ops_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
-        ops_title = ctk.CTkLabel(
+        ops_title = SectionTitle(
             ops_frame,
-            text="Operations",
-            font=ctk.CTkFont(size=16, weight="bold")
+            text="Operations"
         )
-        ops_title.pack(pady=(15, 10), padx=15, anchor="w")
+        ops_title.pack(pady=(SPACING['lg'], SPACING['md']), padx=SPACING['lg'], anchor="w")
         
         # IP Search
         search_frame = ctk.CTkFrame(ops_frame, fg_color="transparent")
-        search_frame.pack(fill="x", padx=15, pady=(0, 15))
+        search_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         search_label = ctk.CTkLabel(
             search_frame,
             text="Search IP Address:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        search_label.pack(anchor="w", pady=(0, 5))
+        search_label.pack(anchor="w", pady=(0, SPACING['xs']))
         
         search_entry_frame = ctk.CTkFrame(search_frame, fg_color="transparent")
         search_entry_frame.pack(fill="x")
         
-        self.phpipam_search_entry = ctk.CTkEntry(
+        self.phpipam_search_entry = StyledEntry(
             search_entry_frame,
-            placeholder_text="e.g., 192.168.1.10",
-            height=38,
-            font=ctk.CTkFont(size=13)
+            placeholder_text="e.g., 192.168.1.10"
         )
-        self.phpipam_search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.phpipam_search_entry.pack(side="left", fill="x", expand=True, padx=(0, SPACING['md']))
         
-        search_btn = ctk.CTkButton(
+        search_btn = StyledButton(
             search_entry_frame,
             text="🔍 Search",
             command=self.search_phpipam_ip,
-            width=120,
-            height=38,
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="medium",
+            variant="primary"
         )
         search_btn.pack(side="left")
         
         # View Subnets
         subnet_btn_frame = ctk.CTkFrame(ops_frame, fg_color="transparent")
-        subnet_btn_frame.pack(fill="x", padx=15, pady=(0, 15))
+        subnet_btn_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
-        view_subnets_btn = ctk.CTkButton(
+        view_subnets_btn = StyledButton(
             subnet_btn_frame,
             text="📋 View All Subnets",
             command=self.view_phpipam_subnets,
-            width=200,
-            height=38,
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="large",
+            variant="primary"
         )
         view_subnets_btn.pack(side="left")
         
