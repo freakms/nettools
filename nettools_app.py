@@ -4024,6 +4024,15 @@ class NetToolsApp(ctk.CTk):
         if not result:
             return
         
+        # Show progress message
+        progress_label = ctk.CTkLabel(
+            self.profiles_frame.master,
+            text=f"Applying profile '{profile['name']}'...",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color=COLORS["primary"]
+        )
+        progress_label.place(relx=0.5, rely=0.5, anchor="center")
+        
         # Apply profile in background thread
         def apply_in_background():
             try:
