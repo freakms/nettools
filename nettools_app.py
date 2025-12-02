@@ -4556,64 +4556,52 @@ class NetToolsApp(ctk.CTk):
         
         # Action Buttons
         button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(0, 15))
+        button_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
-        self.trace_start_btn = ctk.CTkButton(
+        self.trace_start_btn = StyledButton(
             button_frame,
             text="▶ Start Trace",
             command=self.start_traceroute,
-            width=160,
-            height=42,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="medium",
+            variant="primary"
         )
-        self.trace_start_btn.pack(side="left", padx=(0, 10))
+        self.trace_start_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        self.trace_cancel_btn = ctk.CTkButton(
+        self.trace_cancel_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
             command=self.cancel_traceroute,
-            width=120,
-            height=42,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            state="disabled",
-            fg_color=COLORS["danger"],
-            hover_color=COLORS["danger_hover"]
+            size="medium",
+            variant="danger",
+            state="disabled"
         )
-        self.trace_cancel_btn.pack(side="left", padx=(0, 10))
+        self.trace_cancel_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        self.trace_export_btn = ctk.CTkButton(
+        self.trace_export_btn = StyledButton(
             button_frame,
             text="📤 Export Results",
             command=self.export_traceroute,
-            width=160,
-            height=42,
-            font=ctk.CTkFont(size=14),
-            state="disabled",
-            fg_color=COLORS["success"],
-            hover_color=COLORS["success_hover"]
+            size="medium",
+            variant="success",
+            state="disabled"
         )
         self.trace_export_btn.pack(side="left")
         
         # Progress label
-        self.trace_progress_label = ctk.CTkLabel(
+        self.trace_progress_label = SubTitle(
             scrollable,
-            text="",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS["text_secondary"]
+            text=""
         )
-        self.trace_progress_label.pack(pady=(0, 10))
+        self.trace_progress_label.pack(pady=(0, SPACING['md']))
         
         # Results Section
-        results_title = ctk.CTkLabel(
+        results_title = SectionTitle(
             scrollable,
-            text="Results",
-            font=ctk.CTkFont(size=16, weight="bold")
+            text="Results"
         )
-        results_title.pack(pady=(10, 10), anchor="w")
+        results_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
-        self.traceroute_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        self.traceroute_results_frame = StyledCard(scrollable)
         self.traceroute_results_frame.pack(fill="both", expand=True)
         
         # Initial message
