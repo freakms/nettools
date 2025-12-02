@@ -797,13 +797,18 @@ class NetToolsApp(ctk.CTk):
                 corner_radius=8,
                 fg_color="transparent",
                 hover_color=("gray70", "gray30"),
-                border_width=0
+                border_width=0,
+                border_spacing=0
             )
             btn.pack(fill="both", expand=True)
             
-            # Create inner frame for content (inside button)
+            # Create inner frame for content (inside button, without pointer events blocking)
+            # Using a regular frame with grid layout for better alignment
             inner_frame = ctk.CTkFrame(btn, fg_color="transparent")
             inner_frame.place(relx=0, rely=0.5, anchor="w", x=15)
+            
+            # Make inner frame non-interactive (pass clicks through)
+            inner_frame.configure(cursor="hand2")
             
             # Emoji with fixed width
             emoji_lbl = ctk.CTkLabel(
@@ -811,7 +816,8 @@ class NetToolsApp(ctk.CTk):
                 text=emoji,
                 font=ctk.CTkFont(size=16),
                 width=25,
-                anchor="w"
+                anchor="w",
+                cursor="hand2"
             )
             emoji_lbl.pack(side="left", padx=(0, 15))
             
@@ -821,17 +827,20 @@ class NetToolsApp(ctk.CTk):
                 text=text,
                 font=ctk.CTkFont(size=14, weight="bold"),
                 text_color=("gray10", "gray90"),
-                anchor="w"
+                anchor="w",
+                cursor="hand2"
             )
             text_lbl.pack(side="left")
             
-            # Bind click events to labels to pass through to button
+            # Bind click events to all elements to ensure clicks work everywhere
             def make_click_handler(page):
                 return lambda e: self.switch_page(page)
             
-            emoji_lbl.bind("<Button-1>", make_click_handler(page_id))
-            text_lbl.bind("<Button-1>", make_click_handler(page_id))
-            inner_frame.bind("<Button-1>", make_click_handler(page_id))
+            click_handler = make_click_handler(page_id)
+            emoji_lbl.bind("<Button-1>", click_handler)
+            text_lbl.bind("<Button-1>", click_handler)
+            inner_frame.bind("<Button-1>", click_handler)
+            container.bind("<Button-1>", click_handler)
             
             # Store button reference
             self.nav_buttons[page_id] = btn
