@@ -1284,41 +1284,36 @@ class NetToolsApp(ctk.CTk):
         refresh_btn.pack(pady=(0, SPACING['lg']))
         
         # Current Interfaces Section
-        interfaces_title = ctk.CTkLabel(
+        interfaces_title = SectionTitle(
             scrollable,
-            text="Network Interfaces (Current Status)",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="Network Interfaces (Current Status)"
         )
-        interfaces_title.pack(pady=(10, 10), anchor="w")
+        interfaces_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
         # Frame to hold interface cards
         self.interfaces_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        self.interfaces_frame.pack(fill="x", pady=(0, 20))
+        self.interfaces_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         # Separator
-        separator = ctk.CTkFrame(scrollable, height=2, fg_color=("gray70", "gray30"))
-        separator.pack(fill="x", pady=20)
+        separator = SectionSeparator(scrollable)
+        separator.pack(fill="x", pady=SPACING['lg'])
         
         # Saved Profiles Section
-        profiles_title = ctk.CTkLabel(
+        profiles_title = SectionTitle(
             scrollable,
-            text="Saved Profiles",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="Saved Profiles"
         )
-        profiles_title.pack(pady=(0, 10), anchor="w")
+        profiles_title.pack(pady=(0, SPACING['md']), anchor="w")
         
         # New profile button
-        new_profile_btn = ctk.CTkButton(
+        new_profile_btn = StyledButton(
             scrollable,
             text="➕ Create New Profile",
             command=self.create_new_profile,
-            width=220,
-            height=42,
-            font=ctk.CTkFont(size=13, weight="bold"),
-            fg_color=COLORS["success"],
-            hover_color=COLORS["success_hover"]
+            size="large",
+            variant="success"
         )
-        new_profile_btn.pack(pady=(0, 15))
+        new_profile_btn.pack(pady=(0, SPACING['lg']))
         
         # Frame to hold profile cards
         self.profiles_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
