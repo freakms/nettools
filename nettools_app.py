@@ -777,11 +777,6 @@ class NetToolsApp(ctk.CTk):
         self.current_page = "scanner"
         
         for page_id, label, tooltip in nav_items:
-            # Create button with proper frame-based layout for alignment
-            btn_frame = ctk.CTkFrame(self.sidebar, height=50, corner_radius=8, fg_color="transparent")
-            btn_frame.pack(fill="x", padx=10, pady=5)
-            btn_frame.pack_propagate(False)
-            
             # Split emoji and text
             parts = label.split("  ", 1)
             if len(parts) == 2:
@@ -789,45 +784,23 @@ class NetToolsApp(ctk.CTk):
             else:
                 emoji, text = "", label
             
-            # Create clickable button covering entire frame
+            # Format text with fixed-width spacing for alignment
+            # Use monospace-style spacing: emoji gets padded to align text
+            display_text = f"{emoji:<3} {text}"
+            
             btn = ctk.CTkButton(
-                btn_frame,
-                text="",
+                self.sidebar,
+                text=display_text,
                 command=lambda p=page_id: self.switch_page(p),
+                height=50,
                 corner_radius=8,
+                anchor="w",
+                font=ctk.CTkFont(size=14, weight="bold"),
                 fg_color="transparent",
+                text_color=("gray10", "gray90"),
                 hover_color=("gray70", "gray30")
             )
-            btn.place(x=0, y=0, relwidth=1, relheight=1)
-            
-            # Add content frame on top of button
-            content_frame = ctk.CTkFrame(btn, fg_color="transparent")
-            content_frame.place(relx=0, rely=0.5, anchor="w", x=15)
-            
-            # Emoji label with fixed width for alignment
-            emoji_label = ctk.CTkLabel(
-                content_frame,
-                text=emoji,
-                font=ctk.CTkFont(size=16),
-                width=30,
-                anchor="w"
-            )
-            emoji_label.pack(side="left", padx=(0, 10))
-            
-            # Text label
-            text_label = ctk.CTkLabel(
-                content_frame,
-                text=text,
-                font=ctk.CTkFont(size=14, weight="bold"),
-                text_color=("gray10", "gray90"),
-                anchor="w"
-            )
-            text_label.pack(side="left")
-            
-            # Make labels non-interactive so clicks pass through to button
-            emoji_label.configure(cursor="hand2")
-            text_label.configure(cursor="hand2")
-            
+            btn.pack(fill="x", padx=10, pady=5)
             self.nav_buttons[page_id] = btn
         
         # Update initial button state
