@@ -1157,16 +1157,15 @@ class NetToolsApp(ctk.CTk):
             )
             copy_btn.pack(side="left")
         
-        # Switch Commands section (inside scrollable area)
-        self.commands_frame = ctk.CTkFrame(self.mac_scrollable)
-        self.commands_frame.pack(fill="x", padx=5, pady=(0, 15))
+        # Switch Commands section with styled card
+        self.commands_frame = StyledCard(self.mac_scrollable)
+        self.commands_frame.pack(fill="x", padx=SPACING['xs'], pady=(0, SPACING['lg']))
         
-        commands_title = ctk.CTkLabel(
+        commands_title = SectionTitle(
             self.commands_frame,
-            text="Switch Commands",
-            font=ctk.CTkFont(size=14, weight="bold")
+            text="Switch Commands"
         )
-        commands_title.pack(anchor="w", padx=15, pady=(15, 10))
+        commands_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
         
         command_labels = [
             "EXTREME CLI:",
