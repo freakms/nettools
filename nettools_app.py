@@ -1132,25 +1132,30 @@ class NetToolsApp(ctk.CTk):
         self.format_entries = []
         for label_text in format_labels:
             row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent")
-            row_frame.pack(fill="x", padx=15, pady=4)
+            row_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['xs'])
             
-            label = ctk.CTkLabel(row_frame, text=label_text, width=150, anchor="w")
-            label.pack(side="left", padx=(0, 10))
+            label = ctk.CTkLabel(
+                row_frame,
+                text=label_text,
+                width=150,
+                anchor="w",
+                font=ctk.CTkFont(size=FONTS['body'])
+            )
+            label.pack(side="left", padx=(0, SPACING['md']))
             
-            entry = ctk.CTkEntry(row_frame, height=32)
-            entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=2)
+            entry = StyledEntry(row_frame)
+            entry.pack(side="left", fill="x", expand=True, padx=(0, SPACING['md']))
             entry.configure(state="readonly")
             self.format_entries.append(entry)
             
-            copy_btn = ctk.CTkButton(
+            copy_btn = StyledButton(
                 row_frame,
                 text="Copy",
-                width=80,
+                size="small",
+                variant="neutral",
                 command=lambda e=entry: self.copy_to_clipboard(e)
             )
             copy_btn.pack(side="left")
-        
-        self.formats_frame.pack_configure(pady=(0, 10))
         
         # Switch Commands section (inside scrollable area)
         self.commands_frame = ctk.CTkFrame(self.mac_scrollable)
