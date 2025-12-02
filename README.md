@@ -8,7 +8,7 @@ https://www.paypal.com/donate/?hosted_button_id=PBAARPBKPNG86
 
 # NetTools Suite
 
-**Version:** 1.0.0  
+**Version:** 1.11.0  
 **Author:** freakms  
 **Description:** Modern desktop application for network utilities - IPv4 Scanner & MAC Formatter
 
