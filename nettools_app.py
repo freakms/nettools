@@ -1928,20 +1928,18 @@ class NetToolsApp(ctk.CTk):
         dns_server_label = ctk.CTkLabel(
             input_frame,
             text="DNS Server (Optional):",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        dns_server_label.pack(pady=(0, 5), padx=15, anchor="w")
+        dns_server_label.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        dns_server_info = ctk.CTkLabel(
+        dns_server_info = SubTitle(
             input_frame,
-            text="Leave empty to use system default, or specify custom DNS server",
-            font=ctk.CTkFont(size=10),
-            text_color=("gray60", "gray40")
+            text="Leave empty to use system default, or specify custom DNS server"
         )
-        dns_server_info.pack(pady=(0, 5), padx=15, anchor="w")
+        dns_server_info.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         dns_server_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        dns_server_frame.pack(fill="x", padx=15, pady=(0, 15))
+        dns_server_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         self.dns_server_var = ctk.StringVar(value="system")
         
@@ -1950,7 +1948,7 @@ class NetToolsApp(ctk.CTk):
             text="System Default",
             variable=self.dns_server_var,
             value="system",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         system_dns.pack(anchor="w", pady=2)
         
@@ -1959,7 +1957,7 @@ class NetToolsApp(ctk.CTk):
             text="Google DNS (8.8.8.8)",
             variable=self.dns_server_var,
             value="8.8.8.8",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         google_dns.pack(anchor="w", pady=2)
         
@@ -1968,32 +1966,29 @@ class NetToolsApp(ctk.CTk):
             text="Cloudflare DNS (1.1.1.1)",
             variable=self.dns_server_var,
             value="1.1.1.1",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         cloudflare_dns.pack(anchor="w", pady=2)
         
         # Lookup button
-        lookup_btn = ctk.CTkButton(
+        lookup_btn = StyledButton(
             scrollable,
-            text="Lookup",
+            text="🔍 Lookup",
             command=self.perform_dns_lookup,
-            width=180,
-            height=48,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=("#4CAF50", "#388E3C")
+            size="large",
+            variant="success"
         )
-        lookup_btn.pack(pady=(0, 15))
+        lookup_btn.pack(pady=(0, SPACING['lg']))
         
         # Results section
-        results_title = ctk.CTkLabel(
+        results_title = SectionTitle(
             scrollable,
-            text="Results",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="Results"
         )
-        results_title.pack(pady=(10, 10), anchor="w")
+        results_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
-        # Results frame
-        self.dns_results_frame = ctk.CTkFrame(scrollable, corner_radius=8)
+        # Results frame with styled card
+        self.dns_results_frame = StyledCard(scrollable)
         self.dns_results_frame.pack(fill="both", expand=True)
         
         # Initial message
