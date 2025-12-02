@@ -4441,32 +4441,30 @@ class NetToolsApp(ctk.CTk):
         )
         system_info.pack(pady=(0, 15))
         
-        # Input Section
-        input_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        input_frame.pack(fill="x", pady=(0, 15))
+        # Input Section with styled card
+        input_frame = StyledCard(scrollable)
+        input_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         # Target input
         target_label = ctk.CTkLabel(
             input_frame,
             text="Target Host or IP:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        target_label.pack(anchor="w", padx=15, pady=(15, 5))
+        target_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
         
         target_entry_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        target_entry_frame.pack(fill="x", padx=15, pady=(0, 15))
+        target_entry_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
-        self.traceroute_target_entry = ctk.CTkEntry(
+        self.traceroute_target_entry = StyledEntry(
             target_entry_frame,
-            placeholder_text="e.g., google.com or 8.8.8.8",
-            height=38,
-            font=ctk.CTkFont(size=13)
+            placeholder_text="e.g., google.com or 8.8.8.8"
         )
-        self.traceroute_target_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.traceroute_target_entry.pack(side="left", fill="x", expand=True, padx=(0, SPACING['md']))
         
-        # Tool Selection
-        tool_frame = ctk.CTkFrame(scrollable, corner_radius=8)
-        tool_frame.pack(fill="x", pady=(0, 15))
+        # Tool Selection with styled card
+        tool_frame = StyledCard(scrollable)
+        tool_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
         tool_label = ctk.CTkLabel(
             tool_frame,
