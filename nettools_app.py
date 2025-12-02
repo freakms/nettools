@@ -3585,6 +3585,10 @@ class NetToolsApp(ctk.CTk):
         y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
         dialog.geometry(f"+{x}+{y}")
         
+        # Ensure dialog is on top and focused
+        dialog.lift()
+        dialog.focus_force()
+        
         # Title section (fixed at top)
         title_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         title_frame.pack(fill="x", padx=20, pady=(20, 0))
@@ -3767,6 +3771,10 @@ class NetToolsApp(ctk.CTk):
         x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
         y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
         dialog.geometry(f"+{x}+{y}")
+        
+        # Ensure dialog is on top and focused
+        dialog.lift()
+        dialog.focus_force()
         
         # Title
         title_label = ctk.CTkLabel(
@@ -5128,6 +5136,10 @@ class NetToolsApp(ctk.CTk):
         x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
         y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
         dialog.geometry(f"+{x}+{y}")
+        
+        # Ensure dialog is on top and focused
+        dialog.lift()
+        dialog.focus_force()
         
         # Content
         content = ctk.CTkScrollableFrame(dialog)
