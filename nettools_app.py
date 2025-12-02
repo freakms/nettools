@@ -5053,12 +5053,11 @@ class NetToolsApp(ctk.CTk):
         
         # Results Section
         results_header_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        results_header_frame.pack(fill="x", pady=(10, 10))
+        results_header_frame.pack(fill="x", pady=(SPACING['md'], SPACING['md']))
         
-        results_title = ctk.CTkLabel(
+        results_title = SectionTitle(
             results_header_frame,
-            text="Results",
-            font=ctk.CTkFont(size=16, weight="bold")
+            text="Results"
         )
         results_title.pack(side="left", anchor="w")
         
