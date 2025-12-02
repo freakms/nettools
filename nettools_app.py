@@ -1476,45 +1476,36 @@ class NetToolsApp(ctk.CTk):
         
         # Scan buttons
         button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(0, 15))
+        button_frame.pack(fill="x", pady=(0, SPACING['lg']))
         
-        self.port_scan_btn = ctk.CTkButton(
+        self.port_scan_btn = StyledButton(
             button_frame,
             text="▶ Start Port Scan",
             command=self.start_port_scan,
-            width=200,
-            height=48,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"]
+            size="large",
+            variant="primary"
         )
-        self.port_scan_btn.pack(side="left", padx=(0, 10))
+        self.port_scan_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        self.port_cancel_btn = ctk.CTkButton(
+        self.port_cancel_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
             command=self.cancel_port_scan,
-            width=130,
-            height=48,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            state="disabled",
-            fg_color=COLORS["danger"],
-            hover_color=COLORS["danger_hover"]
+            size="medium",
+            variant="danger",
+            state="disabled"
         )
         self.port_cancel_btn.pack(side="left")
         
-        self.port_export_btn = ctk.CTkButton(
+        self.port_export_btn = StyledButton(
             button_frame,
             text="📤 Export Results",
             command=self.export_port_scan,
-            width=180,
-            height=48,
-            font=ctk.CTkFont(size=14),
-            state="disabled",
-            fg_color=COLORS["success"],
-            hover_color=COLORS["success_hover"]
+            size="large",
+            variant="success",
+            state="disabled"
         )
-        self.port_export_btn.pack(side="left", padx=(10, 0))
+        self.port_export_btn.pack(side="left", padx=(SPACING['md'], 0))
         
         # Progress
         self.port_progress_label = ctk.CTkLabel(
