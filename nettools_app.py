@@ -3474,7 +3474,8 @@ class NetToolsApp(ctk.CTk):
             no_profiles_label.pack(pady=20)
             return
         
-        for profile in profiles:
+        # Display profiles in reverse order (newest first)
+        for profile in reversed(profiles):
             self.create_profile_card(profile)
     
     def create_profile_card(self, profile):
