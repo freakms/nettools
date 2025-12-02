@@ -1450,7 +1450,7 @@ class NetToolsApp(ctk.CTk):
             text="Socket Scan (Fast, recommended)",
             variable=self.scan_method_var,
             value="socket",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=FONTS['small'])
         )
         socket_radio.pack(anchor="w", pady=2)
         
@@ -1460,7 +1460,7 @@ class NetToolsApp(ctk.CTk):
                 text="Telnet Test (Connection-based)",
                 variable=self.scan_method_var,
                 value="telnet",
-                font=ctk.CTkFont(size=11)
+                font=ctk.CTkFont(size=FONTS['small'])
             )
             telnet_radio.pack(anchor="w", pady=2)
         
@@ -1470,7 +1470,7 @@ class NetToolsApp(ctk.CTk):
                 text="PowerShell Test-NetConnection (Most reliable on Windows)",
                 variable=self.scan_method_var,
                 value="powershell",
-                font=ctk.CTkFont(size=11)
+                font=ctk.CTkFont(size=FONTS['small'])
             )
             powershell_radio.pack(anchor="w", pady=2)
         
