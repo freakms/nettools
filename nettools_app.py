@@ -1384,9 +1384,9 @@ class NetToolsApp(ctk.CTk):
         port_label = ctk.CTkLabel(
             input_frame,
             text="Port Selection:",
-            font=ctk.CTkFont(size=12, weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        port_label.pack(pady=(0, 5), padx=15, anchor="w")
+        port_label.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         # Port mode selection
         self.port_mode_var = ctk.StringVar(value="common")
