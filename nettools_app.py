@@ -4088,6 +4088,7 @@ class NetToolsApp(ctk.CTk):
                                     cmd,
                                     capture_output=True,
                                     text=True,
+                                    encoding='cp850',
                                     timeout=15
                                 )
                                 
