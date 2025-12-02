@@ -3597,10 +3597,6 @@ class NetToolsApp(ctk.CTk):
         dialog.lift()
         dialog.focus_force()
         
-        # Ensure dialog is on top and focused
-        dialog.lift()
-        dialog.focus_force()
-        
         # Title section (fixed at top)
         title_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         title_frame.pack(fill="x", padx=20, pady=(20, 0))
