@@ -4071,37 +4071,57 @@ class NetToolsApp(ctk.CTk):
                             # Set static IP
                             if config["ip"] and config["subnet"]:
                                 # Determine subnet mask from prefix or use default
-                                subnet_mask = config.get("subnet_mask", "255.255.255.0")
+                                subnet_mask = config.get("subnet_mask", config.get("subnet", "255.255.255.0"))
+                                gateway = config.get("gateway", "none")
                                 
-                                cmd = ["netsh", "interface", "ipv4", "set", "address",
-                                      interface_name, "static", config["ip"], subnet_mask]
-                                
-                                if config.get("gateway"):
-                                    cmd.append(config["gateway"])
+                                # Build netsh command for static IP
+                                cmd = [
+                                    "netsh", "interface", "ipv4", "set", "address",
+                                    "name=" + interface_name,
+                                    "source=static",
+                                    "address=" + config["ip"],
+                                    "mask=" + subnet_mask,
+                                    "gateway=" + gateway
+                                ]
                                 
                                 result = self.run_subprocess(
                                     cmd,
                                     capture_output=True,
                                     text=True,
-                                    timeout=10
+                                    timeout=15
                                 )
                                 
                                 if result.returncode == 0:
                                     # Set DNS if configured
-                                    if config.get("dns"):
+                                    if config.get("dns") and len(config["dns"]) > 0:
                                         for i, dns in enumerate(config["dns"]):
-                                            dns_cmd = ["netsh", "interface", "ipv4", "set", "dnsservers",
-                                                      interface_name, "static", dns]
-                                            if i == 0:
-                                                dns_cmd.append("primary")
-                                            self.run_subprocess(dns_cmd, capture_output=True, timeout=10)
+                                            if dns.strip():  # Only add non-empty DNS
+                                                if i == 0:
+                                                    # Primary DNS
+                                                    dns_cmd = [
+                                                        "netsh", "interface", "ipv4", "set", "dns",
+                                                        "name=" + interface_name,
+                                                        "source=static",
+                                                        "address=" + dns,
+                                                        "register=primary"
+                                                    ]
+                                                else:
+                                                    # Additional DNS servers
+                                                    dns_cmd = [
+                                                        "netsh", "interface", "ipv4", "add", "dns",
+                                                        "name=" + interface_name,
+                                                        "address=" + dns,
+                                                        "index=" + str(i + 1)
+                                                    ]
+                                                self.run_subprocess(dns_cmd, capture_output=True, timeout=10)
                                     
                                     success_count += 1
                                 else:
-                                    errors.append(f"{interface_name}: Failed to set static IP")
+                                    error_msg = result.stderr if result.stderr else "Unknown error"
+                                    errors.append(f"{interface_name}: {error_msg[:100]}")
                                     error_count += 1
                             else:
-                                errors.append(f"{interface_name}: Invalid configuration")
+                                errors.append(f"{interface_name}: Missing IP or subnet mask")
                                 error_count += 1
                     
                     except Exception as e:
