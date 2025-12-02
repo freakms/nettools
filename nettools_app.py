@@ -3910,6 +3910,15 @@ class NetToolsApp(ctk.CTk):
             dns_entry = ctk.CTkEntry(static_frame, placeholder_text="8.8.8.8, 8.8.4.4", width=150, state="disabled")
             dns_entry.grid(row=3, column=1, padx=(10, 0), pady=2)
             
+            # Help text
+            help_label = ctk.CTkLabel(
+                static_frame,
+                text="* Required fields. DNS supports multiple servers (comma-separated).",
+                font=ctk.CTkFont(size=10),
+                text_color=("gray60", "gray40")
+            )
+            help_label.grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+            
             # Store references
             interface_configs[interface['name']] = {
                 'include': include_var,
