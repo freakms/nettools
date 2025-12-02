@@ -3784,10 +3784,6 @@ class NetToolsApp(ctk.CTk):
         dialog.lift()
         dialog.focus_force()
         
-        # Ensure dialog is on top and focused
-        dialog.lift()
-        dialog.focus_force()
-        
         # Title
         title_label = ctk.CTkLabel(
             dialog,
