@@ -49,6 +49,7 @@ def build_executable():
         '--name=NetToolsSuite',          # Executable name
         '--clean',                       # Clean build
         '--add-data=oui_database.json;.',  # Include OUI database (CRITICAL!)
+        '--add-data=tools;tools',        # Include tools package
     ]
     
     # Add icon if available
