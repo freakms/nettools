@@ -43,6 +43,7 @@ from ui_components import (
 
 # Tool modules
 from tools.scanner import IPv4Scanner
+from tools.mac_formatter import OUILookup, MACFormatter
 
 # phpIPAM integration
 try:
