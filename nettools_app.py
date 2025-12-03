@@ -40,6 +40,9 @@ from ui_components import (
     ResultRow, StatusBadge, SectionSeparator, LoadingSpinner, InfoBox, DataGrid
 )
 
+# Tool modules
+from tools.scanner import IPv4Scanner
+
 # phpIPAM integration
 try:
     from phpipam_config import PHPIPAMConfig
