@@ -56,7 +56,7 @@ except ImportError:
 # Application metadata
 APP_NAME = "NetTools Suite"
 APP_VERSION = "1.11.0"
-APP_COMPANY = "Malte Schad"
+APP_COMPANY = "freakms - ich schwöre feierlich ich bin ein tunichtgut"
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("Dark")
