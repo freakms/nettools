@@ -543,7 +543,7 @@ class NetToolsApp(ctk.CTk):
             pass
         
         # Initialize scanner
-        self.scanner = IPScanner()
+        self.scanner = IPv4Scanner()
         self.scan_thread = None
         
         # Initialize history manager
