@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 NetTools Suite - IPv4 Scanner & MAC Formatter
-Author: Malte Schad
+Author: freakms
+Company: ich schwöre feierlich ich bin ein tunichtgut
 Version: 1.0.0
 
 Modern desktop application for network utilities.
