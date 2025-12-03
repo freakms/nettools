@@ -9,11 +9,11 @@ Break down the monolithic 5,880-line `nettools_app.py` into maintainable, modula
 
 ### ✅ Phase 1: Tool Module Extraction - STARTED
 
-**Completed (1 of 8 tools):**
+**Completed (2 of 8 tools):**
 - ✅ IPv4 Scanner → `tools/scanner.py` (124 lines)
+- ✅ MAC Formatter & OUI Lookup → `tools/mac_formatter.py` (103 lines)
 
-**Remaining (7 of 8 tools):**
-- ⏳ MAC Formatter → `tools/mac_formatter.py`
+**Remaining (6 of 8 tools):**
 - ⏳ Port Scanner → `tools/port_scanner.py`
 - ⏳ DNS Lookup → `tools/dns_lookup.py`
 - ⏳ Subnet Calculator → `tools/subnet_calc.py`
