@@ -2527,6 +2527,154 @@ class NetToolsApp(ctk.CTk):
         self.status_label.configure(text="Cancelling scan...")
         self.cancel_scan_btn.configure(state="disabled")
     
+    def import_ip_list(self):
+        """Import and scan IP list from text or file"""
+        # Create dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Import IP List")
+        dialog.geometry("600x500")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content frame
+        content = ctk.CTkFrame(dialog)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Title
+        title = ctk.CTkLabel(
+            content,
+            text="Import IP Address List",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(pady=(0, SPACING['md']))
+        
+        # Instructions
+        instructions = ctk.CTkLabel(
+            content,
+            text="Enter IP addresses (one per line) or load from file\nSupports: Single IPs, CIDR notation, comments (#)",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        instructions.pack(pady=(0, SPACING['md']))
+        
+        # Text area
+        text_frame = ctk.CTkFrame(content)
+        text_frame.pack(fill="both", expand=True, pady=(0, SPACING['md']))
+        
+        ip_textbox = ctk.CTkTextbox(
+            text_frame,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas"),
+            wrap="none"
+        )
+        ip_textbox.pack(fill="both", expand=True)
+        
+        # Placeholder text
+        placeholder = """# Example IP list:
+192.168.1.1
+192.168.1.10
+10.0.0.0/24
+172.16.5.100
+# This is a comment"""
+        ip_textbox.insert("1.0", placeholder)
+        
+        # Button frame
+        button_frame = ctk.CTkFrame(content, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        # Load from file button
+        def load_file():
+            filepath = filedialog.askopenfilename(
+                title="Select IP List File",
+                filetypes=[
+                    ("Text files", "*.txt"),
+                    ("CSV files", "*.csv"),
+                    ("All files", "*.*")
+                ]
+            )
+            if filepath:
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    ip_textbox.delete("1.0", "end")
+                    ip_textbox.insert("1.0", content)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to load file: {e}")
+        
+        load_btn = StyledButton(
+            button_frame,
+            text="📁 Load from File",
+            command=load_file,
+            size="medium",
+            variant="neutral"
+        )
+        load_btn.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Scan button
+        def start_list_scan():
+            ip_text = ip_textbox.get("1.0", "end")
+            
+            if not ip_text.strip() or ip_text.strip() == placeholder.strip():
+                messagebox.showwarning("Warning", "Please enter IP addresses or load a file")
+                return
+            
+            # Parse IPs
+            ip_list = self.scanner.parse_ip_list(ip_text)
+            
+            if not ip_list:
+                messagebox.showwarning("Warning", "No valid IP addresses found")
+                return
+            
+            dialog.destroy()
+            
+            # Clear previous results
+            self.result_rows = []
+            for widget in self.results_scrollable.winfo_children():
+                widget.destroy()
+            
+            # Update UI
+            self.start_scan_btn.configure(state="disabled")
+            self.import_list_btn.configure(state="disabled")
+            self.cancel_scan_btn.configure(state="normal")
+            self.export_btn.configure(state="disabled")
+            self.compare_btn.configure(state="disabled")
+            self.progress_bar.set(0)
+            self.status_label.configure(text=f"Scanning {len(ip_list)} IPs...")
+            self.cidr_entry.delete(0, 'end')
+            self.cidr_entry.insert(0, f"IP List ({len(ip_list)} addresses)")
+            
+            # Start scan in background
+            aggression = self.aggression_var.get()
+            threading.Thread(
+                target=self.scanner.scan_ip_list,
+                args=(ip_list, aggression),
+                daemon=True
+            ).start()
+        
+        scan_btn = StyledButton(
+            button_frame,
+            text="▶ Scan IP List",
+            command=start_list_scan,
+            size="large",
+            variant="primary"
+        )
+        scan_btn.pack(side="right")
+        
+        # Cancel button
+        cancel_btn = StyledButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            size="medium",
+            variant="neutral"
+        )
+        cancel_btn.pack(side="right", padx=(0, SPACING['md']))
+    
     def on_scan_progress(self, completed, total, result):
         """Handle scan progress update"""
         self.after(0, self._update_scan_progress, completed, total, result)
