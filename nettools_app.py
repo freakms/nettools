@@ -2752,12 +2752,13 @@ class NetToolsApp(ctk.CTk):
             f.write(f"Offline: {sum(1 for r in self.scanner.results if r['status'] == 'Offline')}\n")
             f.write(f"=" * 60 + "\n\n")
             
-            f.write(f"{'IP Address':<18} {'Status':<10} {'RTT (ms)':<15}\n")
-            f.write(f"{'-' * 18} {'-' * 10} {'-' * 15}\n")
+            f.write(f"{'IP Address':<18} {'Hostname':<40} {'Status':<10} {'RTT (ms)':<15}\n")
+            f.write(f"{'-' * 18} {'-' * 40} {'-' * 10} {'-' * 15}\n")
             
             for result in self.scanner.results:
                 rtt_str = str(result.get('rtt', 'N/A'))
-                f.write(f"{result['ip']:<18} {result['status']:<10} {rtt_str:<15}\n")
+                hostname_str = result.get('hostname', '-')
+                f.write(f"{result['ip']:<18} {hostname_str:<40} {result['status']:<10} {rtt_str:<15}\n")
     
     def export_port_scan(self):
         """Export port scan results in multiple formats"""
