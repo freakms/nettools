@@ -2724,33 +2724,9 @@ class NetToolsApp(ctk.CTk):
             scan_btn.configure(text="▶ Scan IP List", state="normal")
             preview_btn.configure(state="normal")
         
-        preview_btn = StyledButton(
-            button_frame,
-            text="🔍 Preview & Resolve",
-            command=preview_list,
-            size="medium",
-            variant="neutral"
-        )
-        preview_btn.pack(side="left", padx=(0, SPACING['md']))
-        
-        # Scan button
-        scan_btn = StyledButton(
-            button_frame,
-            text="▶ Scan IP List",
-            command=preview_list,  # Same as preview - it shows results first
-            size="large",
-            variant="primary"
-        )
-        scan_btn.pack(side="right")
-        
-        scan_btn = StyledButton(
-            button_frame,
-            text="▶ Scan IP List",
-            command=start_list_scan,
-            size="large",
-            variant="primary"
-        )
-        scan_btn.pack(side="right")
+        # Define buttons first (referenced in preview_list)
+        preview_btn = None
+        scan_btn = None
         
         # Cancel button
         cancel_btn = StyledButton(
@@ -2761,6 +2737,26 @@ class NetToolsApp(ctk.CTk):
             variant="neutral"
         )
         cancel_btn.pack(side="right", padx=(0, SPACING['md']))
+        
+        # Scan button
+        scan_btn = StyledButton(
+            button_frame,
+            text="▶ Scan IP List",
+            command=preview_list,
+            size="large",
+            variant="primary"
+        )
+        scan_btn.pack(side="right")
+        
+        # Preview button
+        preview_btn = StyledButton(
+            button_frame,
+            text="🔍 Preview & Resolve",
+            command=preview_list,
+            size="medium",
+            variant="neutral"
+        )
+        preview_btn.pack(side="right", padx=(0, SPACING['md']))
     
     def on_scan_progress(self, completed, total, result):
         """Handle scan progress update"""
