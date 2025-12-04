@@ -2440,10 +2440,10 @@ class NetToolsApp(ctk.CTk):
         # Help box
         help_box = InfoBox(
             card,
-            message="💡 How it Works:\\n"
-                   "• Both lists must have the same number of lines\\n"
-                   "• Each name pairs with corresponding IP (line by line)\\n"
-                   "• Choose format to create object names automatically\\n"
+            message="💡 How it Works:\n"
+                   "• Both lists must have the same number of lines\n"
+                   "• Each name pairs with corresponding IP (line by line)\n"
+                   "• Choose format to create object names automatically\n"
                    "• Example: 'Server1' + '192.168.1.10' → 'Server1_192_168_1_10'",
             box_type="info"
         )
