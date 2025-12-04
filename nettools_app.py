@@ -2501,81 +2501,79 @@ class NetToolsApp(ctk.CTk):
         self.panos_single_addr_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
         
         # Card
-        card = StyledCard(self.panos_addr_gen_tab)
+        card = StyledCard(self.panos_single_addr_tab)
         card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
         
         # Title
-        title = SectionTitle(card, text="Address Object Set Command Generator")
+        title = SectionTitle(card, text="Single Address Object")
         title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
         
         desc = SubTitle(
             card,
-            text="Create multiple address objects quickly from names and IPs"
+            text="Create a single address object with optional description"
         )
         desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
-        # Object Names
+        # Object Name
         name_label = ctk.CTkLabel(
             card,
-            text="Object Names (one per line):",
+            text="Object Name *",
             font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
         name_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['xs']))
         
-        self.panos_addr_names = ctk.CTkTextbox(
+        self.panos_single_name = StyledEntry(
             card,
-            height=150,
-            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+            placeholder_text="e.g., Server_192.168.1.10"
         )
-        self.panos_addr_names.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
-        self.panos_addr_names.insert("1.0", "Server1\nServer2\nServer3\nWebServer\nDBServer")
+        self.panos_single_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
         
-        # IP Addresses
+        # IP Address
         ip_label = ctk.CTkLabel(
             card,
-            text="IP Addresses/Netmasks (one per line):",
+            text="IP Address/Netmask *",
             font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
         ip_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
         
-        self.panos_addr_ips = ctk.CTkTextbox(
+        self.panos_single_ip = StyledEntry(
             card,
-            height=150,
-            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+            placeholder_text="192.168.1.0/24 or 192.168.1.10"
         )
-        self.panos_addr_ips.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
-        self.panos_addr_ips.insert("1.0", "192.168.1.10\n192.168.1.20/32\n192.168.1.0/24\n10.0.0.10\n10.0.0.20")
+        self.panos_single_ip.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
         
-        # Options
-        self.panos_addr_shared = ctk.CTkCheckBox(
+        # Description
+        desc_label = ctk.CTkLabel(
             card,
-            text="Create as Shared Objects (available to all virtual systems)",
+            text="Description (optional)",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_single_desc = StyledEntry(
+            card,
+            placeholder_text="Optional description"
+        )
+        self.panos_single_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Shared checkbox
+        self.panos_single_shared = ctk.CTkCheckBox(
+            card,
+            text="Shared Object (available to all virtual systems)",
             font=ctk.CTkFont(size=FONTS['body'])
         )
-        self.panos_addr_shared.select()
-        self.panos_addr_shared.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_single_shared.select()
+        self.panos_single_shared.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
         
         # Generate button
         gen_btn = StyledButton(
             card,
-            text="💻 Generate Commands",
-            command=self.generate_panos_address_objects,
+            text="💻 Generate Command",
+            command=self.generate_single_address,
             size="large",
             variant="primary"
         )
         gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
-        
-        # Help box
-        help_box = InfoBox(
-            card,
-            message="💡 Tips:\n"
-                   "• Both lists must have the same number of lines\n"
-                   "• Each name pairs with the corresponding IP\n"
-                   "• Supports CIDR notation (e.g., 192.168.1.0/24)\n"
-                   "• Example: Line 1 name → Line 1 IP",
-            box_type="info"
-        )
-        help_box.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
     
     def create_panos_output_panel(self, parent):
         """Create command output panel"""
