@@ -2837,7 +2837,7 @@ class NetToolsApp(ctk.CTk):
         if filepath:
             try:
                 with open(filepath, 'w', encoding='utf-8') as f:
-                    f.write('\\n\\n'.join(self.panos_commands))
+                    f.write('\n\n'.join(self.panos_commands))
                 messagebox.showinfo("Success", f"Commands saved to {filepath}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save file: {e}")
