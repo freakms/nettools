@@ -2615,46 +2615,133 @@ class NetToolsApp(ctk.CTk):
         )
         load_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        # Scan button
-        def start_list_scan():
+        # Preview/Validate button
+        def preview_list():
             ip_text = ip_textbox.get("1.0", "end")
             
             if not ip_text.strip() or ip_text.strip() == placeholder.strip():
                 messagebox.showwarning("Warning", "Please enter IP addresses or load a file")
                 return
             
-            # Parse IPs
-            ip_list = self.scanner.parse_ip_list(ip_text)
+            # Show processing message
+            scan_btn.configure(text="⏳ Resolving...", state="disabled")
+            preview_btn.configure(state="disabled")
+            dialog.update()
             
-            if not ip_list:
-                messagebox.showwarning("Warning", "No valid IP addresses found")
-                return
+            # Parse IPs (with hostname resolution)
+            ip_list, resolved_info = self.scanner.parse_ip_list(ip_text, resolve_hostnames=True)
             
-            dialog.destroy()
+            # Show resolution results
+            result_text = "Resolution Results:\n" + "="*50 + "\n\n"
+            success_count = 0
+            fail_count = 0
             
-            # Clear previous results
-            self.result_rows = []
-            for widget in self.results_scrollable.winfo_children():
-                widget.destroy()
+            for original, resolved, success in resolved_info:
+                if success:
+                    if original == resolved:
+                        result_text += f"✓ {original}\n"
+                    else:
+                        result_text += f"✓ {original} → {resolved}\n"
+                    success_count += 1
+                else:
+                    result_text += f"✗ {original} - {resolved}\n"
+                    fail_count += 1
             
-            # Update UI
-            self.start_scan_btn.configure(state="disabled")
-            self.import_list_btn.configure(state="disabled")
-            self.cancel_scan_btn.configure(state="normal")
-            self.export_btn.configure(state="disabled")
-            self.compare_btn.configure(state="disabled")
-            self.progress_bar.set(0)
-            self.status_label.configure(text=f"Scanning {len(ip_list)} IPs...")
-            self.cidr_entry.delete(0, 'end')
-            self.cidr_entry.insert(0, f"IP List ({len(ip_list)} addresses)")
+            result_text += "\n" + "="*50 + "\n"
+            result_text += f"Total: {success_count} resolved, {fail_count} failed\n"
+            result_text += f"Ready to scan {len(ip_list)} IP addresses"
             
-            # Start scan in background
-            aggression = self.aggression_var.get()
-            threading.Thread(
-                target=self.scanner.scan_ip_list,
-                args=(ip_list, aggression),
-                daemon=True
-            ).start()
+            # Show results dialog
+            result_dialog = ctk.CTkToplevel(dialog)
+            result_dialog.title("Resolution Results")
+            result_dialog.geometry("600x400")
+            result_dialog.transient(dialog)
+            
+            result_frame = ctk.CTkFrame(result_dialog)
+            result_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+            
+            result_display = ctk.CTkTextbox(
+                result_frame,
+                font=ctk.CTkFont(size=FONTS['small'], family="Consolas"),
+                wrap="none"
+            )
+            result_display.pack(fill="both", expand=True)
+            result_display.insert("1.0", result_text)
+            result_display.configure(state="disabled")
+            
+            btn_frame = ctk.CTkFrame(result_frame, fg_color="transparent")
+            btn_frame.pack(fill="x", pady=(SPACING['md'], 0))
+            
+            def proceed_scan():
+                result_dialog.destroy()
+                if ip_list:
+                    dialog.destroy()
+                    
+                    # Clear previous results
+                    self.result_rows = []
+                    for widget in self.results_scrollable.winfo_children():
+                        widget.destroy()
+                    
+                    # Update UI
+                    self.start_scan_btn.configure(state="disabled")
+                    self.import_list_btn.configure(state="disabled")
+                    self.cancel_scan_btn.configure(state="normal")
+                    self.export_btn.configure(state="disabled")
+                    self.compare_btn.configure(state="disabled")
+                    self.progress_bar.set(0)
+                    self.status_label.configure(text=f"Scanning {len(ip_list)} IPs...")
+                    self.cidr_entry.delete(0, 'end')
+                    self.cidr_entry.insert(0, f"IP List ({len(ip_list)} addresses)")
+                    
+                    # Start scan in background
+                    aggression = self.aggression_var.get()
+                    threading.Thread(
+                        target=self.scanner.scan_ip_list,
+                        args=(ip_list, aggression),
+                        daemon=True
+                    ).start()
+                else:
+                    messagebox.showwarning("Warning", "No valid IP addresses to scan")
+            
+            StyledButton(
+                btn_frame,
+                text="✗ Cancel",
+                command=result_dialog.destroy,
+                size="medium",
+                variant="neutral"
+            ).pack(side="left")
+            
+            if ip_list:
+                StyledButton(
+                    btn_frame,
+                    text=f"▶ Scan {len(ip_list)} IPs",
+                    command=proceed_scan,
+                    size="large",
+                    variant="primary"
+                ).pack(side="right")
+            
+            # Re-enable buttons
+            scan_btn.configure(text="▶ Scan IP List", state="normal")
+            preview_btn.configure(state="normal")
+        
+        preview_btn = StyledButton(
+            button_frame,
+            text="🔍 Preview & Resolve",
+            command=preview_list,
+            size="medium",
+            variant="neutral"
+        )
+        preview_btn.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Scan button
+        scan_btn = StyledButton(
+            button_frame,
+            text="▶ Scan IP List",
+            command=preview_list,  # Same as preview - it shows results first
+            size="large",
+            variant="primary"
+        )
+        scan_btn.pack(side="right")
         
         scan_btn = StyledButton(
             button_frame,
