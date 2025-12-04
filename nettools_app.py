@@ -2580,17 +2580,29 @@ class NetToolsApp(ctk.CTk):
         ip_label = ctk.CTkLabel(
             row_frame,
             text=result['ip'],
-            width=250,
+            width=180,
             anchor="w",
             font=ctk.CTkFont(size=FONTS['body'])
         )
         ip_label.pack(side="left", padx=SPACING['sm'])
         
+        # Hostname/FQDN column (NEW)
+        hostname = result.get('hostname', '')
+        hostname_label = ctk.CTkLabel(
+            row_frame,
+            text=hostname if hostname else "-",
+            width=250,
+            anchor="w",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS["text_secondary"] if hostname else ("gray70", "gray40")
+        )
+        hostname_label.pack(side="left", padx=SPACING['sm'])
+        
         # Status with color and bold font
         status_label = ctk.CTkLabel(
             row_frame,
             text=result['status'],
-            width=200,
+            width=150,
             anchor="w",
             font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
             text_color=status_color
@@ -2601,7 +2613,7 @@ class NetToolsApp(ctk.CTk):
         rtt_label = ctk.CTkLabel(
             row_frame,
             text=result['rtt'],
-            width=150,
+            width=100,
             anchor="w",
             font=ctk.CTkFont(size=FONTS['small']),
             text_color=COLORS["text_secondary"]
