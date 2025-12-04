@@ -17,10 +17,8 @@ from .network_icon import NetworkIcon
 from .port_scanner import PortScanner
 from .dns_lookup import DNSLookup
 from .subnet_calculator import SubnetCalculator
-
-# Future tool modules (to be extracted)
-# from .traceroute import TracerouteTool
-# from .phpipam_tool import PhpIpamTool
+from .traceroute import Traceroute
+from .phpipam_tool import PHPIPAMTool
 
 __all__ = [
     # Scanner and formatters
@@ -36,7 +34,6 @@ __all__ = [
     'PortScanner',
     'DNSLookup',
     'SubnetCalculator',
-    # Future tools
-    # 'TracerouteTool',
-    # 'PhpIpamTool',
+    'Traceroute',
+    'PHPIPAMTool',
 ]
