@@ -2731,6 +2731,7 @@ class NetToolsApp(ctk.CTk):
         for result in self.scanner.results:
             host = ET.SubElement(results, 'host')
             ET.SubElement(host, 'ip').text = result['ip']
+            ET.SubElement(host, 'hostname').text = result.get('hostname', '')
             ET.SubElement(host, 'status').text = result['status']
             ET.SubElement(host, 'rtt').text = str(result.get('rtt', ''))
         
