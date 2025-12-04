@@ -33,29 +33,48 @@ class IPv4Scanner:
         except ValueError as e:
             raise ValueError(f"Invalid CIDR format: {e}")
     
-    def ping_host(self, ip, timeout_ms):
-        """Ping a single host and return result"""
+    def resolve_hostname(self, ip, timeout=2):
+        """Resolve hostname/FQDN for an IP address"""
+        try:
+            socket.setdefaulttimeout(timeout)
+            hostname, _, _ = socket.gethostbyaddr(ip)
+            return hostname
+        except (socket.herror, socket.gaierror, socket.timeout):
+            return ""
+        except Exception:
+            return ""
+    
+    def ping_host(self, ip, timeout_ms, resolve_dns=True):
+        """Ping a single host and return result with optional DNS resolution"""
         try:
             response = ping(ip, timeout=timeout_ms/1000, count=1, verbose=False)
+            
+            # Resolve hostname if requested and host is online
+            hostname = ""
+            if response.success() and resolve_dns:
+                hostname = self.resolve_hostname(ip, timeout=1)
             
             if response.success():
                 rtt = response.rtt_avg_ms
                 return {
                     'ip': ip,
                     'status': 'Online',
-                    'rtt': f"{rtt:.1f}" if rtt else "N/A"
+                    'rtt': f"{rtt:.1f}" if rtt else "N/A",
+                    'hostname': hostname
                 }
             else:
                 return {
                     'ip': ip,
                     'status': 'No Response',
-                    'rtt': ''
+                    'rtt': '',
+                    'hostname': ''
                 }
         except Exception:
             return {
                 'ip': ip,
                 'status': 'No Response',
-                'rtt': ''
+                'rtt': '',
+                'hostname': ''
             }
     
     def scan_network(self, cidr, aggression='Medium', max_workers=None):
