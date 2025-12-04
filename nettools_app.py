@@ -44,6 +44,10 @@ from ui_components import (
 # Tool modules
 from tools.scanner import IPv4Scanner
 from tools.mac_formatter import OUILookup, MACFormatter
+from tools.scan_manager import ScanManager
+from tools.network_profile_manager import NetworkProfileManager
+from tools.history_manager import HistoryManager
+from tools.network_icon import NetworkIcon
 
 # phpIPAM integration
 try:
