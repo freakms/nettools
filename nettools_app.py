@@ -1787,22 +1787,7 @@ class NetToolsApp(ctk.CTk):
         
         self.status_label.configure(text=f"Calculated subnet information for {cidr}")
     
-    def get_network_class(self, ip):
-        """Get network class from IP address"""
-        first_octet = int(str(ip).split('.')[0])
-        
-        if 1 <= first_octet <= 126:
-            return "A"
-        elif 128 <= first_octet <= 191:
-            return "B"
-        elif 192 <= first_octet <= 223:
-            return "C"
-        elif 224 <= first_octet <= 239:
-            return "D (Multicast)"
-        elif 240 <= first_octet <= 255:
-            return "E (Reserved)"
-        else:
-            return "Unknown"
+    # get_network_class method removed - now handled by SubnetCalculator
     
     def display_subnet_results(self, info):
         """Display subnet calculation results"""
