@@ -2695,7 +2695,7 @@ class NetToolsApp(ctk.CTk):
     def _export_scan_csv(self, filepath):
         """Export IP scan to CSV format"""
         with open(filepath, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=['ip', 'status', 'rtt'])
+            writer = csv.DictWriter(f, fieldnames=['ip', 'hostname', 'status', 'rtt'])
             writer.writeheader()
             writer.writerows(self.scanner.results)
     
