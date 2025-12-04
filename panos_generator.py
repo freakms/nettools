@@ -141,10 +141,10 @@ class PANOSGenerator(ctk.CTk):
         # Update button styles
         if tab_name == "name":
             self.name_gen_btn.configure(fg_color=COLORS['primary'])
-            self.addr_gen_btn.configure(fg_color=COLORS['bg_secondary'])
+            self.addr_gen_btn.configure(fg_color=COLORS['neutral'])
             self.name_gen_tab.pack(fill="both", expand=True)
         else:
-            self.name_gen_btn.configure(fg_color=COLORS['bg_secondary'])
+            self.name_gen_btn.configure(fg_color=COLORS['neutral'])
             self.addr_gen_btn.configure(fg_color=COLORS['primary'])
             self.addr_gen_tab.pack(fill="both", expand=True)
         
