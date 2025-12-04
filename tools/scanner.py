@@ -77,8 +77,8 @@ class IPv4Scanner:
                 'hostname': ''
             }
     
-    def scan_network(self, cidr, aggression='Medium', max_workers=None):
-        """Scan network with specified parameters"""
+    def scan_network(self, cidr, aggression='Medium', max_workers=None, resolve_dns=True):
+        """Scan network with specified parameters and optional DNS resolution"""
         self.scanning = True
         self.cancel_flag = False
         self.results = []
@@ -112,7 +112,7 @@ class IPv4Scanner:
             completed = 0
             
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                future_to_ip = {executor.submit(self.ping_host, ip, timeout_ms): ip 
+                future_to_ip = {executor.submit(self.ping_host, ip, timeout_ms, resolve_dns): ip 
                                for ip in ip_list}
                 
                 for future in as_completed(future_to_ip):
