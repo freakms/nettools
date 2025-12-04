@@ -5515,96 +5515,16 @@ gateway.home.lan
             text=f"⏳ Running {tool_name} to {target}... (estimated time: {time_estimate})"
         )
         
-        # Run in background thread
+        # Run in background thread using Traceroute module
         def trace_thread():
-            try:
-                tool = self.trace_tool_var.get()
-                
-                if tool == "tracert":
-                    cmd = ["tracert", "-h", str(max_hops), target]
-                else:
-                    cmd = ["pathping", "-h", str(max_hops), target]
-                
-                # Run command with explicit settings
-                if platform.system() == "Windows":
-                    # Windows - use CREATE_NO_WINDOW flag
-                    import subprocess
-                    
-                    # For pathping, use same approach as tracert with longer timeout
-                    if tool == "pathping":
-                        result = subprocess.run(
-                            cmd,
-                            capture_output=True,
-                            text=True,
-                            timeout=600,
-                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
-                            shell=False,
-                            encoding='cp850',  # Windows console encoding
-                            errors='replace'    # Replace invalid characters
-                        )
-                    else:
-                        # For tracert, regular run is fine
-                        result = subprocess.run(
-                            cmd,
-                            capture_output=True,
-                            text=True,
-                            timeout=600,
-                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
-                            shell=False,
-                            encoding='cp850'  # Use Windows console encoding
-                        )
-                else:
-                    # Non-Windows (shouldn't happen, but fallback)
-                    result = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        timeout=600,
-                        shell=False
-                    )
-                
-                # Capture both stdout and stderr - pathping might use either
-                output = ""
-                stdout_data = result.stdout if result.stdout else ""
-                stderr_data = result.stderr if result.stderr else ""
-                
-                # Debug info
-                debug_info = f"Debug Info:\n"
-                debug_info += f"Command: {' '.join(cmd)}\n"
-                debug_info += f"Return code: {result.returncode}\n"
-                debug_info += f"Stdout length: {len(stdout_data)} chars\n"
-                debug_info += f"Stderr length: {len(stderr_data)} chars\n"
-                debug_info += f"Stdout first 200 chars: {repr(stdout_data[:200])}\n"
-                debug_info += f"Stderr first 200 chars: {repr(stderr_data[:200])}\n"
-                
-                # Try stdout first
-                if stdout_data and len(stdout_data.strip()) > 0:
-                    output = stdout_data
-                    if stderr_data and len(stderr_data.strip()) > 0:
-                        output += f"\n\n--- Stderr Output ---\n{stderr_data}"
-                # Try stderr if no stdout
-                elif stderr_data and len(stderr_data.strip()) > 0:
-                    output = stderr_data
-                # No output at all
-                else:
-                    output = f"Command completed but produced no output.\n\n{debug_info}"
-                
-                # Store results
-                self.trace_results_text = output
-                
-                # Update UI in main thread
-                success = bool(output and result.returncode in [0, 1])  # tracert returns 1 on some errors but still has output
-                self.after(0, self.display_traceroute_results, output, success)
-                
-            except subprocess.TimeoutExpired:
-                error_msg = f"Command timeout (10 minutes exceeded)\nCommand: {' '.join(cmd)}"
-                self.after(0, self.display_traceroute_results, error_msg, False)
-            except FileNotFoundError:
-                error_msg = f"Command not found: {cmd[0]}\nThis command may not be available on your system."
-                self.after(0, self.display_traceroute_results, error_msg, False)
-            except Exception as e:
-                error_msg = f"Error executing command:\n{str(e)}\n\nCommand: {' '.join(cmd)}"
-                self.after(0, self.display_traceroute_results, error_msg, False)
+            tool = self.trace_tool_var.get()
+            result = Traceroute.run(target, max_hops, tool, timeout=600)
+            
+            # Store results
+            self.trace_results_text = result["output"]
+            
+            # Update UI in main thread
+            self.after(0, self.display_traceroute_results, result["output"], result["success"])
         
         thread = threading.Thread(target=trace_thread, daemon=True)
         thread.start()
