@@ -2308,7 +2308,7 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
         )
         self.panos_gen_names.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
-        self.panos_gen_names.insert("1.0", "Server1\\nServer2\\nWebServer\\nAppServer\\nDBServer")
+        self.panos_gen_names.insert("1.0", "Server1\nServer2\nWebServer\nAppServer\nDBServer")
         
         # IP Addresses
         ip_label = ctk.CTkLabel(
