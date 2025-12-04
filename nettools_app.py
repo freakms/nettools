@@ -2557,7 +2557,7 @@ class NetToolsApp(ctk.CTk):
         # Instructions
         instructions = ctk.CTkLabel(
             content,
-            text="Enter IP addresses (one per line) or load from file\nSupports: Single IPs, CIDR notation, comments (#)",
+            text="Enter one per line or load from file\nSupports: IP addresses, CIDR notation, hostnames/FQDNs, comments (#)",
             font=ctk.CTkFont(size=FONTS['small']),
             text_color=COLORS['text_secondary']
         )
