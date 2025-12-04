@@ -51,6 +51,8 @@ from tools.network_icon import NetworkIcon
 from tools.port_scanner import PortScanner
 from tools.dns_lookup import DNSLookup
 from tools.subnet_calculator import SubnetCalculator
+from tools.traceroute import Traceroute
+from tools.phpipam_tool import PHPIPAMTool
 
 # phpIPAM integration
 try:
