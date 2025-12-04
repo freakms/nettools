@@ -2575,6 +2575,466 @@ class NetToolsApp(ctk.CTk):
         )
         gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
     
+    def create_panos_address_group_tab(self):
+        """Create Address Group tab"""
+        self.panos_group_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Initialize members list
+        self.panos_group_members = []
+        
+        # Card
+        card = StyledCard(self.panos_group_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        # Title
+        title = SectionTitle(card, text="Address Group")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(
+            card,
+            text="Create address groups to organize multiple address objects"
+        )
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Virtual System and Type row
+        options_frame = ctk.CTkFrame(card, fg_color="transparent")
+        options_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        vsys_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        vsys_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        vsys_label = ctk.CTkLabel(vsys_frame, text="Virtual System:", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        vsys_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_group_vsys = ctk.CTkComboBox(
+            vsys_frame,
+            values=["vsys1", "vsys2", "vsys3"],
+            state="readonly"
+        )
+        self.panos_group_vsys.set("vsys1")
+        self.panos_group_vsys.pack(fill="x")
+        
+        type_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        type_frame.pack(side="left", fill="x", expand=True)
+        
+        type_label = ctk.CTkLabel(type_frame, text="Type:", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        type_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_group_type = ctk.CTkComboBox(
+            type_frame,
+            values=["Static", "Dynamic"],
+            state="readonly"
+        )
+        self.panos_group_type.set("Static")
+        self.panos_group_type.pack(fill="x")
+        
+        # Group Name
+        name_label = ctk.CTkLabel(
+            card,
+            text="Group Name *",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_group_name = StyledEntry(
+            card,
+            placeholder_text="e.g., Internal_Networks"
+        )
+        self.panos_group_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Members
+        members_label = ctk.CTkLabel(
+            card,
+            text="Members *",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        members_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        # Add member input
+        add_frame = ctk.CTkFrame(card, fg_color="transparent")
+        add_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['sm']))
+        
+        self.panos_group_member_input = StyledEntry(
+            add_frame,
+            placeholder_text="Add address object name"
+        )
+        self.panos_group_member_input.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        add_btn = StyledButton(
+            add_frame,
+            text="Add",
+            command=self.add_group_member,
+            size="small",
+            variant="neutral"
+        )
+        add_btn.pack(side="right")
+        
+        # Members display
+        self.panos_group_members_display = ctk.CTkFrame(card, fg_color=COLORS['bg_card'])
+        self.panos_group_members_display.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_group_members_display.configure(height=100)
+        
+        # Description
+        desc_label = ctk.CTkLabel(
+            card,
+            text="Description (optional)",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_group_desc = StyledEntry(
+            card,
+            placeholder_text="Optional description"
+        )
+        self.panos_group_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Generate button
+        gen_btn = StyledButton(
+            card,
+            text="💻 Generate Command",
+            command=self.generate_address_group,
+            size="large",
+            variant="primary"
+        )
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
+    def create_panos_nat_tab(self):
+        """Create NAT Rule tab"""
+        self.panos_nat_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Card
+        card = StyledCard(self.panos_nat_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        # Title
+        title = SectionTitle(card, text="NAT Rule")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(
+            card,
+            text="Create DNAT or SNAT rules for network address translation"
+        )
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # NAT Type
+        type_label = ctk.CTkLabel(
+            card,
+            text="NAT Type:",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        type_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        type_frame = ctk.CTkFrame(card, fg_color="transparent")
+        type_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        self.panos_nat_type_var = ctk.StringVar(value="dnat")
+        
+        dnat_radio = ctk.CTkRadioButton(
+            type_frame,
+            text="DNAT (Destination NAT)",
+            variable=self.panos_nat_type_var,
+            value="dnat"
+        )
+        dnat_radio.pack(side="left", padx=(0, SPACING['lg']))
+        
+        snat_radio = ctk.CTkRadioButton(
+            type_frame,
+            text="SNAT (Source NAT)",
+            variable=self.panos_nat_type_var,
+            value="snat"
+        )
+        snat_radio.pack(side="left")
+        
+        # Virtual System and Rule Name row
+        row1_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row1_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        vsys_frame = ctk.CTkFrame(row1_frame, fg_color="transparent")
+        vsys_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        vsys_label = ctk.CTkLabel(vsys_frame, text="Virtual System:", font=ctk.CTkFont(size=FONTS['body']))
+        vsys_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_vsys = ctk.CTkComboBox(
+            vsys_frame,
+            values=["vsys1", "vsys2", "vsys3"],
+            state="readonly"
+        )
+        self.panos_nat_vsys.set("vsys1")
+        self.panos_nat_vsys.pack(fill="x")
+        
+        name_frame = ctk.CTkFrame(row1_frame, fg_color="transparent")
+        name_frame.pack(side="left", fill="x", expand=True)
+        
+        name_label = ctk.CTkLabel(name_frame, text="Rule Name *:", font=ctk.CTkFont(size=FONTS['body']))
+        name_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_name = StyledEntry(name_frame, placeholder_text="e.g., NAT_DMZ_Web")
+        self.panos_nat_name.pack(fill="x")
+        
+        # From/To Zones row
+        row2_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row2_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        from_frame = ctk.CTkFrame(row2_frame, fg_color="transparent")
+        from_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        from_label = ctk.CTkLabel(from_frame, text="From Zone *:", font=ctk.CTkFont(size=FONTS['body']))
+        from_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_from = StyledEntry(from_frame, placeholder_text="e.g., untrust")
+        self.panos_nat_from.pack(fill="x")
+        
+        to_frame = ctk.CTkFrame(row2_frame, fg_color="transparent")
+        to_frame.pack(side="left", fill="x", expand=True)
+        
+        to_label = ctk.CTkLabel(to_frame, text="To Zone *:", font=ctk.CTkFont(size=FONTS['body']))
+        to_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_to = StyledEntry(to_frame, placeholder_text="e.g., trust")
+        self.panos_nat_to.pack(fill="x")
+        
+        # Source/Destination row
+        row3_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row3_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        src_frame = ctk.CTkFrame(row3_frame, fg_color="transparent")
+        src_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        src_label = ctk.CTkLabel(src_frame, text="Source Address:", font=ctk.CTkFont(size=FONTS['body']))
+        src_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_source = StyledEntry(src_frame, placeholder_text="any")
+        self.panos_nat_source.insert(0, "any")
+        self.panos_nat_source.pack(fill="x")
+        
+        dest_frame = ctk.CTkFrame(row3_frame, fg_color="transparent")
+        dest_frame.pack(side="left", fill="x", expand=True)
+        
+        dest_label = ctk.CTkLabel(dest_frame, text="Destination Address *:", font=ctk.CTkFont(size=FONTS['body']))
+        dest_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_dest = StyledEntry(dest_frame, placeholder_text="e.g., Public_IP")
+        self.panos_nat_dest.pack(fill="x")
+        
+        # Service/Translated Address row
+        row4_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row4_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        svc_frame = ctk.CTkFrame(row4_frame, fg_color="transparent")
+        svc_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        svc_label = ctk.CTkLabel(svc_frame, text="Service:", font=ctk.CTkFont(size=FONTS['body']))
+        svc_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_service = StyledEntry(svc_frame, placeholder_text="any")
+        self.panos_nat_service.insert(0, "any")
+        self.panos_nat_service.pack(fill="x")
+        
+        trans_frame = ctk.CTkFrame(row4_frame, fg_color="transparent")
+        trans_frame.pack(side="left", fill="x", expand=True)
+        
+        trans_label = ctk.CTkLabel(trans_frame, text="Translated Address *:", font=ctk.CTkFont(size=FONTS['body']))
+        trans_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_nat_translated = StyledEntry(trans_frame, placeholder_text="e.g., Private_IP")
+        self.panos_nat_translated.pack(fill="x")
+        
+        # Translated Port
+        port_label = ctk.CTkLabel(
+            card,
+            text="Translated Port (DNAT only):",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        port_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_nat_port = StyledEntry(card, placeholder_text="e.g., 8080")
+        self.panos_nat_port.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Description
+        desc_label = ctk.CTkLabel(
+            card,
+            text="Description (optional):",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_nat_desc = StyledEntry(card, placeholder_text="Optional description")
+        self.panos_nat_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Generate button
+        gen_btn = StyledButton(
+            card,
+            text="💻 Generate Command",
+            command=self.generate_nat_rule,
+            size="large",
+            variant="primary"
+        )
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
+    def create_panos_policy_tab(self):
+        """Create Security Policy Rule tab"""
+        self.panos_policy_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Card
+        card = StyledCard(self.panos_policy_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        # Title
+        title = SectionTitle(card, text="Security Policy Rule")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(
+            card,
+            text="Create security policy rules to control traffic flow"
+        )
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Virtual System and Rule Name row
+        row1_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row1_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        vsys_frame = ctk.CTkFrame(row1_frame, fg_color="transparent")
+        vsys_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        vsys_label = ctk.CTkLabel(vsys_frame, text="Virtual System:", font=ctk.CTkFont(size=FONTS['body']))
+        vsys_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_vsys = ctk.CTkComboBox(
+            vsys_frame,
+            values=["vsys1", "vsys2", "vsys3"],
+            state="readonly"
+        )
+        self.panos_policy_vsys.set("vsys1")
+        self.panos_policy_vsys.pack(fill="x")
+        
+        name_frame = ctk.CTkFrame(row1_frame, fg_color="transparent")
+        name_frame.pack(side="left", fill="x", expand=True)
+        
+        name_label = ctk.CTkLabel(name_frame, text="Rule Name *:", font=ctk.CTkFont(size=FONTS['body']))
+        name_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_name = StyledEntry(name_frame, placeholder_text="e.g., Allow_Web_Traffic")
+        self.panos_policy_name.pack(fill="x")
+        
+        # From/To Zones row
+        row2_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row2_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        from_frame = ctk.CTkFrame(row2_frame, fg_color="transparent")
+        from_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        from_label = ctk.CTkLabel(from_frame, text="From Zone *:", font=ctk.CTkFont(size=FONTS['body']))
+        from_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_from = StyledEntry(from_frame, placeholder_text="e.g., trust")
+        self.panos_policy_from.pack(fill="x")
+        
+        to_frame = ctk.CTkFrame(row2_frame, fg_color="transparent")
+        to_frame.pack(side="left", fill="x", expand=True)
+        
+        to_label = ctk.CTkLabel(to_frame, text="To Zone *:", font=ctk.CTkFont(size=FONTS['body']))
+        to_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_to = StyledEntry(to_frame, placeholder_text="e.g., untrust")
+        self.panos_policy_to.pack(fill="x")
+        
+        # Source/Destination row
+        row3_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row3_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        src_frame = ctk.CTkFrame(row3_frame, fg_color="transparent")
+        src_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        src_label = ctk.CTkLabel(src_frame, text="Source Address:", font=ctk.CTkFont(size=FONTS['body']))
+        src_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_source = StyledEntry(src_frame, placeholder_text="any")
+        self.panos_policy_source.insert(0, "any")
+        self.panos_policy_source.pack(fill="x")
+        
+        dest_frame = ctk.CTkFrame(row3_frame, fg_color="transparent")
+        dest_frame.pack(side="left", fill="x", expand=True)
+        
+        dest_label = ctk.CTkLabel(dest_frame, text="Destination Address:", font=ctk.CTkFont(size=FONTS['body']))
+        dest_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_dest = StyledEntry(dest_frame, placeholder_text="any")
+        self.panos_policy_dest.insert(0, "any")
+        self.panos_policy_dest.pack(fill="x")
+        
+        # Application/Service row
+        row4_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row4_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        app_frame = ctk.CTkFrame(row4_frame, fg_color="transparent")
+        app_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        app_label = ctk.CTkLabel(app_frame, text="Application:", font=ctk.CTkFont(size=FONTS['body']))
+        app_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_app = StyledEntry(app_frame, placeholder_text="any")
+        self.panos_policy_app.insert(0, "any")
+        self.panos_policy_app.pack(fill="x")
+        
+        svc_frame = ctk.CTkFrame(row4_frame, fg_color="transparent")
+        svc_frame.pack(side="left", fill="x", expand=True)
+        
+        svc_label = ctk.CTkLabel(svc_frame, text="Service:", font=ctk.CTkFont(size=FONTS['body']))
+        svc_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_service = StyledEntry(svc_frame, placeholder_text="application-default")
+        self.panos_policy_service.insert(0, "application-default")
+        self.panos_policy_service.pack(fill="x")
+        
+        # Action/Profile row
+        row5_frame = ctk.CTkFrame(card, fg_color="transparent")
+        row5_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        action_frame = ctk.CTkFrame(row5_frame, fg_color="transparent")
+        action_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        action_label = ctk.CTkLabel(action_frame, text="Action:", font=ctk.CTkFont(size=FONTS['body']))
+        action_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_action = ctk.CTkComboBox(
+            action_frame,
+            values=["allow", "deny", "drop"],
+            state="readonly"
+        )
+        self.panos_policy_action.set("allow")
+        self.panos_policy_action.pack(fill="x")
+        
+        profile_frame = ctk.CTkFrame(row5_frame, fg_color="transparent")
+        profile_frame.pack(side="left", fill="x", expand=True)
+        
+        profile_label = ctk.CTkLabel(profile_frame, text="Security Profile Group:", font=ctk.CTkFont(size=FONTS['body']))
+        profile_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_policy_profile = StyledEntry(profile_frame, placeholder_text="e.g., default")
+        self.panos_policy_profile.pack(fill="x")
+        
+        # Description
+        desc_label = ctk.CTkLabel(
+            card,
+            text="Description (optional):",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_policy_desc = StyledEntry(card, placeholder_text="Optional description")
+        self.panos_policy_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Generate button
+        gen_btn = StyledButton(
+            card,
+            text="💻 Generate Command",
+            command=self.generate_policy_rule,
+            size="large",
+            variant="primary"
+        )
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
     def create_panos_output_panel(self, parent):
         """Create command output panel"""
         # Right side - Output
