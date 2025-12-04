@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
 """
 Fast build script for PAN-OS Generator (no optimization)
 Faster build times for testing
+
+Usage:
+    python build_panos_fast.py
 """
 
 import PyInstaller.__main__
