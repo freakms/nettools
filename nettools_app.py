@@ -2575,10 +2575,13 @@ class NetToolsApp(ctk.CTk):
         ip_textbox.pack(fill="both", expand=True)
         
         # Placeholder text
-        placeholder = """# Example IP list:
+        placeholder = """# Example IP list (supports IPs, CIDR, and hostnames):
 192.168.1.1
+server1.domain.com
 192.168.1.10
 10.0.0.0/24
+workstation.local
+gateway.home.lan
 172.16.5.100
 # This is a comment"""
         ip_textbox.insert("1.0", placeholder)
