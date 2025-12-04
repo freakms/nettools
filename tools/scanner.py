@@ -77,9 +77,21 @@ class IPv4Scanner:
                 'hostname': ''
             }
     
-    def parse_ip_list(self, ip_text):
-        """Parse IP list from text (one IP per line, supports comments)"""
+    def resolve_hostname_to_ip(self, hostname, timeout=2):
+        """Resolve hostname/FQDN to IP address"""
+        try:
+            socket.setdefaulttimeout(timeout)
+            ip = socket.gethostbyname(hostname)
+            return ip
+        except (socket.herror, socket.gaierror, socket.timeout):
+            return None
+        except Exception:
+            return None
+    
+    def parse_ip_list(self, ip_text, resolve_hostnames=True):
+        """Parse IP list from text (supports IPs, CIDR, hostnames, comments)"""
         ip_list = []
+        resolved_info = []  # Track what was resolved
         lines = ip_text.strip().split('\n')
         
         for line in lines:
@@ -88,24 +100,35 @@ class IPv4Scanner:
             if not line:
                 continue
             
-            # Try to parse as IP or CIDR
+            # Try to parse as IP or CIDR first
             try:
                 # Check if it's a CIDR
                 if '/' in line:
                     network = ipaddress.ip_network(line, strict=False)
                     if network.prefixlen >= 31:
-                        ip_list.extend([str(ip) for ip in network.hosts()] if network.prefixlen == 31 else [str(network.network_address)])
+                        ips = [str(ip) for ip in network.hosts()] if network.prefixlen == 31 else [str(network.network_address)]
                     else:
-                        ip_list.extend([str(ip) for ip in network.hosts()])
+                        ips = [str(ip) for ip in network.hosts()]
+                    ip_list.extend(ips)
+                    resolved_info.append((line, f"Expanded to {len(ips)} IPs", True))
                 else:
-                    # Single IP address
+                    # Try as single IP address
                     ip = ipaddress.ip_address(line)
                     ip_list.append(str(ip))
+                    resolved_info.append((line, str(ip), True))
             except ValueError:
-                # Skip invalid entries
-                continue
+                # Not a valid IP/CIDR, try as hostname
+                if resolve_hostnames:
+                    resolved_ip = self.resolve_hostname_to_ip(line)
+                    if resolved_ip:
+                        ip_list.append(resolved_ip)
+                        resolved_info.append((line, resolved_ip, True))
+                    else:
+                        resolved_info.append((line, "Failed to resolve", False))
+                else:
+                    resolved_info.append((line, "Skipped (not an IP)", False))
         
-        return ip_list
+        return ip_list, resolved_info
     
     def scan_network(self, cidr, aggression='Medium', max_workers=None, resolve_dns=True):
         """Scan network with specified parameters and optional DNS resolution"""
