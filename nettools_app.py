@@ -776,6 +776,15 @@ class NetToolsApp(ctk.CTk):
         )
         self.start_scan_btn.pack(side="left", padx=SPACING['xs'])
         
+        self.import_list_btn = StyledButton(
+            button_frame,
+            text="📋 Import IP List",
+            command=self.import_ip_list,
+            size="medium",
+            variant="neutral"
+        )
+        self.import_list_btn.pack(side="left", padx=SPACING['xs'])
+        
         self.cancel_scan_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
