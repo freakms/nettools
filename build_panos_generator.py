@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
 """
 Build script for PAN-OS Generator executable
 Creates a standalone executable using PyInstaller
+
+Usage:
+    python build_panos_generator.py
 """
 
 import PyInstaller.__main__
