@@ -2710,7 +2710,7 @@ class NetToolsApp(ctk.CTk):
             cmd = f'set {base_path} address "{item["generated_name"]}" ip-netmask {item["ip"]}'
             commands.append(cmd)
         
-        full_cmd = "configure\\n" + '\\n'.join(commands) + "\\ncommit"
+        full_cmd = "configure\n" + '\n'.join(commands) + "\ncommit"
         self.panos_commands.append(full_cmd)
         self.render_panos_commands()
         messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
@@ -2747,7 +2747,7 @@ class NetToolsApp(ctk.CTk):
             cmd = f'set {base_path} address "{name}" ip-netmask {ip}'
             commands.append(cmd)
         
-        full_cmd = "configure\\n" + '\\n'.join(commands) + "\\ncommit"
+        full_cmd = "configure\n" + '\n'.join(commands) + "\ncommit"
         self.panos_commands.append(full_cmd)
         self.render_panos_commands()
         messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
