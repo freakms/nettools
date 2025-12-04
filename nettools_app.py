@@ -1105,74 +1105,20 @@ class NetToolsApp(ctk.CTk):
         return False, "Unknown"
     
     def scan_port_socket(self, target, port):
-        """Scan port using socket"""
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(1)
-            result = sock.connect_ex((target, port))
-            sock.close()
-            
-            if result == 0:
-                service = self.get_service_name(port)
-                return True, service
-            return False, ""
-        except:
-            return False, ""
+        """Scan port using socket - delegates to PortScanner"""
+        return PortScanner.scan_port_socket(target, port, timeout=1)
     
     def scan_port_telnet(self, target, port):
-        """Scan port using telnet"""
-        if not TELNETLIB_AVAILABLE:
-            return False, ""
-        
-        try:
-            tn = telnetlib.Telnet()
-            tn.open(target, port, timeout=2)
-            tn.close()
-            service = self.get_service_name(port)
-            return True, service
-        except:
-            return False, ""
+        """Scan port using telnet - delegates to PortScanner"""
+        return PortScanner.scan_port_telnet(target, port, timeout=2)
     
     def scan_port_powershell(self, target, port):
-        """Scan port using PowerShell Test-NetConnection"""
-        try:
-            cmd = f'powershell -Command "Test-NetConnection -ComputerName {target} -Port {port} -InformationLevel Quiet"'
-            result = self.run_subprocess(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=5,
-                shell=True
-            )
-            
-            if result.stdout.strip().lower() == "true":
-                service = self.get_service_name(port)
-                return True, service
-            return False, ""
-        except:
-            return False, ""
+        """Scan port using PowerShell - delegates to PortScanner"""
+        return PortScanner.scan_port_powershell(target, port, timeout=5)
     
     def get_service_name(self, port):
-        """Get common service name for port"""
-        services = {
-            21: "FTP",
-            22: "SSH",
-            23: "Telnet",
-            25: "SMTP",
-            53: "DNS",
-            80: "HTTP",
-            110: "POP3",
-            143: "IMAP",
-            443: "HTTPS",
-            445: "SMB",
-            3306: "MySQL",
-            3389: "RDP",
-            5432: "PostgreSQL",
-            5900: "VNC",
-            8080: "HTTP-Alt",
-            8443: "HTTPS-Alt",
-        }
-        return services.get(port, "Unknown")
+        """Get common service name for port - delegates to PortScanner"""
+        return PortScanner.get_service_name(port)
     
     def display_port_results(self, target, results, was_cancelled):
         """Display port scan results"""
