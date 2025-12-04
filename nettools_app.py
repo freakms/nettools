@@ -1700,7 +1700,16 @@ class NetToolsApp(ctk.CTk):
             size="medium",
             variant="neutral"
         )
-        self.panos_policy_btn.pack(side="left")
+        self.panos_policy_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_service_btn = StyledButton(
+            tab_frame,
+            text="🔌 Services",
+            command=lambda: self.switch_panos_tab("service"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_service_btn.pack(side="left")
         
         # Tab content area
         self.panos_tab_content = ctk.CTkFrame(left_frame)
@@ -1712,6 +1721,7 @@ class NetToolsApp(ctk.CTk):
         self.create_panos_address_group_tab()
         self.create_panos_nat_tab()
         self.create_panos_policy_tab()
+        self.create_panos_service_tab()
         
         # Show name generator by default
         self.panos_current_tab = "name"
