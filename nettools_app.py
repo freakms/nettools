@@ -841,7 +841,7 @@ class NetToolsApp(ctk.CTk):
         header_frame.pack(fill="x", padx=SPACING['xs'], pady=SPACING['xs'])
         header_frame.pack_propagate(False)
         
-        headers = [("●", 50), ("IP Address", 250), ("Status", 200), ("Response (ms)", 150)]
+        headers = [("●", 50), ("IP Address", 180), ("Hostname/FQDN", 250), ("Status", 150), ("RTT (ms)", 100)]
         for text, width in headers:
             label = ctk.CTkLabel(
                 header_frame,
