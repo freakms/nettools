@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 PAN-OS Command Generator
 Author: freakms
@@ -6,6 +5,9 @@ Company: ich schwöre feierlich ich bin ein tunichtgut
 Version: 1.0.0
 
 Standalone application for generating PAN-OS CLI commands
+
+Usage:
+    python panos_generator.py
 """
 
 import customtkinter as ctk
