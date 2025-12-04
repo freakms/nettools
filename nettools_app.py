@@ -2199,6 +2199,649 @@ class NetToolsApp(ctk.CTk):
             )
             value_widget.pack(side="left", fill="x", expand=True)
     
+    def create_panos_content(self, parent):
+        """Create PAN-OS CLI Generator content"""
+        # Initialize storage
+        self.panos_commands = []
+        self.panos_generated_names = []
+        
+        # Main container with scrollable area
+        main_container = ctk.CTkFrame(parent)
+        main_container.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Left side - Input forms
+        left_frame = ctk.CTkFrame(main_container)
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, SPACING['md']))
+        
+        # Tab buttons
+        tab_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        tab_frame.pack(fill="x", pady=(0, SPACING['md']))
+        
+        self.panos_name_gen_btn = StyledButton(
+            tab_frame,
+            text="🎯 Name Generator",
+            command=lambda: self.switch_panos_tab("name"),
+            size="medium",
+            variant="primary"
+        )
+        self.panos_name_gen_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_addr_gen_btn = StyledButton(
+            tab_frame,
+            text="🌐 Address Objects",
+            command=lambda: self.switch_panos_tab("address"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_addr_gen_btn.pack(side="left")
+        
+        # Tab content area
+        self.panos_tab_content = ctk.CTkFrame(left_frame)
+        self.panos_tab_content.pack(fill="both", expand=True)
+        
+        # Create tabs
+        self.create_panos_name_generator_tab()
+        self.create_panos_address_generator_tab()
+        
+        # Show name generator by default
+        self.panos_current_tab = "name"
+        self.panos_name_gen_tab.pack(fill="both", expand=True)
+        
+        # Right side - Output panel
+        self.create_panos_output_panel(main_container)
+    
+    def switch_panos_tab(self, tab_name):
+        """Switch between PAN-OS Generator tabs"""
+        # Hide all tabs
+        self.panos_name_gen_tab.pack_forget()
+        self.panos_addr_gen_tab.pack_forget()
+        
+        # Update button styles
+        if tab_name == "name":
+            self.panos_name_gen_btn.configure(fg_color=COLORS['primary'])
+            self.panos_addr_gen_btn.configure(fg_color=COLORS['neutral'])
+            self.panos_name_gen_tab.pack(fill="both", expand=True)
+        else:
+            self.panos_name_gen_btn.configure(fg_color=COLORS['neutral'])
+            self.panos_addr_gen_btn.configure(fg_color=COLORS['primary'])
+            self.panos_addr_gen_tab.pack(fill="both", expand=True)
+        
+        self.panos_current_tab = tab_name
+    
+    def create_panos_name_generator_tab(self):
+        """Create Name Generator tab"""
+        self.panos_name_gen_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Card
+        card = StyledCard(self.panos_name_gen_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        # Title
+        title = SectionTitle(card, text="Address Name Generator")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(
+            card,
+            text="Generate address object names from base names and IPs, then create CLI commands"
+        )
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Step 1
+        step1_label = ctk.CTkLabel(
+            card,
+            text="Step 1: Input Data",
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
+        )
+        step1_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['sm']))
+        
+        # Base Names
+        name_label = ctk.CTkLabel(
+            card,
+            text="Base Names (one per line):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['xs']))
+        
+        self.panos_gen_names = ctk.CTkTextbox(
+            card,
+            height=120,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+        )
+        self.panos_gen_names.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_gen_names.insert("1.0", "Server1\\nServer2\\nWebServer\\nAppServer\\nDBServer")
+        
+        # IP Addresses
+        ip_label = ctk.CTkLabel(
+            card,
+            text="IP Addresses/Netmasks (one per line):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        ip_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_gen_ips = ctk.CTkTextbox(
+            card,
+            height=120,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+        )
+        self.panos_gen_ips.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_gen_ips.insert("1.0", "192.168.1.10\\n192.168.1.20\\n10.0.0.10\\n10.0.0.20\\n10.0.0.30")
+        
+        # Options row
+        options_frame = ctk.CTkFrame(card, fg_color="transparent")
+        options_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Separator
+        sep_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        sep_frame.pack(side="left", fill="x", expand=True, padx=(0, SPACING['sm']))
+        
+        sep_label = ctk.CTkLabel(sep_frame, text="Separator:", font=ctk.CTkFont(size=FONTS['body']))
+        sep_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_gen_separator = ctk.CTkComboBox(
+            sep_frame,
+            values=["_ (Underscore)", "- (Dash)", ". (Dot)"],
+            state="readonly"
+        )
+        self.panos_gen_separator.set("_ (Underscore)")
+        self.panos_gen_separator.pack(fill="x")
+        
+        # Format
+        format_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        format_frame.pack(side="left", fill="x", expand=True)
+        
+        format_label = ctk.CTkLabel(format_frame, text="Format:", font=ctk.CTkFont(size=FONTS['body']))
+        format_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_gen_format = ctk.CTkComboBox(
+            format_frame,
+            values=["Name_IP", "IP_Name", "Name Only", "Custom"],
+            state="readonly",
+            command=self.on_panos_format_change
+        )
+        self.panos_gen_format.set("Name_IP")
+        self.panos_gen_format.pack(fill="x")
+        
+        # Custom format (hidden by default)
+        self.panos_custom_format_frame = ctk.CTkFrame(card, fg_color="transparent")
+        
+        custom_label = ctk.CTkLabel(
+            self.panos_custom_format_frame,
+            text="Custom Format Pattern:",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        custom_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.panos_gen_custom = StyledEntry(
+            self.panos_custom_format_frame,
+            placeholder_text="e.g., {name}-{ip} or Host_{name}_{ip}"
+        )
+        self.panos_gen_custom.pack(fill="x", pady=(0, SPACING['xs']))
+        
+        custom_help = SubTitle(
+            self.panos_custom_format_frame,
+            text="Use {name} for base name and {ip} for IP address"
+        )
+        custom_help.pack(anchor="w")
+        
+        # Generate Names button
+        gen_names_btn = StyledButton(
+            card,
+            text="🎯 Generate Object Names",
+            command=self.generate_panos_names,
+            size="large",
+            variant="primary"
+        )
+        gen_names_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+        
+        # Preview section (hidden initially)
+        self.panos_preview_frame = ctk.CTkFrame(card, fg_color="transparent")
+        
+        preview_label = ctk.CTkLabel(
+            self.panos_preview_frame,
+            text="Generated Names Preview:",
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
+        )
+        preview_label.pack(anchor="w", pady=(0, SPACING['sm']))
+        
+        self.panos_preview_text = ctk.CTkTextbox(
+            self.panos_preview_frame,
+            height=150,
+            font=ctk.CTkFont(size=FONTS['small'], family="Consolas")
+        )
+        self.panos_preview_text.pack(fill="x", pady=(0, SPACING['md']))
+        
+        # Step 2 (hidden initially)
+        self.panos_step2_frame = ctk.CTkFrame(self.panos_preview_frame, fg_color="transparent")
+        
+        step2_label = ctk.CTkLabel(
+            self.panos_step2_frame,
+            text="Step 2: Generate CLI Commands",
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
+        )
+        step2_label.pack(anchor="w", pady=(0, SPACING['sm']))
+        
+        self.panos_gen_shared = ctk.CTkCheckBox(
+            self.panos_step2_frame,
+            text="Create as Shared Objects (available to all virtual systems)",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        self.panos_gen_shared.select()
+        self.panos_gen_shared.pack(anchor="w", pady=(0, SPACING['md']))
+        
+        gen_commands_btn = StyledButton(
+            self.panos_step2_frame,
+            text="💻 Generate CLI Commands",
+            command=self.generate_panos_from_names,
+            size="large",
+            variant="success"
+        )
+        gen_commands_btn.pack(fill="x")
+        
+        # Help box
+        help_box = InfoBox(
+            card,
+            message="💡 How it Works:\\n"
+                   "• Both lists must have the same number of lines\\n"
+                   "• Each name pairs with corresponding IP (line by line)\\n"
+                   "• Choose format to create object names automatically\\n"
+                   "• Example: 'Server1' + '192.168.1.10' → 'Server1_192_168_1_10'",
+            box_type="info"
+        )
+        help_box.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['lg']))
+    
+    def create_panos_address_generator_tab(self):
+        """Create Address Object Generator tab"""
+        self.panos_addr_gen_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Card
+        card = StyledCard(self.panos_addr_gen_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        # Title
+        title = SectionTitle(card, text="Address Object Set Command Generator")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(
+            card,
+            text="Create multiple address objects quickly from names and IPs"
+        )
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Object Names
+        name_label = ctk.CTkLabel(
+            card,
+            text="Object Names (one per line):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['xs']))
+        
+        self.panos_addr_names = ctk.CTkTextbox(
+            card,
+            height=150,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+        )
+        self.panos_addr_names.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_addr_names.insert("1.0", "Server1\\nServer2\\nServer3\\nWebServer\\nDBServer")
+        
+        # IP Addresses
+        ip_label = ctk.CTkLabel(
+            card,
+            text="IP Addresses/Netmasks (one per line):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        ip_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_addr_ips = ctk.CTkTextbox(
+            card,
+            height=150,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
+        )
+        self.panos_addr_ips.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_addr_ips.insert("1.0", "192.168.1.10\\n192.168.1.20/32\\n192.168.1.0/24\\n10.0.0.10\\n10.0.0.20")
+        
+        # Options
+        self.panos_addr_shared = ctk.CTkCheckBox(
+            card,
+            text="Create as Shared Objects (available to all virtual systems)",
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        self.panos_addr_shared.select()
+        self.panos_addr_shared.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Generate button
+        gen_btn = StyledButton(
+            card,
+            text="💻 Generate Commands",
+            command=self.generate_panos_address_objects,
+            size="large",
+            variant="primary"
+        )
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+        
+        # Help box
+        help_box = InfoBox(
+            card,
+            message="💡 Tips:\\n"
+                   "• Both lists must have the same number of lines\\n"
+                   "• Each name pairs with the corresponding IP\\n"
+                   "• Supports CIDR notation (e.g., 192.168.1.0/24)\\n"
+                   "• Example: Line 1 name → Line 1 IP",
+            box_type="info"
+        )
+        help_box.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+    
+    def create_panos_output_panel(self, parent):
+        """Create command output panel"""
+        # Right side - Output
+        output_frame = ctk.CTkFrame(parent)
+        output_frame.pack(side="right", fill="both", expand=False, padx=(0, 0))
+        output_frame.configure(width=400)
+        
+        output_card = StyledCard(output_frame)
+        output_card.pack(fill="both", expand=True)
+        
+        # Header
+        header_frame = ctk.CTkFrame(output_card, fg_color="transparent")
+        header_frame.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
+        
+        title_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        title_frame.pack(side="left", fill="x", expand=True)
+        
+        title = ctk.CTkLabel(
+            title_frame,
+            text="💻 Command Output",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(anchor="w")
+        
+        self.panos_cmd_count = ctk.CTkLabel(
+            title_frame,
+            text="0 commands generated",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        self.panos_cmd_count.pack(anchor="w")
+        
+        clear_btn = StyledButton(
+            header_frame,
+            text="🗑️",
+            command=self.clear_panos_commands,
+            size="small",
+            variant="neutral"
+        )
+        clear_btn.pack(side="right")
+        
+        # Commands list
+        self.panos_commands_list = ctk.CTkScrollableFrame(output_card, height=400)
+        self.panos_commands_list.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Empty state
+        self.render_panos_commands()
+        
+        # Action buttons
+        self.panos_action_frame = ctk.CTkFrame(output_card, fg_color="transparent")
+        self.panos_action_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        self.panos_action_frame.pack_forget()  # Hidden initially
+        
+        copy_btn = StyledButton(
+            self.panos_action_frame,
+            text="📋 Copy All",
+            command=self.copy_panos_commands,
+            size="medium",
+            variant="neutral"
+        )
+        copy_btn.pack(fill="x", pady=(0, SPACING['xs']))
+        
+        download_btn = StyledButton(
+            self.panos_action_frame,
+            text="⬇️ Download",
+            command=self.download_panos_commands,
+            size="medium",
+            variant="primary"
+        )
+        download_btn.pack(fill="x")
+    
+    def validate_panos_ip(self, ip):
+        """Validate IP address or network with CIDR notation"""
+        pattern = r'^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})(\\/(\\ d{1,2}))?$'
+        match = re.match(pattern, ip)
+        
+        if not match:
+            return False
+        
+        # Validate each octet is 0-255
+        octets = [int(match.group(i)) for i in range(1, 5)]
+        if any(octet > 255 for octet in octets):
+            return False
+        
+        # Validate CIDR prefix if present
+        if match.group(5):  # Has CIDR
+            cidr = int(match.group(6))
+            if cidr > 32:
+                return False
+        
+        return True
+    
+    def on_panos_format_change(self, choice):
+        """Show/hide custom format input"""
+        if choice == "Custom":
+            self.panos_custom_format_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        else:
+            self.panos_custom_format_frame.pack_forget()
+    
+    def generate_panos_names(self):
+        """Generate object names from base names and IPs"""
+        names_text = self.panos_gen_names.get("1.0", "end").strip()
+        ips_text = self.panos_gen_ips.get("1.0", "end").strip()
+        
+        if not names_text or not ips_text:
+            messagebox.showerror("Error", "Please fill in both base names and IPs")
+            return
+        
+        names = [n.strip() for n in names_text.split('\\n') if n.strip()]
+        ips = [i.strip() for i in ips_text.split('\\n') if i.strip()]
+        
+        if len(names) != len(ips):
+            messagebox.showerror("Error", f"Number of names ({len(names)}) doesn't match number of IPs ({len(ips)})")
+            return
+        
+        # Get separator
+        sep_map = {"_ (Underscore)": "_", "- (Dash)": "-", ". (Dot)": "."}
+        separator = sep_map.get(self.panos_gen_separator.get(), "_")
+        
+        # Get format
+        format_choice = self.panos_gen_format.get()
+        
+        self.panos_generated_names = []
+        
+        for i in range(len(names)):
+            name = names[i]
+            ip = ips[i]
+            
+            # Validate IP
+            if not self.validate_panos_ip(ip):
+                messagebox.showerror("Error", f"Invalid IP address or format: {ip}\\nExpected format: 192.168.1.10 or 192.168.1.0/24")
+                return
+            
+            # Generate name based on format
+            if format_choice == "Name_IP":
+                generated_name = f"{name}{separator}{ip.replace('.', separator).replace('/', separator)}"
+            elif format_choice == "IP_Name":
+                generated_name = f"{ip.replace('.', separator).replace('/', separator)}{separator}{name}"
+            elif format_choice == "Name Only":
+                generated_name = name
+            elif format_choice == "Custom":
+                custom_pattern = self.panos_gen_custom.get().strip()
+                if not custom_pattern:
+                    messagebox.showerror("Error", "Please provide a custom format pattern")
+                    return
+                generated_name = custom_pattern.replace('{name}', name).replace('{ip}', ip.replace('.', separator).replace('/', separator))
+            else:
+                generated_name = f"{name}{separator}{ip.replace('.', separator).replace('/', separator)}"
+            
+            self.panos_generated_names.append({
+                'name': name,
+                'ip': ip,
+                'generated_name': generated_name
+            })
+        
+        # Show preview
+        preview_text = '\\n'.join([f"{item['generated_name']} → {item['ip']}" for item in self.panos_generated_names])
+        self.panos_preview_text.delete("1.0", "end")
+        self.panos_preview_text.insert("1.0", preview_text)
+        
+        # Show preview and step 2
+        self.panos_preview_frame.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], 0))
+        self.panos_step2_frame.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        messagebox.showinfo("Success", f"Generated {len(self.panos_generated_names)} object names!")
+    
+    def generate_panos_from_names(self):
+        """Generate CLI commands from generated names"""
+        if not self.panos_generated_names:
+            messagebox.showerror("Error", "Please generate names first")
+            return
+        
+        is_shared = self.panos_gen_shared.get()
+        base_path = "shared" if is_shared else "vsys vsys1"
+        
+        commands = []
+        for item in self.panos_generated_names:
+            cmd = f'set {base_path} address "{item["generated_name"]}" ip-netmask {item["ip"]}'
+            commands.append(cmd)
+        
+        full_cmd = "configure\\n" + '\\n'.join(commands) + "\\ncommit"
+        self.panos_commands.append(full_cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
+    
+    def generate_panos_address_objects(self):
+        """Generate address object commands"""
+        names_text = self.panos_addr_names.get("1.0", "end").strip()
+        ips_text = self.panos_addr_ips.get("1.0", "end").strip()
+        
+        if not names_text or not ips_text:
+            messagebox.showerror("Error", "Please fill in both names and IPs")
+            return
+        
+        names = [n.strip() for n in names_text.split('\\n') if n.strip()]
+        ips = [i.strip() for i in ips_text.split('\\n') if i.strip()]
+        
+        if len(names) != len(ips):
+            messagebox.showerror("Error", f"Number of names ({len(names)}) doesn't match number of IPs ({len(ips)})")
+            return
+        
+        is_shared = self.panos_addr_shared.get()
+        base_path = "shared" if is_shared else "vsys vsys1"
+        
+        commands = []
+        for i in range(len(names)):
+            name = names[i]
+            ip = ips[i]
+            
+            # Validate IP
+            if not self.validate_panos_ip(ip):
+                messagebox.showerror("Error", f"Invalid IP address or format: {ip}\\nExpected format: 192.168.1.10 or 192.168.1.0/24")
+                return
+            
+            cmd = f'set {base_path} address "{name}" ip-netmask {ip}'
+            commands.append(cmd)
+        
+        full_cmd = "configure\\n" + '\\n'.join(commands) + "\\ncommit"
+        self.panos_commands.append(full_cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
+    
+    def render_panos_commands(self):
+        """Render commands in output panel"""
+        # Clear existing
+        for widget in self.panos_commands_list.winfo_children():
+            widget.destroy()
+        
+        # Update count
+        self.panos_cmd_count.configure(text=f"{len(self.panos_commands)} command{'s' if len(self.panos_commands) != 1 else ''} generated")
+        
+        if len(self.panos_commands) == 0:
+            empty_state = ctk.CTkFrame(self.panos_commands_list, fg_color="transparent")
+            empty_state.pack(fill="both", expand=True, pady=SPACING['xl'])
+            
+            empty_text = ctk.CTkLabel(
+                empty_state,
+                text="📋\\n\\nNo commands generated yet\\n\\nFill out the form to generate CLI commands",
+                font=ctk.CTkFont(size=FONTS['body']),
+                text_color=COLORS['text_secondary']
+            )
+            empty_text.pack(expand=True)
+            self.panos_action_frame.pack_forget()
+            return
+        
+        self.panos_action_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        for i, cmd in enumerate(self.panos_commands):
+            cmd_frame = ctk.CTkFrame(self.panos_commands_list, fg_color=COLORS['bg_card'])
+            cmd_frame.pack(fill="x", pady=(0, SPACING['xs']))
+            
+            cmd_text = ctk.CTkTextbox(
+                cmd_frame,
+                height=100,
+                font=ctk.CTkFont(size=FONTS['tiny'], family="Consolas"),
+                wrap="none"
+            )
+            cmd_text.pack(fill="both", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
+            cmd_text.insert("1.0", cmd)
+            cmd_text.configure(state="disabled")
+            
+            # Remove button
+            remove_btn = StyledButton(
+                cmd_frame,
+                text="✗",
+                command=lambda idx=i: self.remove_panos_command(idx),
+                size="small",
+                variant="danger"
+            )
+            remove_btn.place(relx=1.0, rely=0.0, anchor="ne", x=-SPACING['sm'], y=SPACING['sm'])
+    
+    def remove_panos_command(self, index):
+        """Remove a command"""
+        if 0 <= index < len(self.panos_commands):
+            self.panos_commands.pop(index)
+            self.render_panos_commands()
+    
+    def clear_panos_commands(self):
+        """Clear all commands"""
+        if self.panos_commands and messagebox.askyesno("Clear Commands", "Clear all generated commands?"):
+            self.panos_commands = []
+            self.render_panos_commands()
+    
+    def copy_panos_commands(self):
+        """Copy all commands to clipboard"""
+        if not self.panos_commands:
+            return
+        
+        text = '\\n\\n'.join(self.panos_commands)
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        messagebox.showinfo("Success", "Commands copied to clipboard!")
+    
+    def download_panos_commands(self):
+        """Download commands to file"""
+        if not self.panos_commands:
+            return
+        
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile=f"panos-commands.txt"
+        )
+        
+        if filepath:
+            try:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write('\\n\\n'.join(self.panos_commands))
+                messagebox.showinfo("Success", f"Commands saved to {filepath}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save file: {e}")
+    
     def create_status_bar(self):
         """Create status bar"""
         status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
