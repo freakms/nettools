@@ -2603,7 +2603,7 @@ class NetToolsApp(ctk.CTk):
     
     def validate_panos_ip(self, ip):
         """Validate IP address or network with CIDR notation"""
-        pattern = r'^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})(\\/(\\ d{1,2}))?$'
+        pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$'
         match = re.match(pattern, ip)
         
         if not match:
