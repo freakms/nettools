@@ -693,6 +693,8 @@ class NetToolsApp(ctk.CTk):
             self.status_label.configure(text="Trace network path and analyze latency to target host")
         elif page_id == "dns":
             self.status_label.configure(text="Resolve hostnames and IP addresses")
+        elif page_id == "panos":
+            self.status_label.configure(text="Generate PAN-OS address object CLI commands")
         elif page_id == "subnet":
             self.status_label.configure(text="Calculate subnet information from CIDR")
         elif page_id == "phpipam":
