@@ -571,6 +571,7 @@ class NetToolsApp(ctk.CTk):
             ("mac", "🏷  MAC Formatter", "Format and analyze MAC addresses"),
             ("compare", "📊  Scan Comparison", "Compare network scan results"),
             ("profiles", "⚙  Network Profiles", "Manage network interface profiles"),
+            ("panos", "🛡  PAN-OS Generator", "Generate PAN-OS CLI commands"),
             ("subnet", "🔢  Subnet Calculator", "Calculate subnet information"),
             ("phpipam", "📡  phpIPAM", "Manage IP addresses with phpIPAM"),
         ]
