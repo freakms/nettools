@@ -48,6 +48,9 @@ from tools.scan_manager import ScanManager
 from tools.network_profile_manager import NetworkProfileManager
 from tools.history_manager import HistoryManager
 from tools.network_icon import NetworkIcon
+from tools.port_scanner import PortScanner
+from tools.dns_lookup import DNSLookup
+from tools.subnet_calculator import SubnetCalculator
 
 # phpIPAM integration
 try:
