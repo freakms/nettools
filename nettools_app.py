@@ -2686,7 +2686,7 @@ class NetToolsApp(ctk.CTk):
             })
         
         # Show preview
-        preview_text = '\\n'.join([f"{item['generated_name']} → {item['ip']}" for item in self.panos_generated_names])
+        preview_text = '\n'.join([f"{item['generated_name']} → {item['ip']}" for item in self.panos_generated_names])
         self.panos_preview_text.delete("1.0", "end")
         self.panos_preview_text.insert("1.0", preview_text)
         
