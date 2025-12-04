@@ -3220,6 +3220,231 @@ class NetToolsApp(ctk.CTk):
         self.render_panos_commands()
         messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
     
+    def generate_single_address(self):
+        """Generate single address object command"""
+        name = self.panos_single_name.get().strip()
+        ip = self.panos_single_ip.get().strip()
+        desc = self.panos_single_desc.get().strip()
+        is_shared = self.panos_single_shared.get()
+        
+        if not name or not ip:
+            messagebox.showerror("Error", "Please fill in Object Name and IP Address")
+            return
+        
+        # Validate IP
+        if not self.validate_panos_ip(ip):
+            messagebox.showerror("Error", f"Invalid IP address or format: {ip}\nExpected format: 192.168.1.10 or 192.168.1.0/24")
+            return
+        
+        base_path = "shared" if is_shared else "vsys vsys1"
+        cmd = f'configure\nset {base_path} address "{name}" ip-netmask {ip}'
+        if desc:
+            cmd += f' description "{desc}"'
+        cmd += '\ncommit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        
+        # Clear form
+        self.panos_single_name.delete(0, 'end')
+        self.panos_single_ip.delete(0, 'end')
+        self.panos_single_desc.delete(0, 'end')
+        
+        messagebox.showinfo("Success", "Address object command generated!")
+    
+    def add_group_member(self):
+        """Add member to address group"""
+        member = self.panos_group_member_input.get().strip()
+        if member and member not in self.panos_group_members:
+            self.panos_group_members.append(member)
+            self.render_group_members()
+            self.panos_group_member_input.delete(0, 'end')
+    
+    def remove_group_member(self, member):
+        """Remove member from address group"""
+        if member in self.panos_group_members:
+            self.panos_group_members.remove(member)
+            self.render_group_members()
+    
+    def render_group_members(self):
+        """Render group members display"""
+        # Clear existing
+        for widget in self.panos_group_members_display.winfo_children():
+            widget.destroy()
+        
+        if not self.panos_group_members:
+            empty_label = ctk.CTkLabel(
+                self.panos_group_members_display,
+                text="No members added yet",
+                text_color=COLORS['text_secondary'],
+                font=ctk.CTkFont(size=FONTS['small'])
+            )
+            empty_label.pack(pady=SPACING['lg'])
+            return
+        
+        # Create scrollable frame for members
+        members_frame = ctk.CTkFrame(self.panos_group_members_display, fg_color="transparent")
+        members_frame.pack(fill="both", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
+        
+        for member in self.panos_group_members:
+            member_frame = ctk.CTkFrame(members_frame, fg_color=COLORS['neutral'], corner_radius=15)
+            member_frame.pack(side="left", padx=(0, SPACING['xs']), pady=SPACING['xs'])
+            
+            member_label = ctk.CTkLabel(
+                member_frame,
+                text=member,
+                font=ctk.CTkFont(size=FONTS['small'])
+            )
+            member_label.pack(side="left", padx=(SPACING['sm'], SPACING['xs']))
+            
+            remove_btn = ctk.CTkButton(
+                member_frame,
+                text="×",
+                width=20,
+                height=20,
+                fg_color="transparent",
+                hover_color=COLORS['danger'],
+                command=lambda m=member: self.remove_group_member(m),
+                font=ctk.CTkFont(size=14, weight="bold")
+            )
+            remove_btn.pack(side="right", padx=(0, SPACING['xs']))
+    
+    def generate_address_group(self):
+        """Generate address group command"""
+        if not self.panos_group_members:
+            messagebox.showerror("Error", "Please add at least one member")
+            return
+        
+        vsys = self.panos_group_vsys.get()
+        name = self.panos_group_name.get().strip()
+        desc = self.panos_group_desc.get().strip()
+        group_type = self.panos_group_type.get().lower()
+        
+        if not name:
+            messagebox.showerror("Error", "Please enter a group name")
+            return
+        
+        cmd = 'configure\n'
+        for member in self.panos_group_members:
+            cmd += f'set vsys {vsys} address-group "{name}" {group_type} "{member}"\n'
+        
+        if desc:
+            cmd += f'set vsys {vsys} address-group "{name}" description "{desc}"\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        
+        # Clear form
+        self.panos_group_name.delete(0, 'end')
+        self.panos_group_desc.delete(0, 'end')
+        self.panos_group_members = []
+        self.render_group_members()
+        
+        messagebox.showinfo("Success", "Address group command generated!")
+    
+    def generate_nat_rule(self):
+        """Generate NAT rule command"""
+        nat_type = self.panos_nat_type_var.get()
+        vsys = self.panos_nat_vsys.get()
+        name = self.panos_nat_name.get().strip()
+        from_zone = self.panos_nat_from.get().strip()
+        to_zone = self.panos_nat_to.get().strip()
+        source = self.panos_nat_source.get().strip()
+        dest = self.panos_nat_dest.get().strip()
+        service = self.panos_nat_service.get().strip()
+        translated = self.panos_nat_translated.get().strip()
+        port = self.panos_nat_port.get().strip()
+        desc = self.panos_nat_desc.get().strip()
+        
+        if not all([name, from_zone, to_zone, dest, translated]):
+            messagebox.showerror("Error", "Please fill in all required fields (marked with *)")
+            return
+        
+        base = f'set vsys {vsys} rulebase nat rules "{name}"'
+        cmd = 'configure\n'
+        cmd += f'{base} from "{from_zone}"\n'
+        cmd += f'{base} to "{to_zone}"\n'
+        cmd += f'{base} source "{source}"\n'
+        cmd += f'{base} destination "{dest}"\n'
+        cmd += f'{base} service "{service}"\n'
+        
+        if nat_type == "dnat":
+            cmd += f'{base} destination-translation translated-address "{translated}"'
+            if port:
+                cmd += f' translated-port {port}'
+            cmd += '\n'
+        else:
+            cmd += f'{base} source-translation dynamic-ip-and-port translated-address "{translated}"\n'
+        
+        if desc:
+            cmd += f'{base} description "{desc}"\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        
+        # Clear form
+        self.panos_nat_name.delete(0, 'end')
+        self.panos_nat_from.delete(0, 'end')
+        self.panos_nat_to.delete(0, 'end')
+        self.panos_nat_dest.delete(0, 'end')
+        self.panos_nat_translated.delete(0, 'end')
+        self.panos_nat_port.delete(0, 'end')
+        self.panos_nat_desc.delete(0, 'end')
+        
+        messagebox.showinfo("Success", "NAT rule command generated!")
+    
+    def generate_policy_rule(self):
+        """Generate security policy rule command"""
+        vsys = self.panos_policy_vsys.get()
+        name = self.panos_policy_name.get().strip()
+        from_zone = self.panos_policy_from.get().strip()
+        to_zone = self.panos_policy_to.get().strip()
+        source = self.panos_policy_source.get().strip()
+        dest = self.panos_policy_dest.get().strip()
+        app = self.panos_policy_app.get().strip()
+        service = self.panos_policy_service.get().strip()
+        action = self.panos_policy_action.get()
+        profile = self.panos_policy_profile.get().strip()
+        desc = self.panos_policy_desc.get().strip()
+        
+        if not all([name, from_zone, to_zone]):
+            messagebox.showerror("Error", "Please fill in all required fields (marked with *)")
+            return
+        
+        base = f'set vsys {vsys} rulebase security rules "{name}"'
+        cmd = 'configure\n'
+        cmd += f'{base} from "{from_zone}"\n'
+        cmd += f'{base} to "{to_zone}"\n'
+        cmd += f'{base} source "{source}"\n'
+        cmd += f'{base} destination "{dest}"\n'
+        cmd += f'{base} application "{app}"\n'
+        cmd += f'{base} service "{service}"\n'
+        cmd += f'{base} action {action}\n'
+        
+        if profile:
+            cmd += f'{base} profile-setting group "{profile}"\n'
+        
+        if desc:
+            cmd += f'{base} description "{desc}"\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        
+        # Clear form
+        self.panos_policy_name.delete(0, 'end')
+        self.panos_policy_from.delete(0, 'end')
+        self.panos_policy_to.delete(0, 'end')
+        self.panos_policy_profile.delete(0, 'end')
+        self.panos_policy_desc.delete(0, 'end')
+        
+        messagebox.showinfo("Success", "Security policy rule command generated!")
+    
     def generate_panos_address_objects(self):
         """Generate address object commands"""
         names_text = self.panos_addr_names.get("1.0", "end").strip()
