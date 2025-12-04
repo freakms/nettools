@@ -2638,8 +2638,8 @@ class NetToolsApp(ctk.CTk):
             messagebox.showerror("Error", "Please fill in both base names and IPs")
             return
         
-        names = [n.strip() for n in names_text.split('\\n') if n.strip()]
-        ips = [i.strip() for i in ips_text.split('\\n') if i.strip()]
+        names = [n.strip() for n in names_text.split('\n') if n.strip()]
+        ips = [i.strip() for i in ips_text.split('\n') if i.strip()]
         
         if len(names) != len(ips):
             messagebox.showerror("Error", f"Number of names ({len(names)}) doesn't match number of IPs ({len(ips)})")
@@ -2724,8 +2724,8 @@ class NetToolsApp(ctk.CTk):
             messagebox.showerror("Error", "Please fill in both names and IPs")
             return
         
-        names = [n.strip() for n in names_text.split('\\n') if n.strip()]
-        ips = [i.strip() for i in ips_text.split('\\n') if i.strip()]
+        names = [n.strip() for n in names_text.split('\n') if n.strip()]
+        ips = [i.strip() for i in ips_text.split('\n') if i.strip()]
         
         if len(names) != len(ips):
             messagebox.showerror("Error", f"Number of names ({len(names)}) doesn't match number of IPs ({len(ips)})")
