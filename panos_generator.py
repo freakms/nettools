@@ -1,14 +1,8 @@
-"""
-PAN-OS Command Generator
-Author: freakms
-Company: ich schwöre feierlich ich bin ein tunichtgut
-Version: 1.0.0
-
-Standalone application for generating PAN-OS CLI commands
-
-Usage:
-    python panos_generator.py
-"""
+# PAN-OS Command Generator
+# Author: freakms
+# Company: ich schwoere feierlich ich bin ein tunichtgut
+# Version: 1.0.0
+# Standalone application for generating PAN-OS CLI commands
 
 import customtkinter as ctk
 import re
@@ -41,6 +35,7 @@ def validate_ip_address(ip):
             return False
     
     return True
+
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
