@@ -651,7 +651,7 @@ class PANOSGenerator(ctk.CTk):
         self.action_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
         for i, cmd in enumerate(self.commands):
-            cmd_frame = ctk.CTkFrame(self.commands_list, fg_color=COLORS['bg_secondary'])
+            cmd_frame = ctk.CTkFrame(self.commands_list, fg_color=COLORS['bg_card'])
             cmd_frame.pack(fill="x", pady=(0, SPACING['xs']))
             
             cmd_text = ctk.CTkTextbox(
