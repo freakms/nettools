@@ -2496,9 +2496,9 @@ class NetToolsApp(ctk.CTk):
         )
         help_box.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['lg']))
     
-    def create_panos_address_generator_tab(self):
-        """Create Address Object Generator tab"""
-        self.panos_addr_gen_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+    def create_panos_single_address_tab(self):
+        """Create Single Address Object tab"""
+        self.panos_single_addr_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
         
         # Card
         card = StyledCard(self.panos_addr_gen_tab)
