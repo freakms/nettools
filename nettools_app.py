@@ -2767,7 +2767,7 @@ class NetToolsApp(ctk.CTk):
             
             empty_text = ctk.CTkLabel(
                 empty_state,
-                text="📋\\n\\nNo commands generated yet\\n\\nFill out the form to generate CLI commands",
+                text="📋\n\nNo commands generated yet\n\nFill out the form to generate CLI commands",
                 font=ctk.CTkFont(size=FONTS['body']),
                 text_color=COLORS['text_secondary']
             )
