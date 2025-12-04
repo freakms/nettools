@@ -1016,25 +1016,8 @@ class NetToolsApp(ctk.CTk):
         mode = self.port_mode_var.get()
         
         if mode == "common":
-            # Common ports with services
-            return [
-                21,    # FTP
-                22,    # SSH
-                23,    # Telnet
-                25,    # SMTP
-                53,    # DNS
-                80,    # HTTP
-                110,   # POP3
-                143,   # IMAP
-                443,   # HTTPS
-                445,   # SMB
-                3306,  # MySQL
-                3389,  # RDP
-                5432,  # PostgreSQL
-                5900,  # VNC
-                8080,  # HTTP Alt
-                8443,  # HTTPS Alt
-            ]
+            # Use PortScanner.get_common_ports()
+            return PortScanner.get_common_ports()
         elif mode == "range":
             port_range = self.port_input_entry.get().strip()
             return PortScanner.parse_port_range(port_range)
