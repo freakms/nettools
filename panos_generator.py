@@ -532,8 +532,8 @@ class PANOSGenerator(ctk.CTk):
             ip = ips[i]
             
             # Validate IP
-            if not re.match(r'^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$', ip):
-                messagebox.showerror("Error", f"Invalid IP format: {ip}")
+            if not validate_ip_address(ip):
+                messagebox.showerror("Error", f"Invalid IP address or format: {ip}\nExpected format: 192.168.1.10 or 192.168.1.0/24")
                 return
             
             # Generate name based on format
@@ -612,8 +612,8 @@ class PANOSGenerator(ctk.CTk):
             ip = ips[i]
             
             # Validate IP
-            if not re.match(r'^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$', ip):
-                messagebox.showerror("Error", f"Invalid IP format: {ip}")
+            if not validate_ip_address(ip):
+                messagebox.showerror("Error", f"Invalid IP address or format: {ip}\nExpected format: 192.168.1.10 or 192.168.1.0/24")
                 return
             
             cmd = f'set {base_path} address "{name}" ip-netmask {ip}'
