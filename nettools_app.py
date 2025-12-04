@@ -2228,12 +2228,39 @@ class NetToolsApp(ctk.CTk):
         
         self.panos_addr_gen_btn = StyledButton(
             tab_frame,
-            text="🌐 Address Objects",
+            text="🌐 Single Address",
             command=lambda: self.switch_panos_tab("address"),
             size="medium",
             variant="neutral"
         )
-        self.panos_addr_gen_btn.pack(side="left")
+        self.panos_addr_gen_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_group_btn = StyledButton(
+            tab_frame,
+            text="📦 Groups",
+            command=lambda: self.switch_panos_tab("group"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_group_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_nat_btn = StyledButton(
+            tab_frame,
+            text="🔄 NAT",
+            command=lambda: self.switch_panos_tab("nat"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_nat_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_policy_btn = StyledButton(
+            tab_frame,
+            text="🛡️ Policy",
+            command=lambda: self.switch_panos_tab("policy"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_policy_btn.pack(side="left")
         
         # Tab content area
         self.panos_tab_content = ctk.CTkFrame(left_frame)
