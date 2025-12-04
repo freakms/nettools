@@ -17,6 +17,29 @@ from ui_components import (
     InfoBox
 )
 
+
+def validate_ip_address(ip):
+    """Validate IP address or network with CIDR notation"""
+    # Pattern for IP with optional CIDR
+    pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$'
+    match = re.match(pattern, ip)
+    
+    if not match:
+        return False
+    
+    # Validate each octet is 0-255
+    octets = [int(match.group(i)) for i in range(1, 5)]
+    if any(octet > 255 for octet in octets):
+        return False
+    
+    # Validate CIDR prefix if present
+    if match.group(5):  # Has CIDR
+        cidr = int(match.group(6))
+        if cidr > 32:
+            return False
+    
+    return True
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
