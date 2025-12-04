@@ -1037,23 +1037,7 @@ class NetToolsApp(ctk.CTk):
             ]
         elif mode == "range":
             port_range = self.port_input_entry.get().strip()
-            if not port_range:
-                return []
-            
-            try:
-                if '-' in port_range:
-                    start, end = port_range.split('-')
-                    start = int(start.strip())
-                    end = int(end.strip())
-                    if 1 <= start <= end <= 65535:
-                        return list(range(start, end + 1))
-                else:
-                    port = int(port_range)
-                    if 1 <= port <= 65535:
-                        return [port]
-            except:
-                pass
-            return []
+            return PortScanner.parse_port_range(port_range)
         elif mode == "custom":
             ports_str = self.port_input_entry.get().strip()
             return PortScanner.parse_port_list(ports_str)
