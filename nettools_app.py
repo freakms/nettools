@@ -2521,10 +2521,10 @@ class NetToolsApp(ctk.CTk):
         # Help box
         help_box = InfoBox(
             card,
-            message="💡 Tips:\\n"
-                   "• Both lists must have the same number of lines\\n"
-                   "• Each name pairs with the corresponding IP\\n"
-                   "• Supports CIDR notation (e.g., 192.168.1.0/24)\\n"
+            message="💡 Tips:\n"
+                   "• Both lists must have the same number of lines\n"
+                   "• Each name pairs with the corresponding IP\n"
+                   "• Supports CIDR notation (e.g., 192.168.1.0/24)\n"
                    "• Example: Line 1 name → Line 1 IP",
             box_type="info"
         )
