@@ -2575,10 +2575,7 @@ class NetToolsApp(ctk.CTk):
         self.panos_commands_list = ctk.CTkScrollableFrame(output_card, height=400)
         self.panos_commands_list.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['md']))
         
-        # Empty state
-        self.render_panos_commands()
-        
-        # Action buttons
+        # Action buttons (create before render so it exists)
         self.panos_action_frame = ctk.CTkFrame(output_card, fg_color="transparent")
         self.panos_action_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
         self.panos_action_frame.pack_forget()  # Hidden initially
@@ -2600,6 +2597,9 @@ class NetToolsApp(ctk.CTk):
             variant="primary"
         )
         download_btn.pack(fill="x")
+        
+        # Render initial empty state
+        self.render_panos_commands()
     
     def validate_panos_ip(self, ip):
         """Validate IP address or network with CIDR notation"""
