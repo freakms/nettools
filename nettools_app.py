@@ -2284,17 +2284,34 @@ class NetToolsApp(ctk.CTk):
         """Switch between PAN-OS Generator tabs"""
         # Hide all tabs
         self.panos_name_gen_tab.pack_forget()
-        self.panos_addr_gen_tab.pack_forget()
+        self.panos_single_addr_tab.pack_forget()
+        self.panos_group_tab.pack_forget()
+        self.panos_nat_tab.pack_forget()
+        self.panos_policy_tab.pack_forget()
         
-        # Update button styles
+        # Reset all button colors
+        self.panos_name_gen_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_addr_gen_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_group_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_nat_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_policy_btn.configure(fg_color=COLORS['neutral'])
+        
+        # Show selected tab and highlight button
         if tab_name == "name":
             self.panos_name_gen_btn.configure(fg_color=COLORS['primary'])
-            self.panos_addr_gen_btn.configure(fg_color=COLORS['neutral'])
             self.panos_name_gen_tab.pack(fill="both", expand=True)
-        else:
-            self.panos_name_gen_btn.configure(fg_color=COLORS['neutral'])
+        elif tab_name == "address":
             self.panos_addr_gen_btn.configure(fg_color=COLORS['primary'])
-            self.panos_addr_gen_tab.pack(fill="both", expand=True)
+            self.panos_single_addr_tab.pack(fill="both", expand=True)
+        elif tab_name == "group":
+            self.panos_group_btn.configure(fg_color=COLORS['primary'])
+            self.panos_group_tab.pack(fill="both", expand=True)
+        elif tab_name == "nat":
+            self.panos_nat_btn.configure(fg_color=COLORS['primary'])
+            self.panos_nat_tab.pack(fill="both", expand=True)
+        elif tab_name == "policy":
+            self.panos_policy_btn.configure(fg_color=COLORS['primary'])
+            self.panos_policy_tab.pack(fill="both", expand=True)
         
         self.panos_current_tab = tab_name
     
