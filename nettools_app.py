@@ -2818,7 +2818,7 @@ class NetToolsApp(ctk.CTk):
         if not self.panos_commands:
             return
         
-        text = '\\n\\n'.join(self.panos_commands)
+        text = '\n\n'.join(self.panos_commands)
         self.clipboard_clear()
         self.clipboard_append(text)
         messagebox.showinfo("Success", "Commands copied to clipboard!")
