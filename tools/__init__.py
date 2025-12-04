@@ -13,10 +13,12 @@ from .network_profile_manager import NetworkProfileManager
 from .history_manager import HistoryManager
 from .network_icon import NetworkIcon
 
+# Tool modules
+from .port_scanner import PortScanner
+from .dns_lookup import DNSLookup
+from .subnet_calculator import SubnetCalculator
+
 # Future tool modules (to be extracted)
-# from .port_scanner import PortScanner
-# from .dns_lookup import DNSLookup
-# from .subnet_calc import SubnetCalculator
 # from .traceroute import TracerouteTool
 # from .phpipam_tool import PhpIpamTool
 
@@ -30,10 +32,11 @@ __all__ = [
     'NetworkProfileManager',
     'HistoryManager',
     'NetworkIcon',
+    # Tools
+    'PortScanner',
+    'DNSLookup',
+    'SubnetCalculator',
     # Future tools
-    # 'PortScanner',
-    # 'DNSLookup',
-    # 'SubnetCalculator',
     # 'TracerouteTool',
     # 'PhpIpamTool',
 ]
