@@ -4,6 +4,7 @@ Handles network scanning functionality
 """
 
 import ipaddress
+import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pythonping import ping
 
