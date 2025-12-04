@@ -2268,7 +2268,10 @@ class NetToolsApp(ctk.CTk):
         
         # Create tabs
         self.create_panos_name_generator_tab()
-        self.create_panos_address_generator_tab()
+        self.create_panos_single_address_tab()
+        self.create_panos_address_group_tab()
+        self.create_panos_nat_tab()
+        self.create_panos_policy_tab()
         
         # Show name generator by default
         self.panos_current_tab = "name"
