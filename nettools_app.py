@@ -1763,32 +1763,29 @@ class NetToolsApp(ctk.CTk):
     def calculate_subnet(self):
         """Calculate subnet information"""
         cidr = self.subnet_cidr_entry.get().strip()
+        
         if not cidr:
             messagebox.showwarning("Invalid Input", "Please enter a network in CIDR notation (e.g., 192.168.1.0/24)")
             return
         
-        try:
-            network = ipaddress.ip_network(cidr, strict=False)
-            
-            # Calculate subnet information
-            info = {
-                "network": str(network.network_address),
-                "netmask": str(network.netmask),
-                "cidr": f"/{network.prefixlen}",
-                "wildcard": str(network.hostmask),
-                "broadcast": str(network.broadcast_address),
-                "first_host": str(network.network_address + 1) if network.num_addresses > 2 else "N/A",
-                "last_host": str(network.broadcast_address - 1) if network.num_addresses > 2 else "N/A",
-                "total_hosts": network.num_addresses,
-                "usable_hosts": max(0, network.num_addresses - 2),
-                "network_class": self.get_network_class(network.network_address),
-                "type": "Private" if network.is_private else "Public"
-            }
-            
-            self.display_subnet_results(info)
-            
-        except ValueError as e:
-            messagebox.showerror("Invalid CIDR", f"Invalid CIDR notation:\n{str(e)}")
+        # Use SubnetCalculator from tools module
+        result = SubnetCalculator.calculate(cidr)
+        
+        if result is None:
+            messagebox.showerror("Error", "Please enter a CIDR notation")
+            return
+        
+        if "error" in result:
+            messagebox.showerror("Error", f"Invalid CIDR notation: {result['error']}")
+            return
+        
+        # Display results using existing display method
+        self.display_subnet_results(result)
+        
+        # Add to history
+        self.history.add_cidr(cidr)
+        
+        self.status_label.configure(text=f"Calculated subnet information for {cidr}")
     
     def get_network_class(self, ip):
         """Get network class from IP address"""
