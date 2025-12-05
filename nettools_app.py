@@ -7071,18 +7071,18 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         loss_label.pack(side="left", padx=SPACING['sm'])
         
         # Graph container
-        graph_frame = ctk.CTkFrame(container, fg_color=COLORS['bg_primary'])
+        graph_frame = ctk.CTkFrame(container, fg_color="transparent")
         graph_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=(0, SPACING['md']))
         
         # Create matplotlib figure
-        fig = Figure(figsize=(8, 2), dpi=80, facecolor=COLORS['bg_primary'])
+        fig = Figure(figsize=(8, 2), dpi=80, facecolor='#f0f0f0')
         ax = fig.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_card'])
+        ax.set_facecolor('#ffffff')
         ax.set_ylim(0, 200)
         ax.set_xlim(0, 30)
-        ax.set_xlabel('Last 30 Pings', color=COLORS['text'], fontsize=9)
-        ax.set_ylabel('Latency (ms)', color=COLORS['text'], fontsize=9)
-        ax.tick_params(colors=COLORS['text'], labelsize=8)
+        ax.set_xlabel('Last 30 Pings', color='#333333', fontsize=9)
+        ax.set_ylabel('Latency (ms)', color='#333333', fontsize=9)
+        ax.tick_params(colors='#333333', labelsize=8)
         ax.grid(True, alpha=0.3)
         
         line, = ax.plot([], [], color='#00ff00', linewidth=2)
