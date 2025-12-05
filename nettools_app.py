@@ -218,6 +218,16 @@ class NetToolsApp(ctk.CTk):
         separator = ctk.CTkFrame(self.sidebar, height=2, corner_radius=0)
         separator.pack(fill="x", padx=10, pady=10)
         
+        # Quick Access - Live Monitor (prominent button)
+        live_monitor_btn = StyledButton(
+            self.sidebar,
+            text="📊 Live Ping Monitor",
+            command=self.open_live_ping_monitor,
+            size="large",
+            variant="success"
+        )
+        live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
+        
         # Navigation organized by categories
         self.nav_buttons = {}
         
