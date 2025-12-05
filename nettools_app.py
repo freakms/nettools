@@ -2058,10 +2058,10 @@ class NetToolsApp(ctk.CTk):
         
         self.panos_group_vsys = ctk.CTkComboBox(
             vsys_frame,
-            values=["vsys1", "vsys2", "vsys3"],
+            values=["shared", "vsys1", "vsys2", "vsys3"],
             state="readonly"
         )
-        self.panos_group_vsys.set("vsys1")
+        self.panos_group_vsys.set("shared")
         self.panos_group_vsys.pack(fill="x")
         
         type_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
