@@ -2613,6 +2613,20 @@ class NetToolsApp(ctk.CTk):
         
         return True
     
+    def on_textbox_focus_in(self, textbox, placeholder):
+        """Handle textbox focus in - clear placeholder if present"""
+        current_text = textbox.get("1.0", "end-1c")
+        if current_text == placeholder:
+            textbox.delete("1.0", "end")
+            textbox.configure(text_color=COLORS['text'])
+    
+    def on_textbox_focus_out(self, textbox, placeholder):
+        """Handle textbox focus out - restore placeholder if empty"""
+        current_text = textbox.get("1.0", "end-1c").strip()
+        if not current_text:
+            textbox.insert("1.0", placeholder)
+            textbox.configure(text_color=COLORS['text_secondary'])
+    
     def on_panos_format_change(self, choice):
         """Show/hide custom format input"""
         if choice == "Custom":
