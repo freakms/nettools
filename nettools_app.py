@@ -6962,32 +6962,32 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         )
         self.start_btn.pack(side="right", padx=SPACING['sm'], pady=SPACING['sm'])
         
-        # Table header
-        table_header = ctk.CTkFrame(self, fg_color=("gray85", "gray25"), height=35)
+        # Table header (reduced height)
+        table_header = ctk.CTkFrame(self, fg_color=("gray85", "gray25"), height=28)
         table_header.pack(fill="x", padx=SPACING['md'], pady=(0, 2))
         table_header.pack_propagate(False)
         
         # Column headers
-        header_bar = ctk.CTkLabel(table_header, text="", width=10, fg_color="transparent")
-        header_bar.pack(side="left", padx=(5, 0))
+        header_bar = ctk.CTkLabel(table_header, text="", width=8, fg_color="transparent")
+        header_bar.pack(side="left", padx=(3, 0))
         
-        header_ip = ctk.CTkLabel(table_header, text="IP Address", font=ctk.CTkFont(size=11, weight="bold"), width=140, anchor="w")
-        header_ip.pack(side="left", padx=5)
+        header_ip = ctk.CTkLabel(table_header, text="IP Address", font=ctk.CTkFont(size=10, weight="bold"), width=140, anchor="w")
+        header_ip.pack(side="left", padx=4)
         
-        header_hostname = ctk.CTkLabel(table_header, text="Hostname", font=ctk.CTkFont(size=11, weight="bold"), width=180, anchor="w")
-        header_hostname.pack(side="left", padx=5)
+        header_hostname = ctk.CTkLabel(table_header, text="Hostname", font=ctk.CTkFont(size=10, weight="bold"), width=180, anchor="w")
+        header_hostname.pack(side="left", padx=4)
         
-        header_avg = ctk.CTkLabel(table_header, text="Avg", font=ctk.CTkFont(size=11, weight="bold"), width=50, anchor="center")
-        header_avg.pack(side="left", padx=5)
+        header_avg = ctk.CTkLabel(table_header, text="Avg", font=ctk.CTkFont(size=10, weight="bold"), width=50, anchor="center")
+        header_avg.pack(side="left", padx=4)
         
-        header_min = ctk.CTkLabel(table_header, text="Min", font=ctk.CTkFont(size=11, weight="bold"), width=50, anchor="center")
-        header_min.pack(side="left", padx=5)
+        header_min = ctk.CTkLabel(table_header, text="Min", font=ctk.CTkFont(size=10, weight="bold"), width=50, anchor="center")
+        header_min.pack(side="left", padx=4)
         
-        header_cur = ctk.CTkLabel(table_header, text="Current", font=ctk.CTkFont(size=11, weight="bold"), width=60, anchor="center")
-        header_cur.pack(side="left", padx=5)
+        header_cur = ctk.CTkLabel(table_header, text="Current", font=ctk.CTkFont(size=10, weight="bold"), width=60, anchor="center")
+        header_cur.pack(side="left", padx=4)
         
-        header_graph = ctk.CTkLabel(table_header, text="Graph", font=ctk.CTkFont(size=11, weight="bold"), anchor="center")
-        header_graph.pack(side="left", fill="x", expand=True, padx=5)
+        header_graph = ctk.CTkLabel(table_header, text="Graph", font=ctk.CTkFont(size=10, weight="bold"), anchor="center")
+        header_graph.pack(side="left", fill="x", expand=True, padx=4)
         
         # Scrollable content area for host rows
         self.scroll_frame = ctk.CTkScrollableFrame(
