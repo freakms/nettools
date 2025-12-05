@@ -1686,6 +1686,11 @@ class NetToolsApp(ctk.CTk):
         # Initialize bandwidth tester
         self.bandwidth_tester = BandwidthTester()
         
+        # Check if iperf3 is available
+        if not self.bandwidth_tester.is_iperf3_available():
+            self.show_iperf3_not_installed(parent)
+            return
+        
         # Scroll container
         scroll = ctk.CTkScrollableFrame(parent)
         scroll.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
