@@ -6866,7 +6866,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
     def setup_ui(self):
         """Setup the monitor window UI"""
         # Header with controls
-        header = ctk.CTkFrame(self, fg_color=COLORS['bg_secondary'])
+        header = ctk.CTkFrame(self, fg_color=COLORS['bg_card'])
         header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
         
         # Input section
