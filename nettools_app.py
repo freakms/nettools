@@ -7205,21 +7205,41 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
                     continue
                 
                 widgets = self.host_widgets[ip]
+                recent_pings = host_data.get_recent_pings()
                 
-                # Update status indicator
-                status_color = host_data.get_status_color()
-                widgets['status_canvas'].itemconfig(widgets['status_dot'], fill=status_color)
+                # Get current latency (last ping)
+                current_latency = 0
+                if recent_pings:
+                    success, rtt = recent_pings[-1]
+                    current_latency = rtt if success else 0
                 
-                # Update stats
+                # Calculate stats
                 avg_latency = host_data.get_average_latency()
-                packet_loss = host_data.get_packet_loss()
-                total_pings = host_data.get_total_pings()
-                widgets['avg_label'].configure(text=f"Avg: {avg_latency:.0f}ms")
-                widgets['loss_label'].configure(text=f"Loss: {packet_loss:.0f}%")
-                widgets['ping_count_label'].configure(text=f"Pings: {total_pings}")
+                
+                # Track minimum
+                if current_latency > 0 and current_latency < widgets['min_value']:
+                    widgets['min_value'] = current_latency
+                min_latency = widgets['min_value'] if widgets['min_value'] != float('inf') else 0
+                
+                # Determine status bar color based on current latency
+                if current_latency == 0:
+                    bar_color = "#ff0000"  # Red - offline
+                elif current_latency <= 200:
+                    bar_color = "#00ff00"  # Green - good
+                elif current_latency <= 500:
+                    bar_color = "#ffff00"  # Yellow - moderate
+                else:
+                    bar_color = "#ff0000"  # Red - high latency
+                
+                # Update status bar
+                widgets['status_bar'].configure(fg_color=bar_color)
+                
+                # Update statistics labels
+                widgets['avg_label'].configure(text=f"{int(avg_latency)}")
+                widgets['min_label'].configure(text=f"{int(min_latency)}")
+                widgets['cur_label'].configure(text=f"{int(current_latency)}")
                 
                 # Update graph
-                recent_pings = host_data.get_recent_pings()
                 x_data = list(range(1, len(recent_pings) + 1))
                 y_data = []
                 
@@ -7232,11 +7252,11 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
                 # Update line data
                 widgets['line'].set_data(x_data, y_data)
                 
-                # Adjust y-axis if needed
+                # Auto-scale y-axis
                 valid_y = [y for y in y_data if y is not None]
                 if valid_y:
                     max_y = max(valid_y)
-                    widgets['axis'].set_ylim(0, max(200, max_y * 1.2))
+                    widgets['axis'].set_ylim(0, max(500, max_y * 1.1))
                 
                 # Redraw canvas
                 widgets['canvas'].draw_idle()
