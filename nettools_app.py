@@ -7156,8 +7156,10 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
                 # Update stats
                 avg_latency = host_data.get_average_latency()
                 packet_loss = host_data.get_packet_loss()
-                widgets['avg_label'].configure(text=f"Avg: {avg_latency:.1f} ms")
-                widgets['loss_label'].configure(text=f"Loss: {packet_loss:.1f}%")
+                total_pings = host_data.get_total_pings()
+                widgets['avg_label'].configure(text=f"Avg: {avg_latency:.0f}ms")
+                widgets['loss_label'].configure(text=f"Loss: {packet_loss:.0f}%")
+                widgets['ping_count_label'].configure(text=f"Pings: {total_pings}")
                 
                 # Update graph
                 recent_pings = host_data.get_recent_pings()
