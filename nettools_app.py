@@ -6827,6 +6827,10 @@ gateway.home.lan
             # Add bottom padding
             ctk.CTkFrame(parent, height=5, fg_color="transparent").pack()
     
+    def open_live_ping_monitor(self):
+        """Open the live ping monitor window"""
+        LivePingMonitorWindow(self)
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.current_page == "scanner":
