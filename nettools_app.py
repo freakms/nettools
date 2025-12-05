@@ -3301,7 +3301,7 @@ class NetToolsApp(ctk.CTk):
         if not cidr:
             messagebox.showinfo(
                 "Information",
-                "Please enter an IPv4 address in CIDR format."
+                "Please enter an IPv4 address, hostname, or CIDR format."
             )
             return
         
@@ -3317,7 +3317,21 @@ class NetToolsApp(ctk.CTk):
                 if not answer:
                     return
         except ValueError:
-            pass
+            # Not a valid IP/CIDR, try as hostname
+            resolved_ip = self.scanner.resolve_hostname_to_ip(cidr)
+            if resolved_ip:
+                # Replace the input with resolved IP and show message
+                messagebox.showinfo(
+                    "Hostname Resolved",
+                    f"Hostname '{cidr}' resolved to {resolved_ip}"
+                )
+                cidr = resolved_ip  # Use resolved IP for scanning
+            else:
+                messagebox.showerror(
+                    "Invalid Input",
+                    f"Could not resolve '{cidr}' as hostname or parse as IP/CIDR."
+                )
+                return
         
         # Save to history
         self.history.add_cidr(cidr)
