@@ -1777,16 +1777,28 @@ class NetToolsApp(ctk.CTk):
         self.show_bandwidth_empty_state()
         
         # Info box
-        info_card = InfoBox(
-            scroll,
-            title="ℹ️ About iperf3 Testing",
-            message="iperf3 requires a server to test against. You can:\n\n" +
-                    "• Use a public iperf3 server (search online)\n" +
-                    "• Set up your own server: iperf3 -s\n" +
-                    "• Upload Test: Measures your upload speed to server\n" +
-                    "• Download Test: Measures your download speed from server"
-        )
+        info_card = StyledCard(scroll)
         info_card.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        info_title = ctk.CTkLabel(
+            info_card,
+            text="ℹ️ About iperf3 Testing",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        info_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['xs']))
+        
+        info_text = ctk.CTkLabel(
+            info_card,
+            text="iperf3 requires a server to test against. You can:\n\n" +
+                 "• Use a public iperf3 server (search online)\n" +
+                 "• Set up your own server: iperf3 -s\n" +
+                 "• Upload Test: Measures your upload speed to server\n" +
+                 "• Download Test: Measures your download speed from server",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary'],
+            justify="left"
+        )
+        info_text.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
     
     def show_bandwidth_empty_state(self):
         """Show empty state for bandwidth results"""
