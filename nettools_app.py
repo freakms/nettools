@@ -7126,10 +7126,10 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         
         # Graph frame
         graph_frame = ctk.CTkFrame(row, fg_color="transparent")
-        graph_frame.pack(side="left", fill="both", expand=True, padx=5)
+        graph_frame.pack(side="left", fill="both", expand=True, padx=4)
         
-        # Create inline graph with matplotlib
-        fig = Figure(figsize=(3.5, 0.5), dpi=80, facecolor='white')
+        # Create inline graph with matplotlib (smaller for compact rows)
+        fig = Figure(figsize=(3.5, 0.38), dpi=75, facecolor='white')
         ax = fig.add_subplot(111)
         ax.set_facecolor('white')
         ax.set_ylim(0, 500)
@@ -7139,7 +7139,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         # No margins
         fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
-        line, = ax.plot([], [], color='#0066cc', linewidth=1.5, marker='o', markersize=3)
+        line, = ax.plot([], [], color='#0066cc', linewidth=1.2, marker='o', markersize=2)
         
         # Embed in tkinter
         canvas = FigureCanvasTkAgg(fig, master=graph_frame)
