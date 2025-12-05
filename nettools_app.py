@@ -6841,6 +6841,356 @@ gateway.home.lan
                 self.copy_to_clipboard(self.format_entries[0])
 
 
+class LivePingMonitorWindow(ctk.CTkToplevel):
+    """Live Ping Monitor Window with real-time graphs"""
+    
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        self.title("Live Ping Monitor")
+        self.geometry("900x700")
+        
+        # Monitor instance
+        self.monitor = LivePingMonitor()
+        self.host_widgets = {}  # {ip: {widgets}}
+        self.update_interval = 1000  # Update UI every 1 second
+        self.updating = False
+        
+        # Setup UI
+        self.setup_ui()
+        
+        # Bring window to front
+        self.lift()
+        self.focus()
+    
+    def setup_ui(self):
+        """Setup the monitor window UI"""
+        # Header with controls
+        header = ctk.CTkFrame(self, fg_color=COLORS['bg_secondary'])
+        header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Input section
+        input_frame = ctk.CTkFrame(header, fg_color="transparent")
+        input_frame.pack(fill="x", pady=(0, SPACING['md']))
+        
+        label = ctk.CTkLabel(
+            input_frame,
+            text="Enter IPs or Hostnames (comma or space separated):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        self.hosts_entry = StyledEntry(
+            input_frame,
+            placeholder_text="e.g., 192.168.1.1 google.com 8.8.8.8"
+        )
+        self.hosts_entry.pack(fill="x", pady=(0, SPACING['sm']))
+        
+        # Buttons
+        btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        btn_frame.pack(fill="x")
+        
+        self.start_btn = StyledButton(
+            btn_frame,
+            text="▶ Start Monitoring",
+            command=self.start_monitoring,
+            size="medium",
+            variant="success"
+        )
+        self.start_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.pause_btn = StyledButton(
+            btn_frame,
+            text="⏸ Pause",
+            command=self.pause_monitoring,
+            size="medium",
+            variant="neutral",
+            state="disabled"
+        )
+        self.pause_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.resume_btn = StyledButton(
+            btn_frame,
+            text="▶ Resume",
+            command=self.resume_monitoring,
+            size="medium",
+            variant="success",
+            state="disabled"
+        )
+        self.resume_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.stop_btn = StyledButton(
+            btn_frame,
+            text="⏹ Stop",
+            command=self.stop_monitoring,
+            size="medium",
+            variant="danger",
+            state="disabled"
+        )
+        self.stop_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.export_btn = StyledButton(
+            btn_frame,
+            text="📤 Export",
+            command=self.export_data,
+            size="medium",
+            variant="neutral",
+            state="disabled"
+        )
+        self.export_btn.pack(side="right")
+        
+        # Scrollable content area
+        self.scroll_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color=COLORS['bg_primary']
+        )
+        self.scroll_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Handle window close
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+    
+    def start_monitoring(self):
+        """Start monitoring the hosts"""
+        hosts_input = self.hosts_entry.get().strip()
+        
+        if not hosts_input:
+            messagebox.showwarning("No Hosts", "Please enter at least one IP or hostname")
+            return
+        
+        # Parse hosts (comma or space separated)
+        hosts = re.split(r'[,\s]+', hosts_input)
+        hosts = [h.strip() for h in hosts if h.strip()]
+        
+        if not hosts:
+            messagebox.showwarning("No Hosts", "Please enter at least one IP or hostname")
+            return
+        
+        # Add hosts to monitor
+        for host in hosts:
+            ip = self.monitor.add_host(host)
+            if ip:
+                self.create_host_widget(ip)
+        
+        # Start monitoring
+        self.monitor.start_monitoring()
+        
+        # Update button states
+        self.start_btn.configure(state="disabled")
+        self.pause_btn.configure(state="normal")
+        self.stop_btn.configure(state="normal")
+        self.export_btn.configure(state="normal")
+        self.hosts_entry.configure(state="disabled")
+        
+        # Start UI updates
+        self.updating = True
+        self.update_ui()
+    
+    def pause_monitoring(self):
+        """Pause monitoring"""
+        self.monitor.pause_monitoring()
+        self.pause_btn.configure(state="disabled")
+        self.resume_btn.configure(state="normal")
+    
+    def resume_monitoring(self):
+        """Resume monitoring"""
+        self.monitor.resume_monitoring()
+        self.pause_btn.configure(state="normal")
+        self.resume_btn.configure(state="disabled")
+    
+    def stop_monitoring(self):
+        """Stop monitoring"""
+        self.updating = False
+        self.monitor.stop_monitoring()
+        
+        # Update button states
+        self.start_btn.configure(state="normal")
+        self.pause_btn.configure(state="disabled")
+        self.resume_btn.configure(state="disabled")
+        self.stop_btn.configure(state="disabled")
+        self.hosts_entry.configure(state="normal")
+    
+    def create_host_widget(self, ip):
+        """Create widget for a host"""
+        host_data = self.monitor.hosts[ip]
+        
+        # Container for this host
+        container = StyledCard(self.scroll_frame)
+        container.pack(fill="x", pady=(0, SPACING['md']))
+        
+        # Header with IP and status indicator
+        header_frame = ctk.CTkFrame(container, fg_color="transparent")
+        header_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        
+        # Status indicator (colored dot)
+        status_canvas = ctk.CTkCanvas(
+            header_frame,
+            width=20,
+            height=20,
+            bg=COLORS['bg_card'],
+            highlightthickness=0
+        )
+        status_canvas.pack(side="left", padx=(0, SPACING['sm']))
+        status_dot = status_canvas.create_oval(5, 5, 15, 15, fill="#808080", outline="")
+        
+        # IP and hostname
+        info_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        info_frame.pack(side="left", fill="x", expand=True)
+        
+        ip_label = ctk.CTkLabel(
+            info_frame,
+            text=ip,
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
+        )
+        ip_label.pack(anchor="w")
+        
+        if host_data.hostname:
+            hostname_label = ctk.CTkLabel(
+                info_frame,
+                text=host_data.hostname,
+                font=ctk.CTkFont(size=FONTS['small']),
+                text_color=COLORS['text_secondary']
+            )
+            hostname_label.pack(anchor="w")
+        
+        # Stats frame
+        stats_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        stats_frame.pack(side="right")
+        
+        avg_label = ctk.CTkLabel(
+            stats_frame,
+            text="Avg: -- ms",
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        avg_label.pack(side="left", padx=SPACING['sm'])
+        
+        loss_label = ctk.CTkLabel(
+            stats_frame,
+            text="Loss: --%",
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        loss_label.pack(side="left", padx=SPACING['sm'])
+        
+        # Graph container
+        graph_frame = ctk.CTkFrame(container, fg_color=COLORS['bg_primary'])
+        graph_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=(0, SPACING['md']))
+        
+        # Create matplotlib figure
+        fig = Figure(figsize=(8, 2), dpi=80, facecolor=COLORS['bg_primary'])
+        ax = fig.add_subplot(111)
+        ax.set_facecolor(COLORS['bg_card'])
+        ax.set_ylim(0, 200)
+        ax.set_xlim(0, 30)
+        ax.set_xlabel('Last 30 Pings', color=COLORS['text'], fontsize=9)
+        ax.set_ylabel('Latency (ms)', color=COLORS['text'], fontsize=9)
+        ax.tick_params(colors=COLORS['text'], labelsize=8)
+        ax.grid(True, alpha=0.3)
+        
+        line, = ax.plot([], [], color='#00ff00', linewidth=2)
+        
+        # Embed in tkinter
+        canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        
+        # Store references
+        self.host_widgets[ip] = {
+            'container': container,
+            'status_canvas': status_canvas,
+            'status_dot': status_dot,
+            'avg_label': avg_label,
+            'loss_label': loss_label,
+            'figure': fig,
+            'axis': ax,
+            'line': line,
+            'canvas': canvas
+        }
+    
+    def update_ui(self):
+        """Update all host widgets with latest data"""
+        if not self.updating:
+            return
+        
+        try:
+            all_hosts = self.monitor.get_all_hosts_data()
+            
+            for ip, host_data in all_hosts.items():
+                if ip not in self.host_widgets:
+                    continue
+                
+                widgets = self.host_widgets[ip]
+                
+                # Update status indicator
+                status_color = host_data.get_status_color()
+                widgets['status_canvas'].itemconfig(widgets['status_dot'], fill=status_color)
+                
+                # Update stats
+                avg_latency = host_data.get_average_latency()
+                packet_loss = host_data.get_packet_loss()
+                widgets['avg_label'].configure(text=f"Avg: {avg_latency:.1f} ms")
+                widgets['loss_label'].configure(text=f"Loss: {packet_loss:.1f}%")
+                
+                # Update graph
+                recent_pings = host_data.get_recent_pings()
+                x_data = list(range(1, len(recent_pings) + 1))
+                y_data = []
+                
+                for success, rtt in recent_pings:
+                    if success:
+                        y_data.append(rtt)
+                    else:
+                        y_data.append(None)  # Show gaps for timeouts
+                
+                # Update line data
+                widgets['line'].set_data(x_data, y_data)
+                
+                # Adjust y-axis if needed
+                valid_y = [y for y in y_data if y is not None]
+                if valid_y:
+                    max_y = max(valid_y)
+                    widgets['axis'].set_ylim(0, max(200, max_y * 1.2))
+                
+                # Redraw canvas
+                widgets['canvas'].draw_idle()
+            
+            # Schedule next update
+            self.after(self.update_interval, self.update_ui)
+            
+        except Exception as e:
+            print(f"Error updating UI: {e}")
+            if self.updating:
+                self.after(self.update_interval, self.update_ui)
+    
+    def export_data(self):
+        """Export monitoring data to file"""
+        if not self.monitor.hosts:
+            messagebox.showinfo("No Data", "No monitoring data to export")
+            return
+        
+        # Get export data
+        export_text = self.monitor.export_data()
+        
+        # Ask for save location
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile=f"ping_monitor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'w') as f:
+                    f.write(export_text)
+                messagebox.showinfo("Export Successful", f"Data exported to:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("Export Error", f"Failed to export data:\n{str(e)}")
+    
+    def on_closing(self):
+        """Handle window close"""
+        self.updating = False
+        self.monitor.stop_monitoring()
+        self.destroy()
+
+
 if __name__ == "__main__":
     app = NetToolsApp()
     app.mainloop()
