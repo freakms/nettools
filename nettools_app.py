@@ -2991,7 +2991,9 @@ class NetToolsApp(ctk.CTk):
             messagebox.showerror("Error", "Please fill in all required fields (marked with *)")
             return
         
-        base = f'set vsys {vsys} rulebase security rules "{name}"'
+        # Set correct base path - "shared" or "vsys vsysX"
+        base_path = "shared" if vsys == "shared" else f"vsys {vsys}"
+        base = f'set {base_path} rulebase security rules "{name}"'
         cmd = 'configure\n'
         cmd += f'{base} from "{from_zone}"\n'
         cmd += f'{base} to "{to_zone}"\n'
