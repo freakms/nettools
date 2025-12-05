@@ -7016,6 +7016,40 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         self.updating = True
         self.update_ui()
     
+    def change_grid_layout(self, choice):
+        """Change the grid layout columns"""
+        column_map = {
+            "2 Columns": 2,
+            "3 Columns": 3,
+            "4 Columns": 4
+        }
+        new_columns = column_map.get(choice, 2)
+        
+        if new_columns != self.grid_columns and self.host_widgets:
+            self.grid_columns = new_columns
+            self.reorganize_grid()
+    
+    def reorganize_grid(self):
+        """Reorganize existing widgets into new grid layout"""
+        row = 0
+        col = 0
+        
+        for ip, widgets in self.host_widgets.items():
+            container = widgets['container']
+            container.grid(
+                row=row,
+                column=col,
+                padx=SPACING['sm'],
+                pady=SPACING['sm'],
+                sticky="nsew"
+            )
+            self.scroll_frame.grid_columnconfigure(col, weight=1)
+            
+            col += 1
+            if col >= self.grid_columns:
+                col = 0
+                row += 1
+    
     def pause_monitoring(self):
         """Pause monitoring"""
         self.monitor.pause_monitoring()
