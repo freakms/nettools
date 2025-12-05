@@ -3330,6 +3330,111 @@ class NetToolsApp(ctk.CTk):
         self.render_panos_commands()
         messagebox.showinfo("Success", f"Generated {len(commands)} address object commands!")
     
+    def generate_schedule_object(self):
+        """Generate schedule object command"""
+        name = self.panos_schedule_name.get().strip()
+        schedule_type = self.panos_schedule_type.get()
+        start_time = self.panos_schedule_start.get().strip()
+        end_time = self.panos_schedule_end.get().strip()
+        
+        if not all([name, start_time, end_time]):
+            messagebox.showerror("Error", "Please fill in all required fields")
+            return
+        
+        # Build command
+        cmd = 'configure\n'
+        cmd += f'set schedule "{name}" schedule-type {schedule_type}\n'
+        
+        if schedule_type == "recurring":
+            # Get selected days
+            selected_days = [day for day, var in self.panos_schedule_days.items() if var.get()]
+            if selected_days:
+                days_str = " ".join(selected_days)
+                cmd += f'set schedule "{name}" recurring daily {days_str} {start_time}-{end_time}\n'
+        else:
+            # Non-recurring would need date range (simplified here)
+            cmd += f'set schedule "{name}" non-recurring {start_time}-{end_time}\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", "Schedule object command generated!")
+    
+    def generate_appfilter(self):
+        """Generate application filter command"""
+        name = self.panos_appfilter_name.get().strip()
+        category = self.panos_appfilter_category.get()
+        subcategory = self.panos_appfilter_subcategory.get().strip()
+        technology = self.panos_appfilter_technology.get()
+        
+        if not name:
+            messagebox.showerror("Error", "Please enter a filter name")
+            return
+        
+        # Build command
+        cmd = 'configure\n'
+        cmd += f'set profiles custom-url-category "{name}" type "URL List"\n'
+        
+        # Add category filter
+        cmd += f'set application-filter "{name}" category {category}\n'
+        
+        if subcategory:
+            cmd += f'set application-filter "{name}" subcategory {subcategory}\n'
+        
+        cmd += f'set application-filter "{name}" technology {technology}\n'
+        
+        # Add risk levels
+        selected_risks = [str(level) for level, var in self.panos_appfilter_risk.items() if var.get()]
+        if selected_risks:
+            for risk in selected_risks:
+                cmd += f'set application-filter "{name}" risk {risk}\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", "Application filter command generated!")
+    
+    def generate_urlcat(self):
+        """Generate custom URL category command"""
+        name = self.panos_urlcat_name.get().strip()
+        desc = self.panos_urlcat_desc.get().strip()
+        urls_text = self.panos_urlcat_urls.get("1.0", "end-1c").strip()
+        url_type = self.panos_urlcat_type.get()
+        
+        # Check if placeholder
+        if urls_text == "example.com\n*.example.com\nexample.org/path":
+            messagebox.showerror("Error", "Please replace placeholder text with actual URLs")
+            return
+        
+        if not name or not urls_text:
+            messagebox.showerror("Error", "Please fill in name and URLs")
+            return
+        
+        urls = [url.strip() for url in urls_text.split('\n') if url.strip()]
+        
+        if not urls:
+            messagebox.showerror("Error", "Please enter at least one URL")
+            return
+        
+        # Build command
+        cmd = 'configure\n'
+        cmd += f'set profiles custom-url-category "{name}" type "{url_type}"\n'
+        
+        if desc:
+            cmd += f'set profiles custom-url-category "{name}" description "{desc}"\n'
+        
+        # Add URLs
+        for url in urls:
+            cmd += f'set profiles custom-url-category "{name}" list {url}\n'
+        
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", f"URL category command generated with {len(urls)} URLs!")
+    
     def render_panos_commands(self):
         """Render commands in output panel"""
         # Clear existing
