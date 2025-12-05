@@ -6831,6 +6831,10 @@ gateway.home.lan
         """Open the live ping monitor window"""
         LivePingMonitorWindow(self)
     
+    def change_grid_layout(self, choice):
+        """This method is defined in LivePingMonitorWindow class"""
+        pass
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.current_page == "scanner":
