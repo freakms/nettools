@@ -1745,7 +1745,38 @@ class NetToolsApp(ctk.CTk):
             size="medium",
             variant="neutral"
         )
-        self.panos_service_btn.pack(side="left")
+        self.panos_service_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        # Advanced tabs (second row)
+        tab_frame2 = ctk.CTkFrame(left_frame, fg_color="transparent")
+        tab_frame2.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+        
+        self.panos_schedule_btn = StyledButton(
+            tab_frame2,
+            text="🕐 Schedule",
+            command=lambda: self.switch_panos_tab("schedule"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_schedule_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_appfilter_btn = StyledButton(
+            tab_frame2,
+            text="📱 App Filter",
+            command=lambda: self.switch_panos_tab("appfilter"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_appfilter_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_urlcat_btn = StyledButton(
+            tab_frame2,
+            text="🌐 URL Category",
+            command=lambda: self.switch_panos_tab("urlcat"),
+            size="medium",
+            variant="neutral"
+        )
+        self.panos_urlcat_btn.pack(side="left")
         
         # Tab content area
         self.panos_tab_content = ctk.CTkFrame(left_frame)
@@ -1757,6 +1788,9 @@ class NetToolsApp(ctk.CTk):
         self.create_panos_address_group_tab()
         self.create_panos_nat_tab()
         self.create_panos_policy_tab()
+        self.create_panos_schedule_tab()
+        self.create_panos_appfilter_tab()
+        self.create_panos_urlcat_tab()
         # self.create_panos_service_tab()  # TODO: Implement this method
         
         # Show name generator by default
