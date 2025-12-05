@@ -2734,6 +2734,26 @@ class NetToolsApp(ctk.CTk):
             self.render_group_members()
             self.panos_group_member_input.delete(0, 'end')
     
+    def add_bulk_group_members(self):
+        """Add multiple members from bulk paste text area"""
+        bulk_text = self.panos_group_bulk_paste.get("1.0", "end-1c").strip()
+        if not bulk_text:
+            return
+        
+        # Parse lines and add each member
+        lines = bulk_text.split('\n')
+        added_count = 0
+        for line in lines:
+            member = line.strip()
+            if member and member not in self.panos_group_members:
+                self.panos_group_members.append(member)
+                added_count += 1
+        
+        if added_count > 0:
+            self.render_group_members()
+            self.panos_group_bulk_paste.delete("1.0", "end")
+            messagebox.showinfo("Success", f"Added {added_count} member(s) to the group")
+    
     def remove_group_member(self, member):
         """Remove member from address group"""
         if member in self.panos_group_members:
