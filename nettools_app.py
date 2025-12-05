@@ -2639,6 +2639,11 @@ class NetToolsApp(ctk.CTk):
         names_text = self.panos_gen_names.get("1.0", "end").strip()
         ips_text = self.panos_gen_ips.get("1.0", "end").strip()
         
+        # Check if placeholder text is still present
+        if names_text == self.panos_gen_names_placeholder or ips_text == self.panos_gen_ips_placeholder:
+            messagebox.showerror("Error", "Please replace the placeholder text with your actual data")
+            return
+        
         if not names_text or not ips_text:
             messagebox.showerror("Error", "Please fill in both base names and IPs")
             return
