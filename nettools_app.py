@@ -6869,113 +6869,128 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
     
     def setup_ui(self):
         """Setup the monitor window UI"""
-        # Header with controls
+        # Header with controls and legend
         header = ctk.CTkFrame(self, fg_color=COLORS['bg_card'])
-        header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+        header.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
         
-        # Input section
-        input_frame = ctk.CTkFrame(header, fg_color="transparent")
-        input_frame.pack(fill="x", pady=(0, SPACING['md']))
-        
-        label = ctk.CTkLabel(
-            input_frame,
-            text="Enter IPs or Hostnames (comma or space separated):",
-            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
-        )
-        label.pack(anchor="w", pady=(0, SPACING['xs']))
-        
-        self.hosts_entry = StyledEntry(
-            input_frame,
-            placeholder_text="e.g., 192.168.1.1 google.com 8.8.8.8"
-        )
-        self.hosts_entry.pack(fill="x", pady=(0, SPACING['sm']))
-        
-        # Grid layout selector
-        layout_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        layout_frame.pack(fill="x", pady=(0, SPACING['sm']))
-        
-        layout_label = ctk.CTkLabel(
-            layout_frame,
-            text="Grid Layout:",
-            font=ctk.CTkFont(size=FONTS['small'])
-        )
-        layout_label.pack(side="left", padx=(0, SPACING['xs']))
-        
-        self.grid_selector = ctk.CTkOptionMenu(
-            layout_frame,
-            values=["2 Columns", "3 Columns", "4 Columns"],
-            width=120,
-            height=28,
-            font=ctk.CTkFont(size=FONTS['small']),
-            command=self.change_grid_layout
-        )
-        self.grid_selector.set("2 Columns")
-        self.grid_selector.pack(side="left")
-        
-        # Buttons
+        # Control buttons row
         btn_frame = ctk.CTkFrame(header, fg_color="transparent")
-        btn_frame.pack(fill="x")
-        
-        self.start_btn = StyledButton(
-            btn_frame,
-            text="▶ Start Monitoring",
-            command=self.start_monitoring,
-            size="medium",
-            variant="success"
-        )
-        self.start_btn.pack(side="left", padx=(0, SPACING['xs']))
-        
-        self.pause_btn = StyledButton(
-            btn_frame,
-            text="⏸ Pause",
-            command=self.pause_monitoring,
-            size="medium",
-            variant="neutral",
-            state="disabled"
-        )
-        self.pause_btn.pack(side="left", padx=SPACING['xs'])
-        
-        self.resume_btn = StyledButton(
-            btn_frame,
-            text="▶ Resume",
-            command=self.resume_monitoring,
-            size="medium",
-            variant="success",
-            state="disabled"
-        )
-        self.resume_btn.pack(side="left", padx=SPACING['xs'])
+        btn_frame.pack(side="left", fill="x", expand=True)
         
         self.stop_btn = StyledButton(
             btn_frame,
             text="⏹ Stop",
             command=self.stop_monitoring,
-            size="medium",
+            size="small",
             variant="danger",
             state="disabled"
         )
-        self.stop_btn.pack(side="left", padx=SPACING['xs'])
+        self.stop_btn.pack(side="left", padx=(0, SPACING['sm']))
+        
+        self.pause_btn = StyledButton(
+            btn_frame,
+            text="⏸ Pause",
+            command=self.pause_monitoring,
+            size="small",
+            variant="neutral",
+            state="disabled"
+        )
+        self.pause_btn.pack(side="left", padx=(0, SPACING['sm']))
+        
+        self.resume_btn = StyledButton(
+            btn_frame,
+            text="▶ Resume",
+            command=self.resume_monitoring,
+            size="small",
+            variant="success",
+            state="disabled"
+        )
+        self.resume_btn.pack(side="left", padx=(0, SPACING['sm']))
         
         self.export_btn = StyledButton(
             btn_frame,
             text="📤 Export",
             command=self.export_data,
-            size="medium",
+            size="small",
             variant="neutral",
             state="disabled"
         )
-        self.export_btn.pack(side="right")
+        self.export_btn.pack(side="left")
         
-        # Scrollable content area
+        # Latency legend on the right
+        legend_frame = ctk.CTkFrame(header, fg_color="transparent")
+        legend_frame.pack(side="right", padx=SPACING['sm'])
+        
+        # Green indicator
+        green_box = ctk.CTkFrame(legend_frame, fg_color="#00ff00", width=60, height=25, corner_radius=4)
+        green_box.pack(side="top", pady=2)
+        green_label = ctk.CTkLabel(green_box, text="0-200 ms", font=ctk.CTkFont(size=9), text_color="black")
+        green_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Yellow indicator
+        yellow_box = ctk.CTkFrame(legend_frame, fg_color="#ffff00", width=60, height=25, corner_radius=4)
+        yellow_box.pack(side="top", pady=2)
+        yellow_label = ctk.CTkLabel(yellow_box, text="201-500 ms", font=ctk.CTkFont(size=9), text_color="black")
+        yellow_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Red indicator
+        red_box = ctk.CTkFrame(legend_frame, fg_color="#ff0000", width=60, height=25, corner_radius=4)
+        red_box.pack(side="top", pady=2)
+        red_label = ctk.CTkLabel(red_box, text="501+ ms", font=ctk.CTkFont(size=9), text_color="white")
+        red_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Input section
+        input_frame = ctk.CTkFrame(self, fg_color=COLORS['bg_card'])
+        input_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+        
+        self.hosts_entry = StyledEntry(
+            input_frame,
+            placeholder_text="Enter IPs or Hostnames (comma/space separated): e.g., 8.8.8.8 google.com 1.1.1.1"
+        )
+        self.hosts_entry.pack(side="left", fill="x", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
+        
+        self.start_btn = StyledButton(
+            input_frame,
+            text="▶ Start",
+            command=self.start_monitoring,
+            size="small",
+            variant="success"
+        )
+        self.start_btn.pack(side="right", padx=SPACING['sm'], pady=SPACING['sm'])
+        
+        # Table header
+        table_header = ctk.CTkFrame(self, fg_color=("gray85", "gray25"), height=35)
+        table_header.pack(fill="x", padx=SPACING['md'], pady=(0, 2))
+        table_header.pack_propagate(False)
+        
+        # Column headers
+        header_bar = ctk.CTkLabel(table_header, text="", width=10, fg_color="transparent")
+        header_bar.pack(side="left", padx=(5, 0))
+        
+        header_ip = ctk.CTkLabel(table_header, text="IP Address", font=ctk.CTkFont(size=11, weight="bold"), width=140, anchor="w")
+        header_ip.pack(side="left", padx=5)
+        
+        header_hostname = ctk.CTkLabel(table_header, text="Hostname", font=ctk.CTkFont(size=11, weight="bold"), width=180, anchor="w")
+        header_hostname.pack(side="left", padx=5)
+        
+        header_avg = ctk.CTkLabel(table_header, text="Avg", font=ctk.CTkFont(size=11, weight="bold"), width=50, anchor="center")
+        header_avg.pack(side="left", padx=5)
+        
+        header_min = ctk.CTkLabel(table_header, text="Min", font=ctk.CTkFont(size=11, weight="bold"), width=50, anchor="center")
+        header_min.pack(side="left", padx=5)
+        
+        header_cur = ctk.CTkLabel(table_header, text="Current", font=ctk.CTkFont(size=11, weight="bold"), width=60, anchor="center")
+        header_cur.pack(side="left", padx=5)
+        
+        header_graph = ctk.CTkLabel(table_header, text="Graph", font=ctk.CTkFont(size=11, weight="bold"), anchor="center")
+        header_graph.pack(side="left", fill="x", expand=True, padx=5)
+        
+        # Scrollable content area for host rows
         self.scroll_frame = ctk.CTkScrollableFrame(
             self,
             fg_color="transparent"
         )
-        self.scroll_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
-        
-        # Grid configuration
-        self.grid_columns = 2  # Number of columns in grid
-        self.grid_row = 0
-        self.grid_col = 0
+        self.scroll_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=(0, SPACING['md']))
         
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
