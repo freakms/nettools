@@ -2255,10 +2255,10 @@ class NetToolsApp(ctk.CTk):
         
         self.panos_nat_vsys = ctk.CTkComboBox(
             vsys_frame,
-            values=["vsys1", "vsys2", "vsys3"],
+            values=["shared", "vsys1", "vsys2", "vsys3"],
             state="readonly"
         )
-        self.panos_nat_vsys.set("vsys1")
+        self.panos_nat_vsys.set("shared")
         self.panos_nat_vsys.pack(fill="x")
         
         name_frame = ctk.CTkFrame(row1_frame, fg_color="transparent")
