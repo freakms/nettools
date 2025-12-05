@@ -237,6 +237,7 @@ class NetToolsApp(ctk.CTk):
                 ("scanner", "   IPv4 Scanner", "Scan network for active hosts"),
                 ("portscan", "   Port Scanner", "Scan for open ports on hosts"),
                 ("traceroute", "   Traceroute", "Trace network path to host"),
+                ("bandwidth", "   Bandwidth Test", "Test network speed with iperf3"),
             ]),
             ("🛠 NETWORK TOOLS", [
                 ("dns", "   DNS Lookup", "Resolve hostnames and IP addresses"),
