@@ -6886,6 +6886,28 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         )
         self.hosts_entry.pack(fill="x", pady=(0, SPACING['sm']))
         
+        # Grid layout selector
+        layout_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        layout_frame.pack(fill="x", pady=(0, SPACING['sm']))
+        
+        layout_label = ctk.CTkLabel(
+            layout_frame,
+            text="Grid Layout:",
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        layout_label.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.grid_selector = ctk.CTkOptionMenu(
+            layout_frame,
+            values=["2 Columns", "3 Columns", "4 Columns"],
+            width=120,
+            height=28,
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self.change_grid_layout
+        )
+        self.grid_selector.set("2 Columns")
+        self.grid_selector.pack(side="left")
+        
         # Buttons
         btn_frame = ctk.CTkFrame(header, fg_color="transparent")
         btn_frame.pack(fill="x")
