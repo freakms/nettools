@@ -379,7 +379,7 @@ class NetToolsApp(ctk.CTk):
         # CIDR input
         cidr_label = ctk.CTkLabel(
             input_card,
-            text="IPv4 / CIDR:",
+            text="IPv4 / CIDR / Hostname:",
             font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
         cidr_label.grid(row=0, column=0, padx=SPACING['md'], pady=SPACING['md'], sticky="w")
