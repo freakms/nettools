@@ -1892,15 +1892,27 @@ class NetToolsApp(ctk.CTk):
         )
         custom_help.pack(anchor="w")
         
-        # Generate Names button
+        # Generate Names and Reset buttons
+        gen_buttons_frame = ctk.CTkFrame(card, fg_color="transparent")
+        gen_buttons_frame.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+        
         gen_names_btn = StyledButton(
-            card,
+            gen_buttons_frame,
             text="🎯 Generate Object Names",
             command=self.generate_panos_names,
             size="large",
             variant="primary"
         )
-        gen_names_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+        gen_names_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        reset_btn = StyledButton(
+            gen_buttons_frame,
+            text="🔄 Reset",
+            command=self.reset_panos_name_generator,
+            size="large",
+            variant="neutral"
+        )
+        reset_btn.pack(side="left", padx=(SPACING['xs'], 0))
         
         # Preview section (hidden initially)
         self.panos_preview_frame = ctk.CTkFrame(card, fg_color="transparent")
