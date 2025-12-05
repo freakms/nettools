@@ -245,32 +245,34 @@ class NetToolsApp(ctk.CTk):
         
         self.current_page = "scanner"
         
-        for page_id, label, tooltip in nav_items:
-            # Split emoji and text for better alignment
-            parts = label.split("  ", 1)
-            if len(parts) == 2:
-                emoji, text = parts
-                # Pad emoji to fixed width using spaces for alignment
-                # Emojis are typically 2 characters wide, pad to align text
-                display_text = f"{emoji}    {text}"
-            else:
-                display_text = label
-            
-            # Simple button approach - no complex layering
-            btn = ctk.CTkButton(
+        # Render navigation with categories
+        for category_name, items in nav_categories:
+            # Category header
+            category_label = ctk.CTkLabel(
                 self.sidebar,
-                text=display_text,
-                command=lambda p=page_id: self.switch_page(p),
-                height=50,
-                corner_radius=8,
-                anchor="w",
-                font=ctk.CTkFont(size=14, weight="bold", family="Segoe UI"),
-                fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
+                text=category_name,
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color=("gray40", "gray60"),
+                anchor="w"
             )
-            btn.pack(fill="x", padx=10, pady=5)
-            self.nav_buttons[page_id] = btn
+            category_label.pack(fill="x", padx=15, pady=(15, 5))
+            
+            # Category items
+            for page_id, label, tooltip in items:
+                btn = ctk.CTkButton(
+                    self.sidebar,
+                    text=label,
+                    command=lambda p=page_id: self.switch_page(p),
+                    height=40,
+                    corner_radius=6,
+                    anchor="w",
+                    font=ctk.CTkFont(size=13, family="Segoe UI"),
+                    fg_color="transparent",
+                    text_color=("gray10", "gray90"),
+                    hover_color=("gray70", "gray30")
+                )
+                btn.pack(fill="x", padx=12, pady=2)
+                self.nav_buttons[page_id] = btn
         
         # Update initial button state
         self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
