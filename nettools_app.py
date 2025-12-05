@@ -6848,7 +6848,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         super().__init__(parent)
         
         self.title("Live Ping Monitor")
-        self.geometry("900x700")
+        self.geometry("1100x750")
         
         # Monitor instance
         self.monitor = LivePingMonitor()
