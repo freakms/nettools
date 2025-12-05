@@ -7090,105 +7090,86 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         self.hosts_entry.configure(state="normal")
     
     def create_host_widget(self, ip):
-        """Create widget for a host in grid layout"""
+        """Create table row widget for a host"""
         host_data = self.monitor.hosts[ip]
         
-        # Container for this host (grid cell)
-        container = StyledCard(self.scroll_frame)
-        container.grid(
-            row=self.grid_row,
-            column=self.grid_col,
-            padx=SPACING['sm'],
-            pady=SPACING['sm'],
-            sticky="nsew"
-        )
+        # Row container
+        row = ctk.CTkFrame(self.scroll_frame, fg_color=("gray92", "gray20"), height=50)
+        row.pack(fill="x", pady=1)
+        row.pack_propagate(False)
         
-        # Configure grid weights for this cell
-        self.scroll_frame.grid_columnconfigure(self.grid_col, weight=1)
+        # Status bar (colored vertical bar on left)
+        status_bar = ctk.CTkFrame(row, fg_color="#808080", width=10)
+        status_bar.pack(side="left", fill="y", padx=(5, 0))
         
-        # Update grid position for next host
-        self.grid_col += 1
-        if self.grid_col >= self.grid_columns:
-            self.grid_col = 0
-            self.grid_row += 1
-        
-        # === HOST HEADER ===
-        header_frame = ctk.CTkFrame(container, fg_color="transparent")
-        header_frame.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['sm'], 0))
-        
-        # Status indicator (colored dot) - left side
-        status_canvas = ctk.CTkCanvas(
-            header_frame,
-            width=16,
-            height=16,
-            bg="gray85",
-            highlightthickness=0
-        )
-        status_canvas.pack(side="left", padx=(0, SPACING['xs']))
-        status_dot = status_canvas.create_oval(3, 3, 13, 13, fill="#808080", outline="")
-        
-        # IP address - prominent display
+        # IP Address
         ip_label = ctk.CTkLabel(
-            header_frame,
+            row,
             text=ip,
-            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+            font=ctk.CTkFont(size=11),
+            width=140,
+            anchor="w"
         )
-        ip_label.pack(side="left", fill="x", expand=True)
+        ip_label.pack(side="left", padx=5)
         
-        # === HOSTNAME (if exists) ===
-        if host_data.hostname:
-            hostname_label = ctk.CTkLabel(
-                container,
-                text=f"({host_data.hostname})",
-                font=ctk.CTkFont(size=FONTS['tiny']),
-                text_color=COLORS['text_secondary']
-            )
-            hostname_label.pack(padx=SPACING['sm'], pady=(0, SPACING['xs']))
+        # Hostname
+        hostname_text = host_data.hostname if host_data.hostname else "---"
+        hostname_label = ctk.CTkLabel(
+            row,
+            text=hostname_text,
+            font=ctk.CTkFont(size=11),
+            width=180,
+            anchor="w",
+            text_color=COLORS['text_secondary']
+        )
+        hostname_label.pack(side="left", padx=5)
         
-        # === STATISTICS ROW ===
-        stats_frame = ctk.CTkFrame(container, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
-        
+        # Avg latency
         avg_label = ctk.CTkLabel(
-            stats_frame,
-            text="Avg: --",
-            font=ctk.CTkFont(size=FONTS['tiny'])
+            row,
+            text="0",
+            font=ctk.CTkFont(size=11),
+            width=50,
+            anchor="center"
         )
-        avg_label.pack(side="left", padx=(0, SPACING['sm']))
+        avg_label.pack(side="left", padx=5)
         
-        loss_label = ctk.CTkLabel(
-            stats_frame,
-            text="Loss: --%",
-            font=ctk.CTkFont(size=FONTS['tiny'])
+        # Min latency
+        min_label = ctk.CTkLabel(
+            row,
+            text="0",
+            font=ctk.CTkFont(size=11),
+            width=50,
+            anchor="center"
         )
-        loss_label.pack(side="left")
+        min_label.pack(side="left", padx=5)
         
-        ping_count_label = ctk.CTkLabel(
-            stats_frame,
-            text="Pings: 0",
-            font=ctk.CTkFont(size=FONTS['tiny'])
+        # Current latency
+        cur_label = ctk.CTkLabel(
+            row,
+            text="0",
+            font=ctk.CTkFont(size=11),
+            width=60,
+            anchor="center"
         )
-        ping_count_label.pack(side="right")
+        cur_label.pack(side="left", padx=5)
         
-        # === GRAPH ===
-        graph_frame = ctk.CTkFrame(container, fg_color="transparent")
-        graph_frame.pack(fill="both", expand=True, padx=SPACING['xs'], pady=(0, SPACING['xs']))
+        # Graph frame
+        graph_frame = ctk.CTkFrame(row, fg_color="transparent")
+        graph_frame.pack(side="left", fill="both", expand=True, padx=5)
         
-        # Create compact matplotlib figure
-        fig = Figure(figsize=(4, 1.8), dpi=70, facecolor='#f0f0f0')
+        # Create inline graph with matplotlib
+        fig = Figure(figsize=(3.5, 0.5), dpi=80, facecolor='transparent')
         ax = fig.add_subplot(111)
-        ax.set_facecolor('#ffffff')
-        ax.set_ylim(0, 200)
+        ax.set_facecolor('white')
+        ax.set_ylim(0, 500)
         ax.set_xlim(0, 30)
-        ax.set_xlabel('Last 30 Pings', color='#555555', fontsize=7)
-        ax.set_ylabel('ms', color='#555555', fontsize=7)
-        ax.tick_params(colors='#555555', labelsize=6)
-        ax.grid(True, alpha=0.2, linewidth=0.5)
+        ax.axis('off')  # Hide axes for cleaner look
         
-        # Tighter layout
-        fig.tight_layout(pad=0.5)
+        # No margins
+        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
-        line, = ax.plot([], [], color='#00cc00', linewidth=1.5, marker='o', markersize=2)
+        line, = ax.plot([], [], color='#0066cc', linewidth=1.5, marker='o', markersize=3)
         
         # Embed in tkinter
         canvas = FigureCanvasTkAgg(fig, master=graph_frame)
@@ -7197,17 +7178,18 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         
         # Store references
         self.host_widgets[ip] = {
-            'container': container,
-            'status_canvas': status_canvas,
-            'status_dot': status_dot,
+            'row': row,
+            'status_bar': status_bar,
             'ip_label': ip_label,
+            'hostname_label': hostname_label,
             'avg_label': avg_label,
-            'loss_label': loss_label,
-            'ping_count_label': ping_count_label,
+            'min_label': min_label,
+            'cur_label': cur_label,
             'figure': fig,
             'axis': ax,
             'line': line,
-            'canvas': canvas
+            'canvas': canvas,
+            'min_value': float('inf')
         }
     
     def update_ui(self):
