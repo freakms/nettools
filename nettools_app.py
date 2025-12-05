@@ -2721,6 +2721,37 @@ class NetToolsApp(ctk.CTk):
         
         messagebox.showinfo("Success", f"Generated {len(self.panos_generated_names)} object names!")
     
+    def reset_panos_name_generator(self):
+        """Reset all fields in the Name Generator tab"""
+        # Clear and restore placeholders for textboxes
+        self.panos_gen_names.delete("1.0", "end")
+        self.panos_gen_names.insert("1.0", self.panos_gen_names_placeholder)
+        self.panos_gen_names.configure(text_color=COLORS['text_secondary'])
+        
+        self.panos_gen_ips.delete("1.0", "end")
+        self.panos_gen_ips.insert("1.0", self.panos_gen_ips_placeholder)
+        self.panos_gen_ips.configure(text_color=COLORS['text_secondary'])
+        
+        # Reset dropdown selections
+        self.panos_gen_separator.set("_ (Underscore)")
+        self.panos_gen_format.set("Name_IP")
+        
+        # Clear custom format if visible
+        self.panos_gen_custom.delete(0, 'end')
+        self.panos_custom_format_frame.pack_forget()
+        
+        # Clear preview
+        self.panos_preview_text.delete("1.0", "end")
+        
+        # Hide preview and step 2
+        self.panos_preview_frame.pack_forget()
+        self.panos_step2_frame.pack_forget()
+        
+        # Clear generated names
+        self.panos_generated_names = []
+        
+        messagebox.showinfo("Reset Complete", "Name Generator has been reset")
+    
     def generate_panos_from_names(self):
         """Generate CLI commands from generated names"""
         if not self.panos_generated_names:
