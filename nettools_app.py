@@ -7069,60 +7069,60 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         row.pack_propagate(False)
         
         # Status bar (colored vertical bar on left)
-        status_bar = ctk.CTkFrame(row, fg_color="#808080", width=10)
-        status_bar.pack(side="left", fill="y", padx=(5, 0))
+        status_bar = ctk.CTkFrame(row, fg_color="#808080", width=8)
+        status_bar.pack(side="left", fill="y", padx=(3, 0))
         
         # IP Address
         ip_label = ctk.CTkLabel(
             row,
             text=ip,
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=10),
             width=140,
             anchor="w"
         )
-        ip_label.pack(side="left", padx=5)
+        ip_label.pack(side="left", padx=4)
         
         # Hostname
         hostname_text = host_data.hostname if host_data.hostname else "---"
         hostname_label = ctk.CTkLabel(
             row,
             text=hostname_text,
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=10),
             width=180,
             anchor="w",
             text_color=COLORS['text_secondary']
         )
-        hostname_label.pack(side="left", padx=5)
+        hostname_label.pack(side="left", padx=4)
         
         # Avg latency
         avg_label = ctk.CTkLabel(
             row,
             text="0",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=10),
             width=50,
             anchor="center"
         )
-        avg_label.pack(side="left", padx=5)
+        avg_label.pack(side="left", padx=4)
         
         # Min latency
         min_label = ctk.CTkLabel(
             row,
             text="0",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=10),
             width=50,
             anchor="center"
         )
-        min_label.pack(side="left", padx=5)
+        min_label.pack(side="left", padx=4)
         
         # Current latency
         cur_label = ctk.CTkLabel(
             row,
             text="0",
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=10),
             width=60,
             anchor="center"
         )
-        cur_label.pack(side="left", padx=5)
+        cur_label.pack(side="left", padx=4)
         
         # Graph frame
         graph_frame = ctk.CTkFrame(row, fg_color="transparent")
