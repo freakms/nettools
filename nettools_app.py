@@ -352,6 +352,8 @@ class NetToolsApp(ctk.CTk):
                 self.create_subnet_content(self.pages[page_id])
             elif page_id == "phpipam":
                 self.create_phpipam_content(self.pages[page_id])
+            elif page_id == "bandwidth":
+                self.create_bandwidth_content(self.pages[page_id])
             
             self.pages_loaded[page_id] = True
         
