@@ -10,6 +10,9 @@ Pillow>=10.0.0
 # Network Operations
 pythonping>=1.1.4
 
+# Graphing & Visualization
+matplotlib>=3.7.0
+
 # phpIPAM Integration (Optional)
 requests>=2.31.0
 cryptography>=41.0.0
