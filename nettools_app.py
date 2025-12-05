@@ -1805,7 +1805,13 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
         )
         self.panos_gen_names.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
-        self.panos_gen_names.insert("1.0", "Server1\nServer2\nWebServer\nAppServer\nDBServer")
+        
+        # Setup placeholder
+        self.panos_gen_names_placeholder = "Server1\nServer2\nWebServer"
+        self.panos_gen_names.insert("1.0", self.panos_gen_names_placeholder)
+        self.panos_gen_names.configure(text_color=COLORS['text_secondary'])
+        self.panos_gen_names.bind("<FocusIn>", lambda e: self.on_textbox_focus_in(self.panos_gen_names, self.panos_gen_names_placeholder))
+        self.panos_gen_names.bind("<FocusOut>", lambda e: self.on_textbox_focus_out(self.panos_gen_names, self.panos_gen_names_placeholder))
         
         # IP Addresses
         ip_label = ctk.CTkLabel(
