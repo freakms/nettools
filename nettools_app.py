@@ -1805,6 +1805,122 @@ class NetToolsApp(ctk.CTk):
         )
         info_text.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
     
+    def show_iperf3_not_installed(self, parent):
+        """Show iperf3 not installed message with instructions"""
+        scroll = ctk.CTkScrollableFrame(parent)
+        scroll.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Warning card
+        warning_card = StyledCard(scroll)
+        warning_card.pack(fill="both", expand=True)
+        
+        # Icon and title
+        title = ctk.CTkLabel(
+            warning_card,
+            text="⚠️ iperf3 Not Installed",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold"),
+            text_color=COLORS['warning']
+        )
+        title.pack(pady=(SPACING['lg'], SPACING['md']))
+        
+        # Message
+        message = ctk.CTkLabel(
+            warning_card,
+            text="The bandwidth testing feature requires iperf3 to be installed on your system.",
+            font=ctk.CTkFont(size=FONTS['body']),
+            wraplength=600
+        )
+        message.pack(pady=(0, SPACING['lg']))
+        
+        # Installation instructions
+        instructions_frame = ctk.CTkFrame(warning_card, fg_color=COLORS['bg_card'])
+        instructions_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        inst_title = ctk.CTkLabel(
+            instructions_frame,
+            text="📥 Installation Instructions for Windows:",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        inst_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+        
+        instructions = """
+Option 1: Using Chocolatey (Recommended)
+  1. Install Chocolatey: https://chocolatey.org/install
+  2. Open PowerShell as Administrator
+  3. Run: choco install iperf3
+  4. Restart this application
+
+Option 2: Using Scoop
+  1. Install Scoop: https://scoop.sh
+  2. Open PowerShell
+  3. Run: scoop install iperf3
+  4. Restart this application
+
+Option 3: Manual Installation
+  1. Download from: https://iperf.fr/iperf-download.php
+  2. Extract iperf3.exe to a folder
+  3. Add folder to PATH environment variable
+  4. Restart this application
+
+Option 4: Using WSL (Windows Subsystem for Linux)
+  1. Install WSL2
+  2. In WSL terminal: sudo apt install iperf3
+  3. Use from WSL terminal instead
+        """
+        
+        inst_text = ctk.CTkLabel(
+            instructions_frame,
+            text=instructions,
+            font=ctk.CTkFont(size=FONTS['small'], family="Consolas"),
+            justify="left",
+            anchor="w"
+        )
+        inst_text.pack(anchor="w", padx=SPACING['md'], pady=(0, SPACING['md']))
+        
+        # Refresh button
+        refresh_btn = StyledButton(
+            warning_card,
+            text="🔄 Check Again",
+            command=lambda: self.refresh_bandwidth_page(),
+            size="large",
+            variant="primary"
+        )
+        refresh_btn.pack(pady=(0, SPACING['lg']))
+        
+        # Alternative info
+        alt_card = StyledCard(scroll)
+        alt_card.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        alt_title = ctk.CTkLabel(
+            alt_card,
+            text="💡 Alternative",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        alt_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['xs']))
+        
+        alt_text = ctk.CTkLabel(
+            alt_card,
+            text="You can also use online speed test websites like:\n" +
+                 "• Speedtest.net\n" +
+                 "• Fast.com\n" +
+                 "• Google Speed Test (search 'internet speed test')",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary'],
+            justify="left"
+        )
+        alt_text.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+    
+    def refresh_bandwidth_page(self):
+        """Refresh bandwidth page after iperf3 installation"""
+        # Clear the page
+        if "bandwidth" in self.pages:
+            self.pages["bandwidth"].destroy()
+            del self.pages["bandwidth"]
+            self.pages_loaded.remove("bandwidth")
+        
+        # Reload the page
+        self.switch_page("bandwidth")
+    
     def show_bandwidth_empty_state(self):
         """Show empty state for bandwidth results"""
         for widget in self.bandwidth_results_frame.winfo_children():
