@@ -447,6 +447,15 @@ class NetToolsApp(ctk.CTk):
         )
         self.import_list_btn.pack(side="left", padx=SPACING['xs'])
         
+        self.live_monitor_btn = StyledButton(
+            button_frame,
+            text="📊 Live Monitor",
+            command=self.open_live_ping_monitor,
+            size="medium",
+            variant="success"
+        )
+        self.live_monitor_btn.pack(side="left", padx=SPACING['xs'])
+        
         self.cancel_scan_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
