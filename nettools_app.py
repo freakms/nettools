@@ -6942,7 +6942,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         # Scrollable content area
         self.scroll_frame = ctk.CTkScrollableFrame(
             self,
-            fg_color=COLORS['bg_primary']
+            fg_color="transparent"
         )
         self.scroll_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
