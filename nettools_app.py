@@ -2895,12 +2895,15 @@ class NetToolsApp(ctk.CTk):
             messagebox.showerror("Error", "Please enter a group name")
             return
         
+        # Set correct base path - "shared" or "vsys vsysX"
+        base_path = "shared" if vsys == "shared" else f"vsys {vsys}"
+        
         cmd = 'configure\n'
         for member in self.panos_group_members:
-            cmd += f'set vsys {vsys} address-group "{name}" {group_type} "{member}"\n'
+            cmd += f'set {base_path} address-group "{name}" {group_type} "{member}"\n'
         
         if desc:
-            cmd += f'set vsys {vsys} address-group "{name}" description "{desc}"\n'
+            cmd += f'set {base_path} address-group "{name}" description "{desc}"\n'
         
         cmd += 'commit'
         
