@@ -1827,7 +1827,13 @@ class NetToolsApp(ctk.CTk):
             font=ctk.CTkFont(size=FONTS['body'], family="Consolas")
         )
         self.panos_gen_ips.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
-        self.panos_gen_ips.insert("1.0", "192.168.1.10\n192.168.1.20\n10.0.0.10\n10.0.0.20\n10.0.0.30")
+        
+        # Setup placeholder
+        self.panos_gen_ips_placeholder = "192.168.1.10\n192.168.1.20\n10.0.0.10"
+        self.panos_gen_ips.insert("1.0", self.panos_gen_ips_placeholder)
+        self.panos_gen_ips.configure(text_color=COLORS['text_secondary'])
+        self.panos_gen_ips.bind("<FocusIn>", lambda e: self.on_textbox_focus_in(self.panos_gen_ips, self.panos_gen_ips_placeholder))
+        self.panos_gen_ips.bind("<FocusOut>", lambda e: self.on_textbox_focus_out(self.panos_gen_ips, self.panos_gen_ips_placeholder))
         
         # Options row
         options_frame = ctk.CTkFrame(card, fg_color="transparent")
