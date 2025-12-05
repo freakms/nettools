@@ -7026,7 +7026,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
             header_frame,
             width=20,
             height=20,
-            bg=COLORS['bg_card'],
+            bg="gray85",
             highlightthickness=0
         )
         status_canvas.pack(side="left", padx=(0, SPACING['sm']))
