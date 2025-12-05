@@ -386,7 +386,7 @@ class NetToolsApp(ctk.CTk):
         
         self.cidr_entry = StyledEntry(
             input_card,
-            placeholder_text="e.g., 192.168.1.0/24"
+            placeholder_text="e.g., 192.168.1.0/24 or server.example.com"
         )
         self.cidr_entry.grid(row=0, column=1, padx=(SPACING['md'], SPACING['xs']), pady=SPACING['md'], sticky="ew")
         input_card.grid_columnconfigure(1, weight=1)
