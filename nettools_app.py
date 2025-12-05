@@ -2643,10 +2643,13 @@ class NetToolsApp(ctk.CTk):
                 return
             
             # Generate name based on format
+            # Keep dots in IPs, only replace slashes
+            ip_formatted = ip.replace('/', separator)
+            
             if format_choice == "Name_IP":
-                generated_name = f"{name}{separator}{ip.replace('.', separator).replace('/', separator)}"
+                generated_name = f"{name}{separator}{ip_formatted}"
             elif format_choice == "IP_Name":
-                generated_name = f"{ip.replace('.', separator).replace('/', separator)}{separator}{name}"
+                generated_name = f"{ip_formatted}{separator}{name}"
             elif format_choice == "Name Only":
                 generated_name = name
             elif format_choice == "Custom":
@@ -2654,9 +2657,9 @@ class NetToolsApp(ctk.CTk):
                 if not custom_pattern:
                     messagebox.showerror("Error", "Please provide a custom format pattern")
                     return
-                generated_name = custom_pattern.replace('{name}', name).replace('{ip}', ip.replace('.', separator).replace('/', separator))
+                generated_name = custom_pattern.replace('{name}', name).replace('{ip}', ip_formatted)
             else:
-                generated_name = f"{name}{separator}{ip.replace('.', separator).replace('/', separator)}"
+                generated_name = f"{name}{separator}{ip_formatted}"
             
             self.panos_generated_names.append({
                 'name': name,
