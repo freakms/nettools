@@ -6946,6 +6946,11 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         )
         self.scroll_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
         
+        # Grid configuration
+        self.grid_columns = 2  # Number of columns in grid
+        self.grid_row = 0
+        self.grid_col = 0
+        
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
