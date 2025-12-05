@@ -218,19 +218,29 @@ class NetToolsApp(ctk.CTk):
         separator = ctk.CTkFrame(self.sidebar, height=2, corner_radius=0)
         separator.pack(fill="x", padx=10, pady=10)
         
-        # Navigation buttons (reordered for better workflow)
+        # Navigation organized by categories
         self.nav_buttons = {}
-        nav_items = [
-            ("scanner", "🔍  IPv4 Scanner", "Scan network for active hosts"),
-            ("portscan", "🔌  Port Scanner", "Scan for open ports on hosts"),
-            ("traceroute", "🛣  Traceroute & Pathping", "Trace network path to host"),
-            ("dns", "🌐  DNS Lookup", "Resolve hostnames and IP addresses"),
-            ("mac", "🏷  MAC Formatter", "Format and analyze MAC addresses"),
-            ("compare", "📊  Scan Comparison", "Compare network scan results"),
-            ("profiles", "⚙  Network Profiles", "Manage network interface profiles"),
-            ("panos", "🛡  PAN-OS Generator", "Generate PAN-OS CLI commands"),
-            ("subnet", "🔢  Subnet Calculator", "Calculate subnet information"),
-            ("phpipam", "📡  phpIPAM", "Manage IP addresses with phpIPAM"),
+        
+        # Category structure: (category_name, [(page_id, label, tooltip), ...])
+        nav_categories = [
+            ("🔍 NETWORK SCANNING", [
+                ("scanner", "   IPv4 Scanner", "Scan network for active hosts"),
+                ("portscan", "   Port Scanner", "Scan for open ports on hosts"),
+                ("traceroute", "   Traceroute", "Trace network path to host"),
+            ]),
+            ("🛠 NETWORK TOOLS", [
+                ("dns", "   DNS Lookup", "Resolve hostnames and IP addresses"),
+                ("subnet", "   Subnet Calculator", "Calculate subnet information"),
+                ("mac", "   MAC Formatter", "Format and analyze MAC addresses"),
+            ]),
+            ("📊 MANAGEMENT", [
+                ("compare", "   Scan Comparison", "Compare network scan results"),
+                ("profiles", "   Network Profiles", "Manage network profiles"),
+            ]),
+            ("🛡 ADVANCED", [
+                ("panos", "   PAN-OS Generator", "Generate PAN-OS CLI commands"),
+                ("phpipam", "   phpIPAM", "Manage IP addresses with phpIPAM"),
+            ]),
         ]
         
         self.current_page = "scanner"
