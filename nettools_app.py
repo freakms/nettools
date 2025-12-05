@@ -1679,6 +1679,276 @@ class NetToolsApp(ctk.CTk):
             )
             value_widget.pack(side="left", fill="x", expand=True)
     
+    def create_bandwidth_content(self, parent):
+        """Create bandwidth testing page"""
+        parent.pack(fill="both", expand=True)
+        
+        # Initialize bandwidth tester
+        self.bandwidth_tester = BandwidthTester()
+        
+        # Scroll container
+        scroll = ctk.CTkScrollableFrame(parent)
+        scroll.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Header
+        header_card = StyledCard(scroll)
+        header_card.pack(fill="x", pady=(0, SPACING['md']))
+        
+        title = ctk.CTkLabel(
+            header_card,
+            text="🚀 Bandwidth Testing (iperf3)",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        subtitle = SubTitle(
+            header_card,
+            text="Test network throughput and speed using iperf3"
+        )
+        subtitle.pack(padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Test Configuration Card
+        config_card = StyledCard(scroll)
+        config_card.pack(fill="x", pady=(0, SPACING['md']))
+        
+        config_title = SectionTitle(config_card, text="Test Configuration")
+        config_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        # Server Host
+        host_label = ctk.CTkLabel(config_card, text="iperf3 Server Host *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        host_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['xs']))
+        
+        self.bandwidth_host = StyledEntry(config_card, placeholder_text="e.g., iperf.example.com or 192.168.1.100")
+        self.bandwidth_host.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Settings row
+        settings_frame = ctk.CTkFrame(config_card, fg_color="transparent")
+        settings_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Port
+        port_label = ctk.CTkLabel(settings_frame, text="Port:", font=ctk.CTkFont(size=FONTS['body']))
+        port_label.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.bandwidth_port = StyledEntry(settings_frame, placeholder_text="5201", width=80)
+        self.bandwidth_port.insert(0, "5201")
+        self.bandwidth_port.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Duration
+        duration_label = ctk.CTkLabel(settings_frame, text="Duration (sec):", font=ctk.CTkFont(size=FONTS['body']))
+        duration_label.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.bandwidth_duration = StyledEntry(settings_frame, placeholder_text="10", width=60)
+        self.bandwidth_duration.insert(0, "10")
+        self.bandwidth_duration.pack(side="left")
+        
+        # Test buttons
+        btn_frame = ctk.CTkFrame(config_card, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        self.bandwidth_upload_btn = StyledButton(
+            btn_frame,
+            text="⬆ Upload Test",
+            command=self.run_upload_test,
+            size="large",
+            variant="primary"
+        )
+        self.bandwidth_upload_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        self.bandwidth_download_btn = StyledButton(
+            btn_frame,
+            text="⬇ Download Test",
+            command=self.run_download_test,
+            size="large",
+            variant="success"
+        )
+        self.bandwidth_download_btn.pack(side="left", fill="x", expand=True, padx=(SPACING['xs'], 0))
+        
+        # Results Card
+        results_card = StyledCard(scroll)
+        results_card.pack(fill="both", expand=True)
+        
+        results_title = SectionTitle(results_card, text="Test Results")
+        results_title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        self.bandwidth_results_frame = ctk.CTkFrame(results_card, fg_color="transparent")
+        self.bandwidth_results_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Empty state
+        self.show_bandwidth_empty_state()
+        
+        # Info box
+        info_card = InfoBox(
+            scroll,
+            title="ℹ️ About iperf3 Testing",
+            message="iperf3 requires a server to test against. You can:\n\n" +
+                    "• Use a public iperf3 server (search online)\n" +
+                    "• Set up your own server: iperf3 -s\n" +
+                    "• Upload Test: Measures your upload speed to server\n" +
+                    "• Download Test: Measures your download speed from server"
+        )
+        info_card.pack(fill="x", pady=(SPACING['md'], 0))
+    
+    def show_bandwidth_empty_state(self):
+        """Show empty state for bandwidth results"""
+        for widget in self.bandwidth_results_frame.winfo_children():
+            widget.destroy()
+        
+        empty_frame = ctk.CTkFrame(self.bandwidth_results_frame, fg_color="transparent")
+        empty_frame.pack(fill="both", expand=True, pady=SPACING['xl'])
+        
+        empty_label = ctk.CTkLabel(
+            empty_frame,
+            text="📊\n\nNo test results yet\n\nRun an upload or download test to see results",
+            font=ctk.CTkFont(size=FONTS['body']),
+            text_color=COLORS['text_secondary'],
+            justify="center"
+        )
+        empty_label.pack(expand=True)
+    
+    def run_upload_test(self):
+        """Run upload speed test"""
+        host = self.bandwidth_host.get().strip()
+        port = self.bandwidth_port.get().strip() or "5201"
+        duration = self.bandwidth_duration.get().strip() or "10"
+        
+        if not host:
+            messagebox.showerror("Error", "Please enter an iperf3 server host")
+            return
+        
+        try:
+            port = int(port)
+            duration = int(duration)
+        except ValueError:
+            messagebox.showerror("Error", "Port and duration must be numbers")
+            return
+        
+        # Disable buttons during test
+        self.bandwidth_upload_btn.configure(state="disabled", text="⬆ Testing...")
+        self.bandwidth_download_btn.configure(state="disabled")
+        
+        self.show_bandwidth_testing()
+        
+        def callback(results, error):
+            if error:
+                messagebox.showerror("Test Failed", f"Upload test failed:\n{error}")
+                self.show_bandwidth_empty_state()
+            else:
+                self.show_bandwidth_results(results, "Upload")
+            
+            self.bandwidth_upload_btn.configure(state="normal", text="⬆ Upload Test")
+            self.bandwidth_download_btn.configure(state="normal")
+        
+        self.bandwidth_tester.test_client(host, port, duration, reverse=False, callback=callback)
+    
+    def run_download_test(self):
+        """Run download speed test"""
+        host = self.bandwidth_host.get().strip()
+        port = self.bandwidth_port.get().strip() or "5201"
+        duration = self.bandwidth_duration.get().strip() or "10"
+        
+        if not host:
+            messagebox.showerror("Error", "Please enter an iperf3 server host")
+            return
+        
+        try:
+            port = int(port)
+            duration = int(duration)
+        except ValueError:
+            messagebox.showerror("Error", "Port and duration must be numbers")
+            return
+        
+        # Disable buttons during test
+        self.bandwidth_upload_btn.configure(state="disabled")
+        self.bandwidth_download_btn.configure(state="disabled", text="⬇ Testing...")
+        
+        self.show_bandwidth_testing()
+        
+        def callback(results, error):
+            if error:
+                messagebox.showerror("Test Failed", f"Download test failed:\n{error}")
+                self.show_bandwidth_empty_state()
+            else:
+                self.show_bandwidth_results(results, "Download")
+            
+            self.bandwidth_upload_btn.configure(state="normal")
+            self.bandwidth_download_btn.configure(state="normal", text="⬇ Download Test")
+        
+        self.bandwidth_tester.test_client(host, port, duration, reverse=True, callback=callback)
+    
+    def show_bandwidth_testing(self):
+        """Show testing in progress"""
+        for widget in self.bandwidth_results_frame.winfo_children():
+            widget.destroy()
+        
+        testing_frame = ctk.CTkFrame(self.bandwidth_results_frame, fg_color="transparent")
+        testing_frame.pack(fill="both", expand=True, pady=SPACING['xl'])
+        
+        testing_label = ctk.CTkLabel(
+            testing_frame,
+            text="⏳\n\nTest in progress...\n\nPlease wait",
+            font=ctk.CTkFont(size=FONTS['body']),
+            justify="center"
+        )
+        testing_label.pack(expand=True)
+    
+    def show_bandwidth_results(self, results, test_type):
+        """Display bandwidth test results"""
+        for widget in self.bandwidth_results_frame.winfo_children():
+            widget.destroy()
+        
+        summary = self.bandwidth_tester.get_summary(results)
+        
+        if not summary:
+            self.show_bandwidth_empty_state()
+            return
+        
+        # Test type header
+        type_label = ctk.CTkLabel(
+            self.bandwidth_results_frame,
+            text=f"✅ {test_type} Test Complete",
+            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold"),
+            text_color=COLORS['success']
+        )
+        type_label.pack(pady=(0, SPACING['md']))
+        
+        # Main speed display
+        if test_type == "Upload":
+            speed = summary['sent_mbps']
+        else:
+            speed = summary['received_mbps']
+        
+        speed_card = ctk.CTkFrame(self.bandwidth_results_frame, fg_color=COLORS['bg_card'])
+        speed_card.pack(fill="x", pady=(0, SPACING['md']))
+        
+        speed_label = ctk.CTkLabel(
+            speed_card,
+            text=f"{speed:.2f} Mbps",
+            font=ctk.CTkFont(size=36, weight="bold")
+        )
+        speed_label.pack(pady=SPACING['lg'])
+        
+        # Detailed results
+        details_data = [
+            ("Sent (Upload)", f"{summary['sent_mbps']:.2f} Mbps", f"{summary['sent_bytes'] / 1_000_000:.2f} MB"),
+            ("Received (Download)", f"{summary['received_mbps']:.2f} Mbps", f"{summary['received_bytes'] / 1_000_000:.2f} MB"),
+            ("Local CPU Usage", f"{summary['cpu_utilization_local']:.1f}%", ""),
+            ("Remote CPU Usage", f"{summary['cpu_utilization_remote']:.1f}%", ""),
+        ]
+        
+        for label, value1, value2 in details_data:
+            row = ctk.CTkFrame(self.bandwidth_results_frame, fg_color="transparent")
+            row.pack(fill="x", pady=SPACING['xs'])
+            
+            label_widget = ctk.CTkLabel(row, text=f"{label}:", font=ctk.CTkFont(size=FONTS['body'], weight="bold"), width=150, anchor="w")
+            label_widget.pack(side="left")
+            
+            value_widget = ctk.CTkLabel(row, text=value1, font=ctk.CTkFont(size=FONTS['body']), anchor="w")
+            value_widget.pack(side="left", padx=SPACING['sm'])
+            
+            if value2:
+                value2_widget = ctk.CTkLabel(row, text=value2, font=ctk.CTkFont(size=FONTS['small']), text_color=COLORS['text_secondary'], anchor="w")
+                value2_widget.pack(side="left")
+    
     def create_panos_content(self, parent):
         """Create PAN-OS CLI Generator content"""
         # Initialize storage
