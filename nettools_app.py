@@ -7125,9 +7125,9 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         graph_frame.pack(side="left", fill="both", expand=True, padx=5)
         
         # Create inline graph with matplotlib
-        fig = Figure(figsize=(3.5, 0.5), dpi=80, facecolor='transparent')
+        fig = Figure(figsize=(3.5, 0.5), dpi=80, facecolor='#f5f5f5')
         ax = fig.add_subplot(111)
-        ax.set_facecolor('white')
+        ax.set_facecolor('#ffffff')
         ax.set_ylim(0, 500)
         ax.set_xlim(0, 30)
         ax.axis('off')  # Hide axes for cleaner look
