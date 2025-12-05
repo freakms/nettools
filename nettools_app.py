@@ -2689,6 +2689,191 @@ class NetToolsApp(ctk.CTk):
         # Render initial empty state
         self.render_panos_commands()
     
+    def create_panos_schedule_tab(self):
+        """Create Schedule Object tab"""
+        self.panos_schedule_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        card = StyledCard(self.panos_schedule_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        title = SectionTitle(card, text="Schedule Object")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(card, text="Create time-based schedule objects for policy rules")
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Schedule Name
+        name_label = ctk.CTkLabel(card, text="Schedule Name *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_schedule_name = StyledEntry(card, placeholder_text="e.g., Business_Hours")
+        self.panos_schedule_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Schedule Type
+        type_label = ctk.CTkLabel(card, text="Schedule Type *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        type_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_schedule_type = ctk.CTkComboBox(card, values=["recurring", "non-recurring"], state="readonly")
+        self.panos_schedule_type.set("recurring")
+        self.panos_schedule_type.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Time Range
+        time_frame = ctk.CTkFrame(card, fg_color="transparent")
+        time_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        start_label = ctk.CTkLabel(time_frame, text="Start Time (HH:MM):", font=ctk.CTkFont(size=FONTS['body']))
+        start_label.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_schedule_start = StyledEntry(time_frame, placeholder_text="08:00", width=80)
+        self.panos_schedule_start.pack(side="left", padx=(0, SPACING['md']))
+        
+        end_label = ctk.CTkLabel(time_frame, text="End Time (HH:MM):", font=ctk.CTkFont(size=FONTS['body']))
+        end_label.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.panos_schedule_end = StyledEntry(time_frame, placeholder_text="18:00", width=80)
+        self.panos_schedule_end.pack(side="left")
+        
+        # Days (for recurring)
+        days_label = ctk.CTkLabel(card, text="Days (for recurring):", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        days_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        days_frame = ctk.CTkFrame(card, fg_color="transparent")
+        days_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        self.panos_schedule_days = {}
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        for day in days:
+            var = ctk.BooleanVar(value=True if day not in ["Saturday", "Sunday"] else False)
+            cb = ctk.CTkCheckBox(days_frame, text=day[:3], variable=var, width=60)
+            cb.pack(side="left", padx=SPACING['xs'])
+            self.panos_schedule_days[day.lower()] = var
+        
+        # Generate button
+        gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_schedule_object, size="large", variant="primary")
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
+    def create_panos_appfilter_tab(self):
+        """Create Application Filter tab"""
+        self.panos_appfilter_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        card = StyledCard(self.panos_appfilter_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        title = SectionTitle(card, text="Application Filter")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(card, text="Create custom application groups and filters")
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Filter Name
+        name_label = ctk.CTkLabel(card, text="Filter Name *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_appfilter_name = StyledEntry(card, placeholder_text="e.g., Social_Media_Apps")
+        self.panos_appfilter_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Category
+        cat_label = ctk.CTkLabel(card, text="Category *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        cat_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_appfilter_category = ctk.CTkComboBox(
+            card,
+            values=["business-systems", "collaboration", "general-internet", "media", "networking", "unknown"],
+            state="readonly"
+        )
+        self.panos_appfilter_category.set("general-internet")
+        self.panos_appfilter_category.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Subcategory
+        subcat_label = ctk.CTkLabel(card, text="Subcategory", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        subcat_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_appfilter_subcategory = StyledEntry(card, placeholder_text="e.g., social-networking")
+        self.panos_appfilter_subcategory.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Technology
+        tech_label = ctk.CTkLabel(card, text="Technology", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        tech_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_appfilter_technology = ctk.CTkComboBox(
+            card,
+            values=["browser-based", "client-server", "network-protocol", "peer-to-peer"],
+            state="readonly"
+        )
+        self.panos_appfilter_technology.set("browser-based")
+        self.panos_appfilter_technology.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Risk Level
+        risk_label = ctk.CTkLabel(card, text="Risk Level", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        risk_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        risk_frame = ctk.CTkFrame(card, fg_color="transparent")
+        risk_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        self.panos_appfilter_risk = {}
+        for level in [1, 2, 3, 4, 5]:
+            var = ctk.BooleanVar(value=False)
+            cb = ctk.CTkCheckBox(risk_frame, text=str(level), variable=var, width=50)
+            cb.pack(side="left", padx=SPACING['xs'])
+            self.panos_appfilter_risk[level] = var
+        
+        # Generate button
+        gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_appfilter, size="large", variant="primary")
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
+    def create_panos_urlcat_tab(self):
+        """Create Custom URL Category tab"""
+        self.panos_urlcat_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        card = StyledCard(self.panos_urlcat_tab)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        title = SectionTitle(card, text="Custom URL Category")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(card, text="Create custom URL categories for URL filtering")
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Category Name
+        name_label = ctk.CTkLabel(card, text="Category Name *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_urlcat_name = StyledEntry(card, placeholder_text="e.g., Blocked_Sites")
+        self.panos_urlcat_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Description
+        desc_label = ctk.CTkLabel(card, text="Description", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_urlcat_desc = StyledEntry(card, placeholder_text="Optional description")
+        self.panos_urlcat_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # URL List
+        url_label = ctk.CTkLabel(card, text="URLs (one per line) *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        url_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_urlcat_urls = ctk.CTkTextbox(card, height=150, font=ctk.CTkFont(size=FONTS['body'], family="Consolas"))
+        self.panos_urlcat_urls.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        self.panos_urlcat_urls.insert("1.0", "example.com\n*.example.com\nexample.org/path")
+        self.panos_urlcat_urls.configure(text_color=COLORS['text_secondary'])
+        self.panos_urlcat_urls.bind("<FocusIn>", lambda e: self.on_textbox_focus_in(self.panos_urlcat_urls, "example.com\n*.example.com\nexample.org/path"))
+        self.panos_urlcat_urls.bind("<FocusOut>", lambda e: self.on_textbox_focus_out(self.panos_urlcat_urls, "example.com\n*.example.com\nexample.org/path"))
+        
+        help_text = SubTitle(card, text="Supports domains, wildcards (*.domain.com), and paths")
+        help_text.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Type
+        type_label = ctk.CTkLabel(card, text="Type", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        type_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_urlcat_type = ctk.CTkComboBox(card, values=["URL List", "Category Match"], state="readonly")
+        self.panos_urlcat_type.set("URL List")
+        self.panos_urlcat_type.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Generate button
+        gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_urlcat, size="large", variant="primary")
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
+    
     def validate_panos_ip(self, ip):
         """Validate IP address or network with CIDR notation"""
         pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$'
