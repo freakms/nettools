@@ -6863,9 +6863,13 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         # Setup UI
         self.setup_ui()
         
-        # Bring window to front
+        # Bring window to front and focus
+        self.attributes('-topmost', True)  # Make window stay on top temporarily
+        self.after(100, lambda: self.attributes('-topmost', False))  # Remove topmost after 100ms
         self.lift()
-        self.focus()
+        self.focus_force()
+        self.grab_set()  # Make window modal temporarily
+        self.after(200, self.grab_release)  # Release after 200ms
     
     def setup_ui(self):
         """Setup the monitor window UI"""
