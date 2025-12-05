@@ -7063,8 +7063,8 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         """Create table row widget for a host"""
         host_data = self.monitor.hosts[ip]
         
-        # Row container
-        row = ctk.CTkFrame(self.scroll_frame, fg_color=("gray92", "gray20"), height=50)
+        # Row container (reduced height for more compact display)
+        row = ctk.CTkFrame(self.scroll_frame, fg_color=("gray92", "gray20"), height=38)
         row.pack(fill="x", pady=1)
         row.pack_propagate(False)
         
