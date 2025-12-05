@@ -7015,82 +7015,105 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         self.hosts_entry.configure(state="normal")
     
     def create_host_widget(self, ip):
-        """Create widget for a host"""
+        """Create widget for a host in grid layout"""
         host_data = self.monitor.hosts[ip]
         
-        # Container for this host
+        # Container for this host (grid cell)
         container = StyledCard(self.scroll_frame)
-        container.pack(fill="x", pady=(0, SPACING['md']))
+        container.grid(
+            row=self.grid_row,
+            column=self.grid_col,
+            padx=SPACING['sm'],
+            pady=SPACING['sm'],
+            sticky="nsew"
+        )
         
-        # Header with IP and status indicator
+        # Configure grid weights for this cell
+        self.scroll_frame.grid_columnconfigure(self.grid_col, weight=1)
+        
+        # Update grid position for next host
+        self.grid_col += 1
+        if self.grid_col >= self.grid_columns:
+            self.grid_col = 0
+            self.grid_row += 1
+        
+        # === HOST HEADER ===
         header_frame = ctk.CTkFrame(container, fg_color="transparent")
-        header_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        header_frame.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['sm'], 0))
         
-        # Status indicator (colored dot)
+        # Status indicator (colored dot) - left side
         status_canvas = ctk.CTkCanvas(
             header_frame,
-            width=20,
-            height=20,
+            width=16,
+            height=16,
             bg="gray85",
             highlightthickness=0
         )
-        status_canvas.pack(side="left", padx=(0, SPACING['sm']))
-        status_dot = status_canvas.create_oval(5, 5, 15, 15, fill="#808080", outline="")
+        status_canvas.pack(side="left", padx=(0, SPACING['xs']))
+        status_dot = status_canvas.create_oval(3, 3, 13, 13, fill="#808080", outline="")
         
-        # IP and hostname
-        info_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
-        info_frame.pack(side="left", fill="x", expand=True)
-        
+        # IP address - prominent display
         ip_label = ctk.CTkLabel(
-            info_frame,
+            header_frame,
             text=ip,
-            font=ctk.CTkFont(size=FONTS['subheading'], weight="bold")
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
-        ip_label.pack(anchor="w")
+        ip_label.pack(side="left", fill="x", expand=True)
         
+        # === HOSTNAME (if exists) ===
         if host_data.hostname:
             hostname_label = ctk.CTkLabel(
-                info_frame,
-                text=host_data.hostname,
-                font=ctk.CTkFont(size=FONTS['small']),
+                container,
+                text=f"({host_data.hostname})",
+                font=ctk.CTkFont(size=FONTS['tiny']),
                 text_color=COLORS['text_secondary']
             )
-            hostname_label.pack(anchor="w")
+            hostname_label.pack(padx=SPACING['sm'], pady=(0, SPACING['xs']))
         
-        # Stats frame
-        stats_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
-        stats_frame.pack(side="right")
+        # === STATISTICS ROW ===
+        stats_frame = ctk.CTkFrame(container, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
         
         avg_label = ctk.CTkLabel(
             stats_frame,
-            text="Avg: -- ms",
-            font=ctk.CTkFont(size=FONTS['small'])
+            text="Avg: --",
+            font=ctk.CTkFont(size=FONTS['tiny'])
         )
-        avg_label.pack(side="left", padx=SPACING['sm'])
+        avg_label.pack(side="left", padx=(0, SPACING['sm']))
         
         loss_label = ctk.CTkLabel(
             stats_frame,
             text="Loss: --%",
-            font=ctk.CTkFont(size=FONTS['small'])
+            font=ctk.CTkFont(size=FONTS['tiny'])
         )
-        loss_label.pack(side="left", padx=SPACING['sm'])
+        loss_label.pack(side="left")
         
-        # Graph container
+        ping_count_label = ctk.CTkLabel(
+            stats_frame,
+            text="Pings: 0",
+            font=ctk.CTkFont(size=FONTS['tiny'])
+        )
+        ping_count_label.pack(side="right")
+        
+        # === GRAPH ===
         graph_frame = ctk.CTkFrame(container, fg_color="transparent")
-        graph_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=(0, SPACING['md']))
+        graph_frame.pack(fill="both", expand=True, padx=SPACING['xs'], pady=(0, SPACING['xs']))
         
-        # Create matplotlib figure
-        fig = Figure(figsize=(8, 2), dpi=80, facecolor='#f0f0f0')
+        # Create compact matplotlib figure
+        fig = Figure(figsize=(4, 1.8), dpi=70, facecolor='#f0f0f0')
         ax = fig.add_subplot(111)
         ax.set_facecolor('#ffffff')
         ax.set_ylim(0, 200)
         ax.set_xlim(0, 30)
-        ax.set_xlabel('Last 30 Pings', color='#333333', fontsize=9)
-        ax.set_ylabel('Latency (ms)', color='#333333', fontsize=9)
-        ax.tick_params(colors='#333333', labelsize=8)
-        ax.grid(True, alpha=0.3)
+        ax.set_xlabel('Last 30 Pings', color='#555555', fontsize=7)
+        ax.set_ylabel('ms', color='#555555', fontsize=7)
+        ax.tick_params(colors='#555555', labelsize=6)
+        ax.grid(True, alpha=0.2, linewidth=0.5)
         
-        line, = ax.plot([], [], color='#00ff00', linewidth=2)
+        # Tighter layout
+        fig.tight_layout(pad=0.5)
+        
+        line, = ax.plot([], [], color='#00cc00', linewidth=1.5, marker='o', markersize=2)
         
         # Embed in tkinter
         canvas = FigureCanvasTkAgg(fig, master=graph_frame)
@@ -7102,8 +7125,10 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
             'container': container,
             'status_canvas': status_canvas,
             'status_dot': status_dot,
+            'ip_label': ip_label,
             'avg_label': avg_label,
             'loss_label': loss_label,
+            'ping_count_label': ping_count_label,
             'figure': fig,
             'axis': ax,
             'line': line,
