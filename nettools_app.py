@@ -2119,6 +2119,30 @@ class NetToolsApp(ctk.CTk):
         )
         add_btn.pack(side="right")
         
+        # Bulk paste section
+        bulk_label = ctk.CTkLabel(
+            card,
+            text="Or paste multiple members (one per line):",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        bulk_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['xs']))
+        
+        self.panos_group_bulk_paste = ctk.CTkTextbox(
+            card,
+            height=80,
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        self.panos_group_bulk_paste.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        bulk_add_btn = StyledButton(
+            card,
+            text="Add All from List",
+            command=self.add_bulk_group_members,
+            size="small",
+            variant="neutral"
+        )
+        bulk_add_btn.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
         # Members display
         self.panos_group_members_display = ctk.CTkFrame(card, fg_color=COLORS['bg_card'])
         self.panos_group_members_display.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
