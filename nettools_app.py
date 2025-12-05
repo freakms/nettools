@@ -53,6 +53,7 @@ from tools.network_profile_manager import NetworkProfileManager
 from tools.history_manager import HistoryManager
 from tools.network_icon import NetworkIcon
 from tools.live_ping_monitor import LivePingMonitor
+from tools.bandwidth_tester import BandwidthTester
 from tools.port_scanner import PortScanner
 from tools.dns_lookup import DNSLookup
 from tools.subnet_calculator import SubnetCalculator
