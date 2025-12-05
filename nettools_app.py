@@ -1808,6 +1808,9 @@ class NetToolsApp(ctk.CTk):
         self.panos_group_tab.pack_forget()
         self.panos_nat_tab.pack_forget()
         self.panos_policy_tab.pack_forget()
+        self.panos_schedule_tab.pack_forget()
+        self.panos_appfilter_tab.pack_forget()
+        self.panos_urlcat_tab.pack_forget()
         
         # Reset all button colors
         self.panos_name_gen_btn.configure(fg_color=COLORS['neutral'])
@@ -1815,6 +1818,9 @@ class NetToolsApp(ctk.CTk):
         self.panos_group_btn.configure(fg_color=COLORS['neutral'])
         self.panos_nat_btn.configure(fg_color=COLORS['neutral'])
         self.panos_policy_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_schedule_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_appfilter_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_urlcat_btn.configure(fg_color=COLORS['neutral'])
         
         # Show selected tab and highlight button
         if tab_name == "name":
@@ -1832,6 +1838,15 @@ class NetToolsApp(ctk.CTk):
         elif tab_name == "policy":
             self.panos_policy_btn.configure(fg_color=COLORS['primary'])
             self.panos_policy_tab.pack(fill="both", expand=True)
+        elif tab_name == "schedule":
+            self.panos_schedule_btn.configure(fg_color=COLORS['primary'])
+            self.panos_schedule_tab.pack(fill="both", expand=True)
+        elif tab_name == "appfilter":
+            self.panos_appfilter_btn.configure(fg_color=COLORS['primary'])
+            self.panos_appfilter_tab.pack(fill="both", expand=True)
+        elif tab_name == "urlcat":
+            self.panos_urlcat_btn.configure(fg_color=COLORS['primary'])
+            self.panos_urlcat_tab.pack(fill="both", expand=True)
         
         self.panos_current_tab = tab_name
     
