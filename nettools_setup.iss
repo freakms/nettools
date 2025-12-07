@@ -93,11 +93,8 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 ; Core application files (always installed)
 Source: "dist\NetTools\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: core
 
-; Documentation
-Source: "README.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Components: core
-Source: "LIVE_PING_MONITOR_GUIDE.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Components: scanning\livemon
-Source: "PANOS_COMPLETE_SUITE.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Components: advanced\panos
-Source: "IPERF3_INSTALLATION_WINDOWS.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Components: scanning\bandwidth
+; Documentation (optional - only if files exist)
+Source: "*.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
 
 ; iperf3 (optional - bundled)
 Source: "external\iperf3.exe"; DestDir: "{app}\tools"; Flags: ignoreversion; Components: dependencies\iperf3
