@@ -62,7 +62,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='network_icon.ico' if os.path.exists('network_icon.ico') else None,
+    icon=None,  # Set to 'network_icon.ico' if you have an icon file
 )
 
 coll = COLLECT(
