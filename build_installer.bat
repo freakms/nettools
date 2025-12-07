@@ -37,7 +37,7 @@ mkdir installer_output
 
 echo.
 echo Step 2/4: Building executable with PyInstaller...
-pyinstaller nettools.spec
+python -m PyInstaller nettools.spec
 
 if errorlevel 1 (
     echo ERROR: PyInstaller build failed
