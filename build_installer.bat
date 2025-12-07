@@ -16,10 +16,16 @@ if errorlevel 1 (
 )
 
 REM Check if PyInstaller is installed
-pip show pyinstaller >nul 2>&1
+python -m pip show pyinstaller >nul 2>&1
 if errorlevel 1 (
-    echo PyInstaller not found. Installing...
-    pip install pyinstaller
+    echo.
+    echo ERROR: PyInstaller is not installed
+    echo.
+    echo Please run: install_build_tools.bat
+    echo Or manually: python -m pip install pyinstaller
+    echo.
+    pause
+    exit /b 1
 )
 
 echo.
