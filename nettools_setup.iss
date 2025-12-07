@@ -25,7 +25,7 @@ DisableProgramGroupPage=yes
 ; Output
 OutputDir=installer_output
 OutputBaseFilename=NetTools_Setup_{#MyAppVersion}
-SetupIconFile=network_icon.ico
+; SetupIconFile=network_icon.ico  ; Uncomment if you have an icon file
 Compression=lzma2/max
 SolidCompression=yes
 
