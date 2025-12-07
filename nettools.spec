@@ -15,7 +15,6 @@ a = Analysis(
         ('design_constants.py', '.'),
         ('ui_components.py', '.'),
         ('tools/*.py', 'tools'),
-        ('oui.txt', '.'),  # MAC address vendor database
     ],
     hiddenimports=[
         'pythonping',
