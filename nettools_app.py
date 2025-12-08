@@ -2176,9 +2176,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         self.panos_tab_content.pack(fill="both", expand=True)
         
         # Create tabs
-        self.create_panos_name_generator_tab()
-        self.create_panos_single_address_tab()
-        self.create_panos_address_group_tab()
+        self.create_panos_addresses_tab()
         self.create_panos_nat_tab()
         self.create_panos_policy_tab()
         self.create_panos_schedule_tab()
