@@ -5024,6 +5024,8 @@ gateway.home.lan
                     
                     # Clear previous results
                     self.result_rows = []
+                    self.all_results = []
+                    self.current_page = 1
                     for widget in self.results_scrollable.winfo_children():
                         widget.destroy()
                     
