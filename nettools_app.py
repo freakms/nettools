@@ -2723,7 +2723,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def create_panos_nat_tab(self):
         """Create NAT Rule tab"""
-        self.panos_nat_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        self.panos_nat_tab = ctk.CTkFrame(self.panos_policies_tab, fg_color="transparent")
         
         # Card
         card = StyledCard(self.panos_nat_tab)
