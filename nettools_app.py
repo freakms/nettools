@@ -219,9 +219,13 @@ class NetToolsApp(ctk.CTk):
         separator = ctk.CTkFrame(self.sidebar, height=2, corner_radius=0)
         separator.pack(fill="x", padx=10, pady=10)
         
+        # Scrollable navigation container
+        nav_scroll = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
+        nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
+        
         # Quick Access - Live Monitor (prominent button)
         live_monitor_btn = StyledButton(
-            self.sidebar,
+            nav_scroll,
             text="📊 Live Ping Monitor",
             command=self.open_live_ping_monitor,
             size="large",
