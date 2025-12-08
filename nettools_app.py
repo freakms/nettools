@@ -5118,7 +5118,46 @@ gateway.home.lan
         
         # Store reference
         row_frame.result_data = result
+        # Store references to labels for updating
+        row_frame.dot_label = dot_label
+        row_frame.ip_label = ip_label
+        row_frame.hostname_label = hostname_label
+        row_frame.status_label = status_label
+        row_frame.rtt_label = rtt_label
         self.result_rows.append(row_frame)
+    
+    def update_result_row(self, row_index, result):
+        """Update an existing result row with new data"""
+        if row_index >= len(self.result_rows):
+            return
+        
+        row_frame = self.result_rows[row_index]
+        
+        # Update status dot color
+        status_color = COLORS["online"] if result['status'] == 'Online' else COLORS["offline"]
+        row_frame.dot_label.configure(text_color=status_color)
+        
+        # Update IP (shouldn't change but for consistency)
+        row_frame.ip_label.configure(text=result['ip'])
+        
+        # Update hostname
+        hostname = result.get('hostname', '')
+        row_frame.hostname_label.configure(
+            text=hostname if hostname else "-",
+            text_color=COLORS["text_secondary"] if hostname else ("gray70", "gray40")
+        )
+        
+        # Update status
+        row_frame.status_label.configure(
+            text=result['status'],
+            text_color=status_color
+        )
+        
+        # Update RTT
+        row_frame.rtt_label.configure(text=result['rtt'])
+        
+        # Update stored data
+        row_frame.result_data = result
     
     def filter_results(self, event=None):
         """Filter displayed results"""
