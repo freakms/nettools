@@ -190,25 +190,6 @@ Edit in `nettools_setup.iss`:
 
 ---
 
-## Bundle iperf3
-
-To include iperf3 in the installer:
-
-### Step 1: Download iperf3
-1. Visit: https://iperf.fr/iperf-download.php
-2. Download Windows binary
-3. Extract `iperf3.exe`
-
-### Step 2: Place in External Folder
-```
-/app/external/iperf3.exe
-```
-
-### Step 3: Rebuild
-The build script will automatically include it.
-
----
-
 ## Troubleshooting
 
 ### PyInstaller Issues
