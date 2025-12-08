@@ -4027,6 +4027,145 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         self.render_panos_commands()
         messagebox.showinfo("Success", f"URL category command generated with {len(urls)} URLs!")
     
+    def generate_service_object(self):
+        """Generate service object command"""
+        name = self.panos_service_name.get().strip()
+        port = self.panos_service_port.get().strip()
+        protocol = self.panos_service_protocol.get()
+        desc = self.panos_service_desc.get().strip()
+        create_both = self.panos_service_both.get()
+        
+        if not name or not port:
+            messagebox.showerror("Error", "Please enter service name and port")
+            return
+        
+        commands = []
+        
+        if create_both:
+            # Create TCP service
+            tcp_name = f"TCP-{name}"
+            cmd_tcp = 'configure\n'
+            cmd_tcp += f'set service "{tcp_name}" protocol tcp port {port}\n'
+            if desc:
+                cmd_tcp += f'set service "{tcp_name}" description "{desc} (TCP)"\n'
+            cmd_tcp += 'commit'
+            commands.append(cmd_tcp)
+            
+            # Create UDP service
+            udp_name = f"UDP-{name}"
+            cmd_udp = 'configure\n'
+            cmd_udp += f'set service "{udp_name}" protocol udp port {port}\n'
+            if desc:
+                cmd_udp += f'set service "{udp_name}" description "{desc} (UDP)"\n'
+            cmd_udp += 'commit'
+            commands.append(cmd_udp)
+            
+            self.panos_commands.extend(commands)
+            self.render_panos_commands()
+            messagebox.showinfo("Success", f"Generated 2 service commands (TCP and UDP)!")
+        else:
+            # Create single service
+            cmd = 'configure\n'
+            cmd += f'set service "{name}" protocol {protocol} port {port}\n'
+            if desc:
+                cmd += f'set service "{name}" description "{desc}"\n'
+            cmd += 'commit'
+            
+            self.panos_commands.append(cmd)
+            self.render_panos_commands()
+            messagebox.showinfo("Success", "Service object command generated!")
+    
+    def add_service_group_member(self):
+        """Add member to service group"""
+        member = self.panos_service_group_member.get().strip()
+        if member and member not in self.panos_service_group_members:
+            self.panos_service_group_members.append(member)
+            self.render_service_group_members()
+            self.panos_service_group_member.delete(0, 'end')
+    
+    def add_bulk_service_members(self):
+        """Add multiple service members from bulk paste"""
+        bulk_text = self.panos_service_group_bulk.get("1.0", "end-1c").strip()
+        if not bulk_text:
+            return
+        
+        lines = bulk_text.split('\n')
+        added_count = 0
+        for line in lines:
+            member = line.strip()
+            if member and member not in self.panos_service_group_members:
+                self.panos_service_group_members.append(member)
+                added_count += 1
+        
+        if added_count > 0:
+            self.render_service_group_members()
+            self.panos_service_group_bulk.delete("1.0", "end")
+            messagebox.showinfo("Success", f"Added {added_count} service(s) to the group")
+    
+    def render_service_group_members(self):
+        """Render service group members"""
+        for widget in self.panos_service_group_display.winfo_children():
+            widget.destroy()
+        
+        if not self.panos_service_group_members:
+            empty_label = ctk.CTkLabel(
+                self.panos_service_group_display,
+                text="No members added yet",
+                text_color=COLORS['text_secondary']
+            )
+            empty_label.pack(pady=SPACING['md'])
+            return
+        
+        for member in self.panos_service_group_members:
+            member_frame = ctk.CTkFrame(self.panos_service_group_display, fg_color="transparent")
+            member_frame.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
+            
+            member_label = ctk.CTkLabel(
+                member_frame,
+                text=member,
+                font=ctk.CTkFont(size=FONTS['body'])
+            )
+            member_label.pack(side="left", fill="x", expand=True)
+            
+            remove_btn = ctk.CTkButton(
+                member_frame,
+                text="✕",
+                command=lambda m=member: self.remove_service_group_member(m),
+                width=30,
+                height=25,
+                fg_color="transparent",
+                hover_color=COLORS['danger'],
+                text_color=COLORS['danger']
+            )
+            remove_btn.pack(side="right")
+    
+    def remove_service_group_member(self, member):
+        """Remove member from service group"""
+        if member in self.panos_service_group_members:
+            self.panos_service_group_members.remove(member)
+            self.render_service_group_members()
+    
+    def generate_service_group(self):
+        """Generate service group command"""
+        name = self.panos_service_group_name.get().strip()
+        
+        if not name:
+            messagebox.showerror("Error", "Please enter group name")
+            return
+        
+        if not self.panos_service_group_members:
+            messagebox.showerror("Error", "Please add at least one service member")
+            return
+        
+        cmd = 'configure\n'
+        for member in self.panos_service_group_members:
+            cmd += f'set service-group "{name}" members {member}\n'
+        cmd += 'commit'
+        
+        self.panos_commands.append(cmd)
+        self.render_panos_commands()
+        messagebox.showinfo("Success", f"Service group command generated with {len(self.panos_service_group_members)} members!")
+    
     def render_panos_commands(self):
         """Render commands in output panel"""
         # Clear existing
