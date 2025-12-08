@@ -194,6 +194,7 @@ class IPv4Scanner:
     
     def scan_ip_list(self, ip_list, aggression='Medium', max_workers=None, resolve_dns=True):
         """Scan a list of IP addresses"""
+        print(f"Scanner.scan_ip_list called with {len(ip_list)} IPs")
         self.scanning = True
         self.cancel_flag = False
         self.results = []
@@ -205,6 +206,7 @@ class IPv4Scanner:
             'Aggressive (short timeout)': 150
         }
         timeout_ms = timeout_map.get(aggression, 300)
+        print(f"Using timeout: {timeout_ms}ms")
         
         # Set max workers based on aggression
         worker_map = {
