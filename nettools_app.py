@@ -2168,8 +2168,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         
         # Create tabs
         self.create_panos_addresses_tab()
-        self.create_panos_nat_tab()
-        self.create_panos_policy_tab()
+        self.create_panos_policies_tab()
         self.create_panos_schedule_tab()
         self.create_panos_appfilter_tab()
         self.create_panos_urlcat_tab()
