@@ -5238,8 +5238,6 @@ gateway.home.lan
     
     def on_scan_progress(self, completed, total, result):
         """Handle scan progress update with batching for performance"""
-        print(f"Progress callback: {completed}/{total} - IP: {result.get('ip', 'unknown')}")
-        
         # Add to buffer
         self.update_buffer.append((completed, total, result))
         
