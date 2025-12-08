@@ -92,9 +92,6 @@ Source: "dist\NetTools\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; Documentation (optional - only if files exist)
 Source: "*.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
 
-; iperf3 (optional - bundled, only if exists)
-Source: "external\iperf3.exe"; DestDir: "{app}\tools"; Flags: ignoreversion skipifsourcedoesntexist; Components: dependencies\iperf3
-
 [Icons]
 ; Start menu shortcuts
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
