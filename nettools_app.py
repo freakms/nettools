@@ -265,7 +265,7 @@ class NetToolsApp(ctk.CTk):
         for category_name, items in nav_categories:
             # Category header
             category_label = ctk.CTkLabel(
-                self.sidebar,
+                nav_scroll,
                 text=category_name,
                 font=ctk.CTkFont(size=11, weight="bold"),
                 text_color=("gray40", "gray60"),
@@ -276,7 +276,7 @@ class NetToolsApp(ctk.CTk):
             # Category items
             for page_id, label, tooltip in items:
                 btn = ctk.CTkButton(
-                    self.sidebar,
+                    nav_scroll,
                     text=label,
                     command=lambda p=page_id: self.switch_page(p),
                     height=40,
