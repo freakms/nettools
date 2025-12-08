@@ -2198,7 +2198,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         self.create_panos_schedule_tab()
         self.create_panos_appfilter_tab()
         self.create_panos_urlcat_tab()
-        # self.create_panos_service_tab()  # TODO: Implement this method
+        self.create_panos_service_tab()
         
         # Show name generator by default
         self.panos_current_tab = "name"
