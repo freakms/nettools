@@ -5009,19 +5009,22 @@ gateway.home.lan
         # Check if this is from an imported list
         if hasattr(self, 'current_scan_list') and self.current_scan_list and hasattr(self, 'ip_to_row_index'):
             status_text = f"Scanning imported addresses: {current_ip} ({completed}/{total})"
+            self.status_label.configure(text=status_text)
             
             # Update existing row instead of adding new one
-            ip_addr = result['ip']
+            ip_addr = result.get('ip', '').strip()
             if ip_addr in self.ip_to_row_index:
                 row_index = self.ip_to_row_index[ip_addr]
                 if row_index < len(self.result_rows):
                     self.update_result_row(row_index, result)
-                    self.status_label.configure(text=status_text)
                     return  # Don't add a new row
+            else:
+                # IP not in mapping - this shouldn't happen, but handle it
+                print(f"Warning: IP {ip_addr} not found in mapping. Available IPs: {list(self.ip_to_row_index.keys())[:5]}")
+        else:
+            self.status_label.configure(text=status_text)
         
-        self.status_label.configure(text=status_text)
-        
-        # Add result row (for regular scans)
+        # Add result row (for regular scans or if IP not found in mapping)
         self.add_result_row(result)
     
     def on_scan_complete(self, results, message):
