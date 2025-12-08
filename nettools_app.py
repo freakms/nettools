@@ -4794,9 +4794,13 @@ gateway.home.lan
 # This is a comment"""
         ip_textbox.insert("1.0", placeholder)
         
-        # Button frame
+        # Button frame - organized in rows for better visibility
         button_frame = ctk.CTkFrame(content, fg_color="transparent")
         button_frame.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        # Top row: Load from file
+        top_button_row = ctk.CTkFrame(button_frame, fg_color="transparent")
+        top_button_row.pack(fill="x", pady=(0, SPACING['xs']))
         
         # Load from file button
         def load_file():
@@ -4818,13 +4822,17 @@ gateway.home.lan
                     messagebox.showerror("Error", f"Failed to load file: {e}")
         
         load_btn = StyledButton(
-            button_frame,
+            top_button_row,
             text="📁 Load from File",
             command=load_file,
             size="medium",
             variant="neutral"
         )
-        load_btn.pack(side="left", padx=(0, SPACING['md']))
+        load_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        # Bottom row: action buttons
+        bottom_button_row = ctk.CTkFrame(button_frame, fg_color="transparent")
+        bottom_button_row.pack(fill="x")
         
         # Preview/Validate button
         def preview_list():
