@@ -4932,7 +4932,7 @@ gateway.home.lan
                     self.scanner.complete_callback = self.on_scan_complete
                     
                     # Start scan in background
-                    aggression = self.aggression_var.get()
+                    aggression = self.aggro_selector.get()  # Use the correct selector
                     threading.Thread(
                         target=self.scanner.scan_ip_list,
                         args=(ip_list, aggression),
