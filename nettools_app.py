@@ -5159,7 +5159,8 @@ gateway.home.lan
         )
         
         # Update RTT
-        row_frame.rtt_label.configure(text=result['rtt'])
+        rtt_text = result.get('rtt', '---')
+        row_frame.rtt_label.configure(text=rtt_text)
         
         # Update stored data
         row_frame.result_data = result
