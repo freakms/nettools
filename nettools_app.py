@@ -4330,7 +4330,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
             cmd_text = ctk.CTkTextbox(
                 cmd_frame,
                 height=100,
-                font=ctk.CTkFont(size=FONTS['tiny'], family="Consolas"),
+                font=ctk.CTkFont(size=FONTS['small'], family="Consolas"),
                 wrap="none"
             )
             cmd_text.pack(fill="both", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
