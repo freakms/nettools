@@ -121,6 +121,12 @@ class NetToolsApp(ctk.CTk):
         self.UPDATE_BATCH_SIZE = 10  # Update UI every 10 results
         self.UPDATE_INTERVAL_MS = 100  # Or every 100ms
         
+        # Pagination for results
+        self.all_results = []  # Store all results
+        self.current_page = 1
+        self.results_per_page = 100
+        self.total_pages = 1
+        
         # Initialize history manager
         self.history = HistoryManager()
         
