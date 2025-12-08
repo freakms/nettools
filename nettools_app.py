@@ -4989,7 +4989,16 @@ gateway.home.lan
         # Update progress bar
         progress = completed / total if total > 0 else 0
         self.progress_bar.set(progress)
-        self.status_label.configure(text=f"Scan running... ({completed} / {total})")
+        
+        # Show current IP being scanned if available
+        current_ip = result['ip'] if result else "..."
+        status_text = f"Scanning {current_ip}... ({completed} / {total})"
+        
+        # If this is from an imported list, show that context
+        if hasattr(self, 'current_scan_list') and self.current_scan_list:
+            status_text = f"Scanning imported addresses: {current_ip} ({completed}/{total})"
+        
+        self.status_label.configure(text=status_text)
         
         # Add result row
         self.add_result_row(result)
