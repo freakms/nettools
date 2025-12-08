@@ -172,24 +172,41 @@ After installation:
 
 ---
 
-## Optional: iperf3 Installation
+## ⚠️ Important: iperf3 Installation (Required for Bandwidth Testing)
 
-For **Bandwidth Testing** feature:
+For **Bandwidth Testing** feature, you MUST install iperf3 separately:
 
-### Option 1: Install During Setup
-- Check "Install iperf3" during component selection
-- Automatically added to system PATH
+### Why Separate?
+- iperf3 is not bundled with the installer to keep size small
+- Licensing considerations
+- You may already have it installed
 
-### Option 2: Install Later
-The app will show installation instructions if iperf3 is not found.
+### Installation Options
 
-**Quick Install (Chocolatey):**
+**Option 1: Chocolatey (Easiest)**
 ```powershell
 choco install iperf3
 ```
 
-**Or download manually:**
-https://iperf.fr/iperf-download.php
+**Option 2: Scoop**
+```powershell
+scoop install iperf3
+```
+
+**Option 3: Manual Installation**
+1. Download from: https://iperf.fr/iperf-download.php
+2. Extract iperf3.exe to a folder (e.g., C:\Tools\iperf3\)
+3. Add folder to Windows PATH
+4. Restart NetTools application
+
+### Installation Guide Included
+A complete step-by-step guide is included in the installation at:
+`C:\Program Files\NetTools Suite\docs\IPERF3_INSTALLATION_GUIDE.md`
+
+### Application Behavior
+- If you select "Bandwidth Testing" during install, you'll see instructions
+- The application will detect if iperf3 is missing and show setup help
+- All other tools work without iperf3
 
 ---
 
