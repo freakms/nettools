@@ -2113,23 +2113,14 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         )
         self.panos_addresses_btn.pack(side="left", padx=(0, SPACING['xs']))
         
-        self.panos_nat_btn = StyledButton(
+        self.panos_policies_btn = StyledButton(
             tab_frame,
-            text="🔄 NAT",
-            command=lambda: self.switch_panos_tab("nat"),
+            text="🛡️ Policies",
+            command=lambda: self.switch_panos_tab("policies"),
             size="medium",
             variant="neutral"
         )
-        self.panos_nat_btn.pack(side="left", padx=(0, SPACING['xs']))
-        
-        self.panos_policy_btn = StyledButton(
-            tab_frame,
-            text="🛡️ Policy",
-            command=lambda: self.switch_panos_tab("policy"),
-            size="medium",
-            variant="neutral"
-        )
-        self.panos_policy_btn.pack(side="left", padx=(0, SPACING['xs']))
+        self.panos_policies_btn.pack(side="left", padx=(0, SPACING['xs']))
         
         self.panos_service_btn = StyledButton(
             tab_frame,
