@@ -144,6 +144,10 @@ class NetToolsApp(ctk.CTk):
         self.subtitle_font_size = 12
         self.label_font_size = 12
         
+        # Window persistence
+        self.config_file = Path.home() / '.nettools_config.json'
+        self.load_window_state()
+        
         # Create UI (order matters: status bar must be packed before main content)
         self.create_sidebar()
         self.create_status_bar()
@@ -152,9 +156,13 @@ class NetToolsApp(ctk.CTk):
         # Bind keyboard shortcuts
         self.bind('<Return>', self.on_enter_key)
         self.bind('<Control-e>', self.export_csv)
+        self.bind('<Control-k>', self.open_quick_switcher)  # Quick switcher
         
         # Bind window resize for auto-scaling
         self.bind('<Configure>', self.on_window_resize)
+        
+        # Save window state on close
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
     def load_oui_database(self):
         """Load OUI database from JSON file"""
