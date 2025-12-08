@@ -133,8 +133,27 @@ Users can choose which tools to install:
 - PAN-OS CLI Generator
 - phpIPAM Integration
 
-**📦 Optional Dependencies:**
-- iperf3 (for bandwidth testing)
+---
+
+## External Dependencies - iperf3
+
+**Important:** iperf3 is NOT bundled with the installer to keep size small and avoid licensing issues.
+
+### User Installation Process
+
+When users select the "Bandwidth Testing" component during installation:
+1. They will see an information page with iperf3 download instructions
+2. Users must manually download and install iperf3 from: https://iperf.fr/iperf-download.php
+3. Users must add iperf3 to their Windows PATH
+4. The application will detect if iperf3 is missing and show setup instructions
+
+### Installation Guide
+
+A comprehensive guide (`IPERF3_INSTALLATION_GUIDE.md`) is included in the installer that covers:
+- Step-by-step download instructions
+- PATH configuration
+- Verification steps
+- Troubleshooting
 
 ---
 
