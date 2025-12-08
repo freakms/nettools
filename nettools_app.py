@@ -2256,6 +2256,9 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         elif tab_name == "urlcat":
             self.panos_urlcat_btn.configure(fg_color=COLORS['primary'])
             self.panos_urlcat_tab.pack(fill="both", expand=True)
+        elif tab_name == "service":
+            self.panos_service_btn.configure(fg_color=COLORS['primary'])
+            self.panos_service_tab.pack(fill="both", expand=True)
         
         self.panos_current_tab = tab_name
     
