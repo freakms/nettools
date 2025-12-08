@@ -293,13 +293,13 @@ class NetToolsApp(ctk.CTk):
         # Update initial button state
         self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
         
-        # Spacer to push theme selector to bottom
-        spacer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        spacer.pack(fill="both", expand=True)
+        # Add some bottom padding to scroll area
+        bottom_padding = ctk.CTkFrame(nav_scroll, fg_color="transparent", height=20)
+        bottom_padding.pack(fill="x")
         
-        # Theme selector at bottom
+        # Theme selector at bottom (fixed position outside scroll)
         theme_frame = ctk.CTkFrame(self.sidebar, corner_radius=0, fg_color="transparent")
-        theme_frame.pack(fill="x", padx=10, pady=20)
+        theme_frame.pack(side="bottom", fill="x", padx=10, pady=10)
         
         theme_label = ctk.CTkLabel(theme_frame, text="Theme", font=ctk.CTkFont(size=12))
         theme_label.pack(pady=(0, 5))
