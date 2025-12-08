@@ -4907,7 +4907,7 @@ gateway.home.lan
                             'ip': ip_addr,
                             'hostname': '...',
                             'status': 'Pending',
-                            'response_time': '---',
+                            'rtt': '---',
                             'responding': False
                         }
                         self.add_result_row(placeholder_result)
