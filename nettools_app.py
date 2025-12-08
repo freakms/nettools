@@ -5325,6 +5325,65 @@ gateway.home.lan
         # Update stored data
         row_frame.result_data = result
     
+    def go_to_page(self, page_num):
+        """Go to specific page"""
+        if page_num < 1 or page_num > self.total_pages:
+            return
+        
+        self.current_page = page_num
+        self.render_current_page()
+    
+    def next_page(self):
+        """Go to next page"""
+        if self.current_page < self.total_pages:
+            self.go_to_page(self.current_page + 1)
+    
+    def previous_page(self):
+        """Go to previous page"""
+        if self.current_page > 1:
+            self.go_to_page(self.current_page - 1)
+    
+    def render_current_page(self):
+        """Render results for current page"""
+        # Clear existing rows
+        for widget in self.results_scrollable.winfo_children():
+            widget.destroy()
+        self.result_rows.clear()
+        
+        # Calculate slice
+        start_idx = (self.current_page - 1) * self.results_per_page
+        end_idx = start_idx + self.results_per_page
+        page_results = self.all_results[start_idx:end_idx]
+        
+        # Render page results
+        for result in page_results:
+            self.add_result_row(result)
+        
+        # Update pagination UI
+        self.update_pagination_ui()
+    
+    def update_pagination_ui(self):
+        """Update pagination controls"""
+        total_results = len(self.all_results)
+        self.total_pages = max(1, (total_results + self.results_per_page - 1) // self.results_per_page)
+        
+        # Update labels
+        start_idx = (self.current_page - 1) * self.results_per_page + 1
+        end_idx = min(self.current_page * self.results_per_page, total_results)
+        
+        if total_results == 0:
+            self.pagination_label.configure(text="No results")
+            self.page_indicator.configure(text="Page 0 of 0")
+        else:
+            self.pagination_label.configure(text=f"Showing {start_idx}-{end_idx} of {total_results} results")
+            self.page_indicator.configure(text=f"Page {self.current_page} of {self.total_pages}")
+        
+        # Enable/disable buttons
+        self.first_page_btn.configure(state="normal" if self.current_page > 1 else "disabled")
+        self.prev_page_btn.configure(state="normal" if self.current_page > 1 else "disabled")
+        self.next_page_btn.configure(state="normal" if self.current_page < self.total_pages else "disabled")
+        self.last_page_btn.configure(state="normal" if self.current_page < self.total_pages else "disabled")
+    
     def filter_results(self, event=None):
         """Filter displayed results"""
         only_responding = self.only_responding_check.get()
