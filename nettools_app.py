@@ -3391,7 +3391,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         content = ctk.CTkFrame(parent, fg_color="transparent")
         
         card = StyledCard(content)
-        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs']))
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
         
         title = SectionTitle(card, text="Service Group")
         title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
