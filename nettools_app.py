@@ -5033,9 +5033,11 @@ gateway.home.lan
         self.start_scan_btn.configure(state="normal")
         self.cancel_scan_btn.configure(state="disabled")
         
-        # Clear imported list flag
+        # Clear imported list flags
         if hasattr(self, 'current_scan_list'):
             self.current_scan_list = None
+        if hasattr(self, 'ip_to_row_index'):
+            self.ip_to_row_index = None
         
         if len(results) > 0:
             self.export_btn.configure(state="normal")
