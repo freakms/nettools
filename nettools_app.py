@@ -3575,6 +3575,67 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         # Show popup with generated names
         self.show_generated_names_popup()
     
+    def show_generated_names_popup(self):
+        """Show popup window with generated names"""
+        popup = ctk.CTkToplevel(self)
+        popup.title("Generated Names")
+        popup.geometry("600x500")
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            popup,
+            text=f"✅ Generated {len(self.panos_generated_names)} Names",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title_label.pack(pady=SPACING['lg'])
+        
+        # Names list in textbox
+        names_text = '\n'.join([item['generated_name'] for item in self.panos_generated_names])
+        
+        textbox = ctk.CTkTextbox(
+            popup,
+            font=ctk.CTkFont(size=FONTS['body'], family="Consolas"),
+            wrap="none"
+        )
+        textbox.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['md']))
+        textbox.insert("1.0", names_text)
+        textbox.configure(state="disabled")  # Read-only
+        
+        # Button frame
+        btn_frame = ctk.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Copy button
+        copy_btn = StyledButton(
+            btn_frame,
+            text="📋 Copy to Clipboard",
+            command=lambda: self.copy_generated_names(names_text, popup),
+            size="medium",
+            variant="primary"
+        )
+        copy_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        # Close button
+        close_btn = StyledButton(
+            btn_frame,
+            text="✓ OK",
+            command=popup.destroy,
+            size="medium",
+            variant="success"
+        )
+        close_btn.pack(side="left", fill="x", expand=True, padx=(SPACING['xs'], 0))
+        
+        # Center the popup
+        popup.transient(self)
+        popup.grab_set()
+        popup.focus()
+    
+    def copy_generated_names(self, text, popup):
+        """Copy generated names to clipboard"""
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        messagebox.showinfo("Copied", "Generated names copied to clipboard!", parent=popup)
+    
     def reset_panos_name_generator(self):
         """Reset all fields in the Name Generator tab"""
         # Clear and restore placeholders for textboxes
