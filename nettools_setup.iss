@@ -108,9 +108,6 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 ; Option to run after installation
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
-; Add iperf3 to PATH if installed
-Filename: "powershell.exe"; Parameters: "-Command ""[Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';{app}\tools', 'Machine')"""; Flags: runhidden; Components: dependencies\iperf3
-
 [Code]
 var
   ComponentsPage: TInputOptionWizardPage;
