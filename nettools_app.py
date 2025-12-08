@@ -3572,16 +3572,8 @@ Option 4: Using WSL (Windows Subsystem for Linux)
                 'generated_name': generated_name
             })
         
-        # Show preview
-        preview_text = '\n'.join([f"{item['generated_name']} → {item['ip']}" for item in self.panos_generated_names])
-        self.panos_preview_text.delete("1.0", "end")
-        self.panos_preview_text.insert("1.0", preview_text)
-        
-        # Show preview and step 2
-        self.panos_preview_frame.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], 0))
-        self.panos_step2_frame.pack(fill="x", pady=(SPACING['md'], 0))
-        
-        messagebox.showinfo("Success", f"Generated {len(self.panos_generated_names)} object names!")
+        # Show popup with generated names
+        self.show_generated_names_popup()
     
     def reset_panos_name_generator(self):
         """Reset all fields in the Name Generator tab"""
