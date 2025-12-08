@@ -2186,8 +2186,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         """Switch between PAN-OS Generator tabs"""
         # Hide all tabs
         self.panos_addresses_tab.pack_forget()
-        self.panos_nat_tab.pack_forget()
-        self.panos_policy_tab.pack_forget()
+        self.panos_policies_tab.pack_forget()
         self.panos_service_tab.pack_forget()
         self.panos_schedule_tab.pack_forget()
         self.panos_appfilter_tab.pack_forget()
@@ -2195,8 +2194,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         
         # Reset all button colors
         self.panos_addresses_btn.configure(fg_color=COLORS['neutral'])
-        self.panos_nat_btn.configure(fg_color=COLORS['neutral'])
-        self.panos_policy_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_policies_btn.configure(fg_color=COLORS['neutral'])
         self.panos_service_btn.configure(fg_color=COLORS['neutral'])
         self.panos_schedule_btn.configure(fg_color=COLORS['neutral'])
         self.panos_appfilter_btn.configure(fg_color=COLORS['neutral'])
@@ -2206,12 +2204,9 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         if tab_name == "addresses":
             self.panos_addresses_btn.configure(fg_color=COLORS['primary'])
             self.panos_addresses_tab.pack(fill="both", expand=True)
-        elif tab_name == "nat":
-            self.panos_nat_btn.configure(fg_color=COLORS['primary'])
-            self.panos_nat_tab.pack(fill="both", expand=True)
-        elif tab_name == "policy":
-            self.panos_policy_btn.configure(fg_color=COLORS['primary'])
-            self.panos_policy_tab.pack(fill="both", expand=True)
+        elif tab_name == "policies":
+            self.panos_policies_btn.configure(fg_color=COLORS['primary'])
+            self.panos_policies_tab.pack(fill="both", expand=True)
         elif tab_name == "schedule":
             self.panos_schedule_btn.configure(fg_color=COLORS['primary'])
             self.panos_schedule_tab.pack(fill="both", expand=True)
