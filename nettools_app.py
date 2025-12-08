@@ -4927,6 +4927,10 @@ gateway.home.lan
                     self.current_scan_list = ip_list
                     self.ip_to_row_index = {ip: idx for idx, ip in enumerate(ip_list)}
                     
+                    # Set scanner callbacks (CRITICAL!)
+                    self.scanner.progress_callback = self.on_scan_progress
+                    self.scanner.complete_callback = self.on_scan_complete
+                    
                     # Start scan in background
                     aggression = self.aggression_var.get()
                     threading.Thread(
