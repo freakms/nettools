@@ -2897,7 +2897,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def create_panos_policy_tab(self):
         """Create Security Policy Rule tab"""
-        self.panos_policy_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        self.panos_policy_tab = ctk.CTkFrame(self.panos_policies_tab, fg_color="transparent")
         
         # Card
         card = StyledCard(self.panos_policy_tab)
