@@ -5006,9 +5006,34 @@ gateway.home.lan
         scan_btn.pack(side="left", fill="x", expand=True)
     
     def on_scan_progress(self, completed, total, result):
-        """Handle scan progress update"""
+        """Handle scan progress update with batching for performance"""
         print(f"Progress callback: {completed}/{total} - IP: {result.get('ip', 'unknown')}")
-        self.after(0, self._update_scan_progress, completed, total, result)
+        
+        # Add to buffer
+        self.update_buffer.append((completed, total, result))
+        
+        # Update immediately if buffer is full OR it's the last result
+        if len(self.update_buffer) >= self.UPDATE_BATCH_SIZE or completed == total:
+            self._flush_update_buffer()
+        else:
+            # Schedule delayed flush if not already scheduled
+            if self.update_timer is None:
+                self.update_timer = self.after(self.UPDATE_INTERVAL_MS, self._flush_update_buffer)
+    
+    def _flush_update_buffer(self):
+        """Flush buffered updates to UI"""
+        if self.update_timer:
+            self.after_cancel(self.update_timer)
+            self.update_timer = None
+        
+        if not self.update_buffer:
+            return
+        
+        # Process all buffered updates
+        for completed, total, result in self.update_buffer:
+            self._update_scan_progress(completed, total, result)
+        
+        self.update_buffer.clear()
     
     def _update_scan_progress(self, completed, total, result):
         """Update scan progress in main thread"""
