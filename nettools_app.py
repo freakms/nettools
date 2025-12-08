@@ -3286,6 +3286,186 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_urlcat, size="large", variant="primary")
         gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
     
+    def create_panos_service_tab(self):
+        """Create Service Objects tab"""
+        self.panos_service_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Create two subtabs: Single Service and Service Group
+        subtab_frame = ctk.CTkFrame(self.panos_service_tab, fg_color="transparent")
+        subtab_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        
+        self.service_single_btn = StyledButton(
+            subtab_frame,
+            text="Single Service",
+            command=lambda: self.switch_service_subtab("single"),
+            size="small",
+            variant="primary"
+        )
+        self.service_single_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.service_group_btn = StyledButton(
+            subtab_frame,
+            text="Service Group",
+            command=lambda: self.switch_service_subtab("group"),
+            size="small",
+            variant="neutral"
+        )
+        self.service_group_btn.pack(side="left")
+        
+        # Single Service Tab
+        self.service_single_content = self.create_single_service_content(self.panos_service_tab)
+        
+        # Service Group Tab
+        self.service_group_content = self.create_service_group_content(self.panos_service_tab)
+        self.service_group_content.pack_forget()
+    
+    def create_single_service_content(self, parent):
+        """Create single service object content"""
+        content = ctk.CTkFrame(parent, fg_color="transparent")
+        content.pack(fill="both", expand=True)
+        
+        card = StyledCard(content)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs'])
+        
+        title = SectionTitle(card, text="Service Object")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(card, text="Create TCP/UDP service objects")
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Service Name
+        name_label = ctk.CTkLabel(card, text="Service Name *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_service_name = StyledEntry(card, placeholder_text="e.g., Web_Service")
+        self.panos_service_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Port
+        port_label = ctk.CTkLabel(card, text="Port Number *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        port_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_service_port = StyledEntry(card, placeholder_text="e.g., 8080 or 8080-8090")
+        self.panos_service_port.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Protocol Selection with Checkbox
+        protocol_label = ctk.CTkLabel(card, text="Protocol *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        protocol_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        protocol_frame = ctk.CTkFrame(card, fg_color="transparent")
+        protocol_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        self.panos_service_protocol = ctk.CTkComboBox(
+            protocol_frame,
+            values=["tcp", "udp"],
+            state="readonly",
+            width=100
+        )
+        self.panos_service_protocol.set("tcp")
+        self.panos_service_protocol.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Checkbox for creating both TCP and UDP
+        self.panos_service_both = ctk.BooleanVar(value=False)
+        both_checkbox = ctk.CTkCheckBox(
+            protocol_frame,
+            text="Create both TCP and UDP services",
+            variable=self.panos_service_both,
+            font=ctk.CTkFont(size=FONTS['body'])
+        )
+        both_checkbox.pack(side="left")
+        
+        # Description
+        desc_label = ctk.CTkLabel(card, text="Description", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        desc_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_service_desc = StyledEntry(card, placeholder_text="Optional description")
+        self.panos_service_desc.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Generate button
+        gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_service_object, size="large", variant="primary")
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        return content
+    
+    def create_service_group_content(self, parent):
+        """Create service group content"""
+        content = ctk.CTkFrame(parent, fg_color="transparent")
+        
+        card = StyledCard(content)
+        card.pack(fill="both", expand=True, padx=SPACING['xs'], pady=SPACING['xs']))
+        
+        title = SectionTitle(card, text="Service Group")
+        title.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['xs']))
+        
+        desc = SubTitle(card, text="Create service groups")
+        desc.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        # Group Name
+        name_label = ctk.CTkLabel(card, text="Group Name *", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        name_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_service_group_name = StyledEntry(card, placeholder_text="e.g., Web_Services")
+        self.panos_service_group_name.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Members
+        member_label = ctk.CTkLabel(card, text="Add Members", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        member_label.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        member_frame = ctk.CTkFrame(card, fg_color="transparent")
+        member_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        self.panos_service_group_member = StyledEntry(member_frame, placeholder_text="Service name")
+        self.panos_service_group_member.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        add_btn = StyledButton(
+            member_frame,
+            text="Add",
+            command=self.add_service_group_member,
+            size="small",
+            variant="neutral"
+        )
+        add_btn.pack(side="left")
+        
+        # Bulk paste
+        bulk_label = ctk.CTkLabel(card, text="Or paste multiple services (one per line):", font=ctk.CTkFont(size=FONTS['body'], weight="bold"))
+        bulk_label.pack(anchor="w", padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['xs']))
+        
+        self.panos_service_group_bulk = ctk.CTkTextbox(card, height=80, font=ctk.CTkFont(size=FONTS['body']))
+        self.panos_service_group_bulk.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
+        
+        bulk_add_btn = StyledButton(
+            card,
+            text="Add All from List",
+            command=self.add_bulk_service_members,
+            size="small",
+            variant="neutral"
+        )
+        bulk_add_btn.pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        # Members display
+        self.panos_service_group_members = []
+        self.panos_service_group_display = ctk.CTkFrame(card, fg_color=COLORS['bg_card'])
+        self.panos_service_group_display.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        self.panos_service_group_display.configure(height=100)
+        
+        # Generate button
+        gen_btn = StyledButton(card, text="💻 Generate Command", command=self.generate_service_group, size="large", variant="primary")
+        gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        
+        return content
+    
+    def switch_service_subtab(self, subtab):
+        """Switch between service subtabs"""
+        if subtab == "single":
+            self.service_single_btn.configure(fg_color=COLORS['primary'])
+            self.service_group_btn.configure(fg_color=COLORS['neutral'])
+            self.service_group_content.pack_forget()
+            self.service_single_content.pack(fill="both", expand=True)
+        else:
+            self.service_single_btn.configure(fg_color=COLORS['neutral'])
+            self.service_group_btn.configure(fg_color=COLORS['primary'])
+            self.service_single_content.pack_forget()
+            self.service_group_content.pack(fill="both", expand=True)
+    
     def validate_panos_ip(self, ip):
         """Validate IP address or network with CIDR notation"""
         pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$'
