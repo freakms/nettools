@@ -224,12 +224,10 @@ class IPv4Scanner:
                 return
             
             completed = 0
-            print(f"Creating executor with {max_workers} workers for {total} IPs")
             
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_ip = {executor.submit(self.ping_host, ip, timeout_ms, resolve_dns): ip 
                                for ip in ip_list}
-                print(f"Submitted {len(future_to_ip)} tasks")
                 
                 for future in as_completed(future_to_ip):
                     if self.cancel_flag:
@@ -239,16 +237,12 @@ class IPv4Scanner:
                         return
                     
                     result = future.result()
-                    print(f"Got result for {result.get('ip')}: {result.get('status')}")
                     self.results.append(result)
                     completed += 1
                     
                     # Update progress
                     if self.progress_callback:
-                        print(f"Calling progress_callback for {result.get('ip')}")
                         self.progress_callback(completed, total, result)
-                    else:
-                        print("WARNING: progress_callback is None!")
             
             if self.complete_callback:
                 self.complete_callback(self.results, "Scan completed")
