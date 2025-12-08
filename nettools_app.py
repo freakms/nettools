@@ -4949,33 +4949,33 @@ gateway.home.lan
         
         # Cancel button
         cancel_btn = StyledButton(
-            button_frame,
-            text="Cancel",
+            bottom_button_row,
+            text="✗ Cancel",
             command=dialog.destroy,
             size="medium",
             variant="neutral"
         )
-        cancel_btn.pack(side="right", padx=(0, SPACING['md']))
-        
-        # Scan button
-        scan_btn = StyledButton(
-            button_frame,
-            text="▶ Scan IP List",
-            command=preview_list,
-            size="large",
-            variant="primary"
-        )
-        scan_btn.pack(side="right")
+        cancel_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
         
         # Preview button
         preview_btn = StyledButton(
-            button_frame,
+            bottom_button_row,
             text="🔍 Preview & Resolve",
             command=preview_list,
             size="medium",
             variant="neutral"
         )
-        preview_btn.pack(side="right", padx=(0, SPACING['md']))
+        preview_btn.pack(side="left", fill="x", expand=True, padx=(0, SPACING['xs']))
+        
+        # Scan button
+        scan_btn = StyledButton(
+            bottom_button_row,
+            text="▶ Scan IP List",
+            command=preview_list,
+            size="large",
+            variant="primary"
+        )
+        scan_btn.pack(side="left", fill="x", expand=True)
     
     def on_scan_progress(self, completed, total, result):
         """Handle scan progress update"""
