@@ -2522,7 +2522,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def create_panos_address_group_tab(self):
         """Create Address Group tab"""
-        self.panos_group_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        self.panos_group_tab = ctk.CTkFrame(self.panos_addresses_tab, fg_color="transparent")
         
         # Initialize members list
         self.panos_group_members = []
