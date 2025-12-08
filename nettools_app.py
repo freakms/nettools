@@ -216,6 +216,115 @@ class NetToolsApp(ctk.CTk):
         self.save_window_state()
         self.destroy()
     
+    def open_quick_switcher(self, event=None):
+        """Open quick tool switcher dialog (Ctrl+K)"""
+        # Create dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Quick Tool Switcher")
+        dialog.geometry("600x400")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - 600) // 2
+        y = self.winfo_y() + (self.winfo_height() - 400) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content
+        content = ctk.CTkFrame(dialog)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Search entry
+        search_frame = ctk.CTkFrame(content, fg_color="transparent")
+        search_frame.pack(fill="x", pady=(0, SPACING['md']))
+        
+        search_label = ctk.CTkLabel(
+            search_frame,
+            text="🔍 Search Tools:",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        search_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        search_entry = StyledEntry(
+            search_frame,
+            placeholder_text="Type to search..."
+        )
+        search_entry.pack(fill="x")
+        search_entry.focus()
+        
+        # Results scrollable frame
+        results_frame = ctk.CTkScrollableFrame(content)
+        results_frame.pack(fill="both", expand=True, pady=SPACING['md'])
+        
+        # All tools list
+        all_tools = [
+            ("scann", "scanning", "IPv4 Scanner", "📡 Scan network for devices"),
+            ("port", "scanning", "Port Scanner", "🔌 Scan ports on devices"),
+            ("trace", "scanning", "Traceroute", "🛣️ Trace network paths"),
+            ("ping", "scanning", "Live Ping Monitor", "📊 Monitor ping in real-time"),
+            ("bandwidth", "scanning", "Bandwidth Test", "⚡ Test network speed"),
+            ("dns", "utilities", "DNS Lookup", "🌐 Lookup DNS records"),
+            ("subnet", "utilities", "Subnet Calculator", "🧮 Calculate subnets"),
+            ("mac", "utilities", "MAC Formatter", "💻 Format MAC addresses"),
+            ("compare", "management", "Scan Comparison", "📊 Compare scan results"),
+            ("profiles", "management", "Network Profiles", "📁 Manage network profiles"),
+            ("panos", "automation", "PAN-OS Generator", "🔥 Generate firewall configs"),
+            ("phpipam", "automation", "phpIPAM Integration", "📦 Integrate with phpIPAM"),
+        ]
+        
+        tool_buttons = []
+        
+        def filter_tools(event=None):
+            """Filter tools based on search"""
+            search_text = search_entry.get().lower()
+            
+            # Clear results
+            for widget in results_frame.winfo_children():
+                widget.destroy()
+            
+            # Show matching tools
+            for tool_id, category, name, description in all_tools:
+                if (search_text in name.lower() or 
+                    search_text in description.lower() or
+                    search_text in tool_id):
+                    
+                    tool_btn = StyledButton(
+                        results_frame,
+                        text=f"{name}\n{description}",
+                        command=lambda tid=tool_id: switch_and_close(tid),
+                        size="large",
+                        variant="neutral"
+                    )
+                    tool_btn.pack(fill="x", pady=SPACING['xs'])
+                    tool_buttons.append((tool_btn, tool_id))
+        
+        def switch_and_close(tool_id):
+            """Switch to tool and close dialog"""
+            self.switch_tool(tool_id)
+            dialog.destroy()
+        
+        def on_key(event):
+            """Handle keyboard navigation"""
+            if event.keysym == 'Escape':
+                dialog.destroy()
+            elif event.keysym == 'Down':
+                # Focus next button
+                pass
+            elif event.keysym == 'Up':
+                # Focus previous button
+                pass
+        
+        # Bind events
+        search_entry.bind('<KeyRelease>', filter_tools)
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
+        dialog.bind('<Key>', on_key)
+        
+        # Initial filter (show all)
+        filter_tools()
+        
+        return "break"  # Prevent default handling
+    
     def load_oui_database(self):
         """Load OUI database from JSON file"""
         try:
