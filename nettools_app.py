@@ -4901,6 +4901,17 @@ gateway.home.lan
                     for widget in self.results_scrollable.winfo_children():
                         widget.destroy()
                     
+                    # Pre-populate table with all IPs before scanning
+                    for ip_addr in ip_list:
+                        placeholder_result = {
+                            'ip': ip_addr,
+                            'hostname': '...',
+                            'status': 'Pending',
+                            'response_time': '---',
+                            'responding': False
+                        }
+                        self.add_result_row(placeholder_result)
+                    
                     # Update UI
                     self.start_scan_btn.configure(state="disabled")
                     self.import_list_btn.configure(state="disabled")
@@ -4912,8 +4923,9 @@ gateway.home.lan
                     self.cidr_entry.delete(0, 'end')
                     self.cidr_entry.insert(0, f"IP List ({len(ip_list)} addresses)")
                     
-                    # Store IP list for progress display
+                    # Store IP list and create mapping for updates
                     self.current_scan_list = ip_list
+                    self.ip_to_row_index = {ip: idx for idx, ip in enumerate(ip_list)}
                     
                     # Start scan in background
                     aggression = self.aggression_var.get()
