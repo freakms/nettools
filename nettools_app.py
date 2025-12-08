@@ -115,6 +115,12 @@ class NetToolsApp(ctk.CTk):
         self.scanner = IPv4Scanner()
         self.scan_thread = None
         
+        # Performance: Debounced updates
+        self.update_buffer = []
+        self.update_timer = None
+        self.UPDATE_BATCH_SIZE = 10  # Update UI every 10 results
+        self.UPDATE_INTERVAL_MS = 100  # Or every 100ms
+        
         # Initialize history manager
         self.history = HistoryManager()
         
