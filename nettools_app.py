@@ -3129,6 +3129,57 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         # Render initial empty state
         self.render_panos_commands()
     
+    def create_panos_policies_tab(self):
+        """Create unified Policies tab with subtabs"""
+        self.panos_policies_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Create subtabs: NAT Rules, Security Policies
+        subtab_frame = ctk.CTkFrame(self.panos_policies_tab, fg_color="transparent")
+        subtab_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        
+        self.policy_nat_btn = StyledButton(
+            subtab_frame,
+            text="🔄 NAT Rules",
+            command=lambda: self.switch_policy_subtab("nat"),
+            size="small",
+            variant="primary"
+        )
+        self.policy_nat_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.policy_security_btn = StyledButton(
+            subtab_frame,
+            text="🔐 Security Policies",
+            command=lambda: self.switch_policy_subtab("security"),
+            size="small",
+            variant="neutral"
+        )
+        self.policy_security_btn.pack(side="left")
+        
+        # NAT Rules Content
+        self.create_panos_nat_tab()
+        
+        # Security Policies Content
+        self.create_panos_policy_tab()
+        self.panos_policy_tab.pack_forget()
+    
+    def switch_policy_subtab(self, subtab):
+        """Switch between policy subtabs"""
+        # Hide all
+        self.panos_nat_tab.pack_forget()
+        self.panos_policy_tab.pack_forget()
+        
+        # Reset button colors
+        self.policy_nat_btn.configure(fg_color=COLORS['neutral'])
+        self.policy_security_btn.configure(fg_color=COLORS['neutral'])
+        
+        # Show selected
+        if subtab == "nat":
+            self.policy_nat_btn.configure(fg_color=COLORS['primary'])
+            self.panos_nat_tab.pack(fill="both", expand=True)
+        elif subtab == "security":
+            self.policy_security_btn.configure(fg_color=COLORS['primary'])
+            self.panos_policy_tab.pack(fill="both", expand=True)
+    
     def create_panos_schedule_tab(self):
         """Create Schedule Object tab"""
         self.panos_schedule_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
