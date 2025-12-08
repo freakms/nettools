@@ -628,6 +628,66 @@ class NetToolsApp(ctk.CTk):
             )
             label.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'])
         
+        # Pagination controls
+        pagination_frame = ctk.CTkFrame(results_card, fg_color="transparent")
+        pagination_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['xs'])
+        
+        self.pagination_label = ctk.CTkLabel(
+            pagination_frame,
+            text="No results",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        self.pagination_label.pack(side="left")
+        
+        # Pagination buttons
+        pagination_buttons = ctk.CTkFrame(pagination_frame, fg_color="transparent")
+        pagination_buttons.pack(side="right")
+        
+        self.first_page_btn = StyledButton(
+            pagination_buttons,
+            text="⏮ First",
+            command=lambda: self.go_to_page(1),
+            size="small",
+            variant="neutral"
+        )
+        self.first_page_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.prev_page_btn = StyledButton(
+            pagination_buttons,
+            text="◀ Prev",
+            command=self.previous_page,
+            size="small",
+            variant="neutral"
+        )
+        self.prev_page_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.page_indicator = ctk.CTkLabel(
+            pagination_buttons,
+            text="Page 1 of 1",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        self.page_indicator.pack(side="left", padx=SPACING['md'])
+        
+        self.next_page_btn = StyledButton(
+            pagination_buttons,
+            text="Next ▶",
+            command=self.next_page,
+            size="small",
+            variant="neutral"
+        )
+        self.next_page_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.last_page_btn = StyledButton(
+            pagination_buttons,
+            text="Last ⏭",
+            command=lambda: self.go_to_page(self.total_pages),
+            size="small",
+            variant="neutral"
+        )
+        self.last_page_btn.pack(side="left", padx=SPACING['xs'])
+        
         # Scrollable results
         self.results_scrollable = ctk.CTkScrollableFrame(results_card)
         self.results_scrollable.pack(fill="both", expand=True, padx=SPACING['xs'], pady=(0, SPACING['xs']))
