@@ -5012,6 +5012,10 @@ gateway.home.lan
         self.start_scan_btn.configure(state="normal")
         self.cancel_scan_btn.configure(state="disabled")
         
+        # Clear imported list flag
+        if hasattr(self, 'current_scan_list'):
+            self.current_scan_list = None
+        
         if len(results) > 0:
             self.export_btn.configure(state="normal")
             self.compare_btn.configure(state="normal")
