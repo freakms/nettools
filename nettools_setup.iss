@@ -81,10 +81,6 @@ Name: "advanced"; Description: "Advanced Professional Tools"; Types: full custom
 Name: "advanced\panos"; Description: "PAN-OS CLI Generator"; Types: full custom
 Name: "advanced\phpipam"; Description: "phpIPAM Integration"; Types: full custom
 
-; Optional Dependencies
-Name: "dependencies"; Description: "Optional Dependencies"; Types: full custom
-Name: "dependencies\iperf3"; Description: "Install iperf3 (for Bandwidth Testing)"; Types: full
-
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
