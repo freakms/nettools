@@ -110,35 +110,64 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [Code]
 var
-  ComponentsPage: TInputOptionWizardPage;
+  BandwidthTestingSelected: Boolean;
+  InfoPage: TOutputMsgMemoWizardPage;
 
 procedure InitializeWizard;
 begin
-  // Create custom component selection page
-  ComponentsPage := CreateInputOptionPage(wpSelectComponents,
-    'Select Tools to Install', 'Choose which network tools you want to install',
-    'Select the components you want to install, then click Next.',
-    False, False);
+  BandwidthTestingSelected := False;
+  
+  // Create information page for external dependencies
+  InfoPage := CreateOutputMsgMemoPage(wpInfoAfter,
+    'Important Information - External Dependencies',
+    'Additional software may be required for some features',
+    'Please review the information below:',
+    '');
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := False;
+  // Only show info page if bandwidth testing was selected
+  if PageID = InfoPage.ID then
+    Result := not BandwidthTestingSelected
+  else
+    Result := False;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  InfoText: string;
 begin
   if CurStep = ssPostInstall then
   begin
     // Create configuration file based on installed components
     SaveStringToFile(ExpandConstant('{app}\installed_components.txt'), 
                     'Components installed: ' + WizardSelectedComponents(False), False);
+    
+    // Check if bandwidth testing component was selected
+    if WizardIsComponentSelected('scanning\bandwidth') then
+    begin
+      BandwidthTestingSelected := True;
+      
+      // Prepare information text about iperf3
+      InfoText := 'BANDWIDTH TESTING TOOL - iperf3 Required' + #13#10 + #13#10;
+      InfoText := InfoText + 'You have selected the Bandwidth Testing tool, which requires iperf3 to be installed separately.' + #13#10 + #13#10;
+      InfoText := InfoText + 'To use this feature, please:' + #13#10;
+      InfoText := InfoText + '1. Download iperf3 for Windows from:' + #13#10;
+      InfoText := InfoText + '   https://iperf.fr/iperf-download.php' + #13#10 + #13#10;
+      InfoText := InfoText + '2. Extract iperf3.exe to a folder (e.g., C:\Tools\iperf3\)' + #13#10 + #13#10;
+      InfoText := InfoText + '3. Add the folder to your Windows PATH:' + #13#10;
+      InfoText := InfoText + '   - Right-click "This PC" > Properties > Advanced system settings' + #13#10;
+      InfoText := InfoText + '   - Click "Environment Variables"' + #13#10;
+      InfoText := InfoText + '   - Under "System variables", find and edit "Path"' + #13#10;
+      InfoText := InfoText + '   - Add the iperf3 folder path' + #13#10 + #13#10;
+      InfoText := InfoText + '4. Restart NetTools application after installation' + #13#10 + #13#10;
+      InfoText := InfoText + 'The Bandwidth Testing tool will not work until iperf3 is properly installed.';
+      
+      InfoPage.RichEditViewer.Text := InfoText;
+    end;
   end;
 end;
-
-[Code]
-var
-  BandwidthTestingSelected: Boolean;
 
 [UninstallDelete]
 Type: files; Name: "{app}\installed_components.txt"
