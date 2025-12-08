@@ -5006,13 +5006,22 @@ gateway.home.lan
         current_ip = result['ip'] if result else "..."
         status_text = f"Scanning {current_ip}... ({completed} / {total})"
         
-        # If this is from an imported list, show that context
-        if hasattr(self, 'current_scan_list') and self.current_scan_list:
+        # Check if this is from an imported list
+        if hasattr(self, 'current_scan_list') and self.current_scan_list and hasattr(self, 'ip_to_row_index'):
             status_text = f"Scanning imported addresses: {current_ip} ({completed}/{total})"
+            
+            # Update existing row instead of adding new one
+            ip_addr = result['ip']
+            if ip_addr in self.ip_to_row_index:
+                row_index = self.ip_to_row_index[ip_addr]
+                if row_index < len(self.result_rows):
+                    self.update_result_row(row_index, result)
+                    self.status_label.configure(text=status_text)
+                    return  # Don't add a new row
         
         self.status_label.configure(text=status_text)
         
-        # Add result row
+        # Add result row (for regular scans)
         self.add_result_row(result)
     
     def on_scan_complete(self, results, message):
