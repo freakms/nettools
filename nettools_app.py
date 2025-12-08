@@ -5001,6 +5001,7 @@ gateway.home.lan
     
     def on_scan_progress(self, completed, total, result):
         """Handle scan progress update"""
+        print(f"Progress callback: {completed}/{total} - IP: {result.get('ip', 'unknown')}")
         self.after(0, self._update_scan_progress, completed, total, result)
     
     def _update_scan_progress(self, completed, total, result):
