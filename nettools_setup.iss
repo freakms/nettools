@@ -136,24 +136,9 @@ begin
   end;
 end;
 
-[Registry]
-; Add to Windows PATH for iperf3
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\tools"; Components: dependencies\iperf3; Check: NeedsAddPath('{app}\tools')
-
 [Code]
-function NeedsAddPath(Param: string): boolean;
 var
-  OrigPath: string;
-begin
-  if not RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
-    'Path', OrigPath)
-  then begin
-    Result := True;
-    exit;
-  end;
-  Result := Pos(';' + Param + ';', ';' + OrigPath + ';') = 0;
-end;
+  BandwidthTestingSelected: Boolean;
 
 [UninstallDelete]
 Type: files; Name: "{app}\installed_components.txt"
