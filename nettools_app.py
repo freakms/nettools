@@ -2667,6 +2667,75 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         )
         gen_btn.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], SPACING['lg']))
     
+    def create_panos_addresses_tab(self):
+        """Create unified Addresses tab with subtabs"""
+        self.panos_addresses_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        
+        # Create subtabs: Name Generator, Single Address, Address Groups
+        subtab_frame = ctk.CTkFrame(self.panos_addresses_tab, fg_color="transparent")
+        subtab_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        
+        self.addr_namegen_btn = StyledButton(
+            subtab_frame,
+            text="🎯 Name Generator",
+            command=lambda: self.switch_address_subtab("namegen"),
+            size="small",
+            variant="primary"
+        )
+        self.addr_namegen_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.addr_single_btn = StyledButton(
+            subtab_frame,
+            text="🌐 Single Address",
+            command=lambda: self.switch_address_subtab("single"),
+            size="small",
+            variant="neutral"
+        )
+        self.addr_single_btn.pack(side="left", padx=(0, SPACING['xs']))
+        
+        self.addr_group_btn = StyledButton(
+            subtab_frame,
+            text="📦 Address Groups",
+            command=lambda: self.switch_address_subtab("group"),
+            size="small",
+            variant="neutral"
+        )
+        self.addr_group_btn.pack(side="left")
+        
+        # Name Generator Content
+        self.create_panos_name_generator_tab()
+        
+        # Single Address Content  
+        self.create_panos_single_address_tab()
+        self.panos_single_addr_tab.pack_forget()
+        
+        # Address Groups Content
+        self.create_panos_address_group_tab()
+        self.panos_group_tab.pack_forget()
+    
+    def switch_address_subtab(self, subtab):
+        """Switch between address subtabs"""
+        # Hide all
+        self.panos_name_gen_tab.pack_forget()
+        self.panos_single_addr_tab.pack_forget()
+        self.panos_group_tab.pack_forget()
+        
+        # Reset button colors
+        self.addr_namegen_btn.configure(fg_color=COLORS['neutral'])
+        self.addr_single_btn.configure(fg_color=COLORS['neutral'])
+        self.addr_group_btn.configure(fg_color=COLORS['neutral'])
+        
+        # Show selected
+        if subtab == "namegen":
+            self.addr_namegen_btn.configure(fg_color=COLORS['primary'])
+            self.panos_name_gen_tab.pack(fill="both", expand=True)
+        elif subtab == "single":
+            self.addr_single_btn.configure(fg_color=COLORS['primary'])
+            self.panos_single_addr_tab.pack(fill="both", expand=True)
+        elif subtab == "group":
+            self.addr_group_btn.configure(fg_color=COLORS['primary'])
+            self.panos_group_tab.pack(fill="both", expand=True)
+    
     def create_panos_nat_tab(self):
         """Create NAT Rule tab"""
         self.panos_nat_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
