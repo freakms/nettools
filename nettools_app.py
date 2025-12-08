@@ -449,15 +449,15 @@ class NetToolsApp(ctk.CTk):
         
         self.aggro_selector = ctk.CTkOptionMenu(
             input_card,
-            values=["Gentle (longer timeout)", "Medium", "Aggressive (short timeout)"]
+            values=["Gentle (longer timeout)", "Medium", "Aggressive (short timeout)"],
+            width=250
         )
         self.aggro_selector.set("Medium")
         self.aggro_selector.grid(row=1, column=1, padx=SPACING['md'], pady=SPACING['md'], sticky="ew")
         
-        # Scan buttons
+        # Scan buttons (moved to separate row for better layout)
         button_frame = ctk.CTkFrame(input_card, fg_color="transparent")
-        button_frame.grid(row=0, column=3, rowspan=2, padx=SPACING['md'], pady=SPACING['md'], sticky="e")
-        input_card.grid_columnconfigure(3, weight=1)
+        button_frame.grid(row=2, column=0, columnspan=4, padx=SPACING['md'], pady=SPACING['md'], sticky="ew")
         
         self.start_scan_btn = StyledButton(
             button_frame,
