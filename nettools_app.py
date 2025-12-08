@@ -2104,32 +2104,14 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         tab_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
         tab_frame.pack(fill="x", pady=(0, SPACING['md']))
         
-        self.panos_name_gen_btn = StyledButton(
+        self.panos_addresses_btn = StyledButton(
             tab_frame,
-            text="🎯 Name Generator",
-            command=lambda: self.switch_panos_tab("name"),
+            text="📍 Addresses",
+            command=lambda: self.switch_panos_tab("addresses"),
             size="medium",
             variant="primary"
         )
-        self.panos_name_gen_btn.pack(side="left", padx=(0, SPACING['xs']))
-        
-        self.panos_addr_gen_btn = StyledButton(
-            tab_frame,
-            text="🌐 Single Address",
-            command=lambda: self.switch_panos_tab("address"),
-            size="medium",
-            variant="neutral"
-        )
-        self.panos_addr_gen_btn.pack(side="left", padx=(0, SPACING['xs']))
-        
-        self.panos_group_btn = StyledButton(
-            tab_frame,
-            text="📦 Groups",
-            command=lambda: self.switch_panos_tab("group"),
-            size="medium",
-            variant="neutral"
-        )
-        self.panos_group_btn.pack(side="left", padx=(0, SPACING['xs']))
+        self.panos_addresses_btn.pack(side="left", padx=(0, SPACING['xs']))
         
         self.panos_nat_btn = StyledButton(
             tab_frame,
