@@ -5111,9 +5111,10 @@ gateway.home.lan
         status_label.pack(side="left", padx=SPACING['sm'])
         
         # RTT with subtle color
+        rtt_text = result.get('rtt', result.get('response_time', '---'))
         rtt_label = ctk.CTkLabel(
             row_frame,
-            text=result['rtt'],
+            text=rtt_text,
             width=100,
             anchor="w",
             font=ctk.CTkFont(size=FONTS['small']),
