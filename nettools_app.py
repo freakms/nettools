@@ -5165,6 +5165,9 @@ gateway.home.lan
         current_ip = result['ip'] if result else "..."
         status_text = f"Scanning {current_ip}... ({completed} / {total})"
         
+        # Add result to all_results list
+        self.all_results.append(result)
+        
         # Check if this is from an imported list
         if hasattr(self, 'current_scan_list') and self.current_scan_list and hasattr(self, 'ip_to_row_index'):
             status_text = f"Scanning imported addresses: {current_ip} ({completed}/{total})"
@@ -5176,6 +5179,8 @@ gateway.home.lan
                 row_index = self.ip_to_row_index[ip_addr]
                 if row_index < len(self.result_rows):
                     self.update_result_row(row_index, result)
+                    # Update pagination UI
+                    self.update_pagination_ui()
                     return  # Don't add a new row
             else:
                 # IP not in mapping - this shouldn't happen, but handle it
@@ -5183,8 +5188,17 @@ gateway.home.lan
         else:
             self.status_label.configure(text=status_text)
         
-        # Add result row (for regular scans or if IP not found in mapping)
-        self.add_result_row(result)
+        # Only add row if on current page and within page limit
+        current_page_start = (self.current_page - 1) * self.results_per_page
+        current_page_end = self.current_page * self.results_per_page
+        result_index = len(self.all_results) - 1
+        
+        if current_page_start <= result_index < current_page_end:
+            # Add result row (for regular scans or if IP not found in mapping)
+            self.add_result_row(result)
+        
+        # Update pagination UI
+        self.update_pagination_ui()
     
     def on_scan_complete(self, results, message):
         """Handle scan completion"""
