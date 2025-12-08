@@ -41,9 +41,7 @@ The build process creates:
    - Download: https://upx.github.io/
    - Add to PATH
 
-6. **iperf3** (to bundle with installer)
-   - Download: https://iperf.fr/iperf-download.php
-   - Place `iperf3.exe` in `/app/external/` folder
+**Note:** iperf3 is NOT bundled with the installer. Users install it separately.
 
 ---
 
