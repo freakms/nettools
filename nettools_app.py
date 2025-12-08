@@ -4908,9 +4908,12 @@ gateway.home.lan
                     self.export_btn.configure(state="disabled")
                     self.compare_btn.configure(state="disabled")
                     self.progress_bar.set(0)
-                    self.status_label.configure(text=f"Scanning {len(ip_list)} IPs...")
+                    self.status_label.configure(text=f"Scanning {len(ip_list)} imported addresses...")
                     self.cidr_entry.delete(0, 'end')
                     self.cidr_entry.insert(0, f"IP List ({len(ip_list)} addresses)")
+                    
+                    # Store IP list for progress display
+                    self.current_scan_list = ip_list
                     
                     # Start scan in background
                     aggression = self.aggression_var.get()
