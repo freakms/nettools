@@ -63,7 +63,7 @@ Name: "scanning\ipv4"; Description: "IPv4 Scanner"; Types: full standard custom;
 Name: "scanning\portscan"; Description: "Port Scanner"; Types: full standard custom
 Name: "scanning\traceroute"; Description: "Traceroute & Pathping"; Types: full standard custom
 Name: "scanning\livemon"; Description: "Live Ping Monitor"; Types: full standard custom
-Name: "scanning\bandwidth"; Description: "Bandwidth Testing (requires iperf3)"; Types: full custom
+Name: "scanning\bandwidth"; Description: "Bandwidth Testing (requires manual iperf3 installation)"; Types: full custom
 
 ; Network Utilities
 Name: "utilities"; Description: "Network Utility Tools"; Types: full standard custom
