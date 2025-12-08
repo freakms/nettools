@@ -164,6 +164,52 @@ class NetToolsApp(ctk.CTk):
         # Save window state on close
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
+    def load_window_state(self):
+        """Load and apply saved window geometry"""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    geometry = config.get('window_geometry')
+                    if geometry:
+                        self.geometry(geometry)
+                        return
+        except Exception as e:
+            print(f"Could not load window state: {e}")
+        
+        # Default window size and position
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        
+        # Set minimum size
+        self.minsize(1200, 800)
+        
+        # Center window on screen
+        x = (screen_width - self.base_width) // 2
+        y = (screen_height - self.base_height) // 2
+        self.geometry(f"{self.base_width}x{self.base_height}+{x}+{y}")
+    
+    def save_window_state(self):
+        """Save current window geometry"""
+        try:
+            config = {}
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            
+            # Save geometry
+            config['window_geometry'] = self.geometry()
+            
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            print(f"Could not save window state: {e}")
+    
+    def on_closing(self):
+        """Handle window closing"""
+        self.save_window_state()
+        self.destroy()
+    
     def load_oui_database(self):
         """Load OUI database from JSON file"""
         try:
