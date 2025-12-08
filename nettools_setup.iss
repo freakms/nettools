@@ -134,16 +134,13 @@ begin
     Result := False;
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
+procedure CurPageChanged(CurPageID: Integer);
 var
   InfoText: string;
 begin
-  if CurStep = ssPostInstall then
+  // Check if we're on the "Ready to Install" page
+  if CurPageID = wpReady then
   begin
-    // Create configuration file based on installed components
-    SaveStringToFile(ExpandConstant('{app}\installed_components.txt'), 
-                    'Components installed: ' + WizardSelectedComponents(False), False);
-    
     // Check if bandwidth testing component was selected
     if WizardIsComponentSelected('scanning\bandwidth') then
     begin
@@ -162,10 +159,21 @@ begin
       InfoText := InfoText + '   - Under "System variables", find and edit "Path"' + #13#10;
       InfoText := InfoText + '   - Add the iperf3 folder path' + #13#10 + #13#10;
       InfoText := InfoText + '4. Restart NetTools application after installation' + #13#10 + #13#10;
+      InfoText := InfoText + 'A complete installation guide is included in the docs folder.' + #13#10 + #13#10;
       InfoText := InfoText + 'The Bandwidth Testing tool will not work until iperf3 is properly installed.';
       
       InfoPage.RichEditViewer.Text := InfoText;
     end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    // Create configuration file based on installed components
+    SaveStringToFile(ExpandConstant('{app}\installed_components.txt'), 
+                    'Components installed: ' + WizardSelectedComponents(False), False);
   end;
 end;
 
