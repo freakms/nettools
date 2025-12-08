@@ -2196,9 +2196,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     def switch_panos_tab(self, tab_name):
         """Switch between PAN-OS Generator tabs"""
         # Hide all tabs
-        self.panos_name_gen_tab.pack_forget()
-        self.panos_single_addr_tab.pack_forget()
-        self.panos_group_tab.pack_forget()
+        self.panos_addresses_tab.pack_forget()
         self.panos_nat_tab.pack_forget()
         self.panos_policy_tab.pack_forget()
         self.panos_service_tab.pack_forget()
@@ -2207,9 +2205,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         self.panos_urlcat_tab.pack_forget()
         
         # Reset all button colors
-        self.panos_name_gen_btn.configure(fg_color=COLORS['neutral'])
-        self.panos_addr_gen_btn.configure(fg_color=COLORS['neutral'])
-        self.panos_group_btn.configure(fg_color=COLORS['neutral'])
+        self.panos_addresses_btn.configure(fg_color=COLORS['neutral'])
         self.panos_nat_btn.configure(fg_color=COLORS['neutral'])
         self.panos_policy_btn.configure(fg_color=COLORS['neutral'])
         self.panos_service_btn.configure(fg_color=COLORS['neutral'])
@@ -2218,15 +2214,9 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         self.panos_urlcat_btn.configure(fg_color=COLORS['neutral'])
         
         # Show selected tab and highlight button
-        if tab_name == "name":
-            self.panos_name_gen_btn.configure(fg_color=COLORS['primary'])
-            self.panos_name_gen_tab.pack(fill="both", expand=True)
-        elif tab_name == "address":
-            self.panos_addr_gen_btn.configure(fg_color=COLORS['primary'])
-            self.panos_single_addr_tab.pack(fill="both", expand=True)
-        elif tab_name == "group":
-            self.panos_group_btn.configure(fg_color=COLORS['primary'])
-            self.panos_group_tab.pack(fill="both", expand=True)
+        if tab_name == "addresses":
+            self.panos_addresses_btn.configure(fg_color=COLORS['primary'])
+            self.panos_addresses_tab.pack(fill="both", expand=True)
         elif tab_name == "nat":
             self.panos_nat_btn.configure(fg_color=COLORS['primary'])
             self.panos_nat_tab.pack(fill="both", expand=True)
