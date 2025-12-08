@@ -2238,7 +2238,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def create_panos_name_generator_tab(self):
         """Create Name Generator tab"""
-        self.panos_name_gen_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        self.panos_name_gen_tab = ctk.CTkFrame(self.panos_addresses_tab, fg_color="transparent")
         
         # Card
         card = StyledCard(self.panos_name_gen_tab)
