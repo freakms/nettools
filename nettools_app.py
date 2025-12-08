@@ -2442,8 +2442,8 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         help_box.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['lg']))
     
     def create_panos_single_address_tab(self):
-        """Create Single Address Object tab"""
-        self.panos_single_addr_tab = ctk.CTkScrollableFrame(self.panos_tab_content)
+        """Create single address object tab"""
+        self.panos_single_addr_tab = ctk.CTkFrame(self.panos_addresses_tab, fg_color="transparent")
         
         # Card
         card = StyledCard(self.panos_single_addr_tab)
