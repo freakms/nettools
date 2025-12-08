@@ -5170,8 +5170,6 @@ gateway.home.lan
                     
                     # Start scan in background
                     aggression = self.aggro_selector.get()  # Use the correct selector
-                    print(f"Starting scan with {len(ip_list)} IPs, aggression: {aggression}")
-                    print(f"IP list: {ip_list[:3]}...")  # Show first 3 IPs
                     
                     threading.Thread(
                         target=self.scanner.scan_ip_list,
