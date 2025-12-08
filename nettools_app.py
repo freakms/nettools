@@ -3088,16 +3088,16 @@ Option 4: Using WSL (Windows Subsystem for Linux)
             font=ctk.CTkFont(size=FONTS['small']),
             text_color=COLORS['text_secondary']
         )
-        self.panos_cmd_count.pack(anchor="w")
+        self.panos_cmd_count.pack(anchor="w", pady=(SPACING['xs'], 0))
         
         clear_btn = StyledButton(
             header_frame,
-            text="🗑️",
+            text="🗑️ Clear All",
             command=self.clear_panos_commands,
             size="small",
             variant="neutral"
         )
-        clear_btn.pack(side="right")
+        clear_btn.pack(side="right", padx=(SPACING['md'], 0))
         
         # Commands list
         self.panos_commands_list = ctk.CTkScrollableFrame(output_card, height=400)
