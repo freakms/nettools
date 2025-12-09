@@ -513,7 +513,7 @@ class DashboardUI:
         """Create system information section"""
         section = ctk.CTkFrame(
             parent,
-            fg_color=COLORS['card_bg'],
+            fg_color=COLORS['dashboard_card'],
             corner_radius=RADIUS['medium']
         )
         section.pack(fill="x")
