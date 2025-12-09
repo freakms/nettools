@@ -8929,21 +8929,12 @@ gateway.home.lan
     def update_recent_ui(self):
         """Update recent tools section in sidebar"""
         try:
-            # Clear existing
+            # Clear existing buttons
             for widget in self.recent_buttons_frame.winfo_children():
                 widget.destroy()
             
             if self.recent_tools:
-                # Show recent section - pack after Favorites (or Live Monitor if no favorites)
-                try:
-                    if self.favorite_tools and hasattr(self.favorites_frame, 'winfo_manager') and self.favorites_frame.winfo_manager():
-                        self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
-                    else:
-                        self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
-                except:
-                    # Fallback: just pack normally
-                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
-                
+                # Show recent section (already packed in correct position)
                 self.recent_label.pack(anchor="w", pady=(5, 5))
                 self.recent_buttons_frame.pack(fill="x")
                 
@@ -8972,8 +8963,9 @@ gateway.home.lan
                     )
                     btn.pack(fill="x", pady=1)
             else:
-                # Hide if no recent
-                self.recent_frame.pack_forget()
+                # Hide label and buttons (but keep frame packed for positioning)
+                self.recent_label.pack_forget()
+                self.recent_buttons_frame.pack_forget()
         except Exception as e:
             print(f"Error updating recent UI: {e}")
     
