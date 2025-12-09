@@ -5391,8 +5391,8 @@ gateway.home.lan
             self.status_label.configure(text=status_text)
         
         # Only add row if on current page and within page limit
-        current_page_start = (self.current_page - 1) * self.results_per_page
-        current_page_end = self.current_page * self.results_per_page
+        current_page_start = (self.scan_current_page - 1) * self.results_per_page
+        current_page_end = self.scan_current_page * self.results_per_page
         result_index = len(self.all_results) - 1
         
         if current_page_start <= result_index < current_page_end:
