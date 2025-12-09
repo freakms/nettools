@@ -320,7 +320,7 @@ class DashboardUI:
         """Create network interfaces information table"""
         section = ctk.CTkFrame(
             parent,
-            fg_color=COLORS['card_bg'],
+            fg_color=COLORS['dashboard_card'],
             corner_radius=RADIUS['medium']
         )
         section.pack(fill="both", expand=True, pady=(0, SPACING['md']))
