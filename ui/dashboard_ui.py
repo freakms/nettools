@@ -282,10 +282,10 @@ class DashboardUI:
         """Create a clean info card without excessive colors"""
         card = ctk.CTkFrame(
             parent,
-            fg_color=COLORS['card_bg'],
+            fg_color=COLORS['dashboard_card'],
             corner_radius=RADIUS['medium'],
             border_width=1,
-            border_color=COLORS['border']
+            border_color=("gray70", "gray30")
         )
         card.grid(row=row, column=col, padx=SPACING['sm'], pady=SPACING['sm'], sticky="nsew")
         
