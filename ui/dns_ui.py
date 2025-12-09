@@ -183,7 +183,7 @@ class DNSLookupUI:
         results = DNSLookup.lookup(query, dns_server)
         
         # Display results in UI
-        self.after(0, self.display_dns_results, results)
+        self.app.after(0, self.display_dns_results, results)
     
     def display_dns_results(self, results):
         """Display DNS lookup results"""
