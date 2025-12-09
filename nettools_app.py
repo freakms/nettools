@@ -8925,8 +8925,11 @@ gateway.home.lan
             widget.destroy()
         
         if self.recent_tools:
-            # Show recent section
-            self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
+            # Show recent section - pack after Favorites (or Live Monitor if no favorites)
+            if self.favorite_tools and self.favorites_frame.winfo_manager():
+                self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
+            else:
+                self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
             self.recent_label.pack(anchor="w", pady=(5, 5))
             self.recent_buttons_frame.pack(fill="x")
             
