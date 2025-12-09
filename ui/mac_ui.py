@@ -223,7 +223,7 @@ class MACFormatterUI:
             self.vendor_label.configure(text="🏢 Vendor: Unknown")
         
         # Save to history (only when valid)
-        self.history.add_mac(hex_mac)
+        self.app.history.add_mac(hex_mac)
         
         # Update formats
         formats = MACFormatter.format_mac(hex_mac)
