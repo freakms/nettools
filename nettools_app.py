@@ -495,7 +495,7 @@ class NetToolsApp(ctk.CTk):
             ]),
         ]
         
-        self.current_page = "scanner"
+        self.current_page = "dashboard"
         
         # Store first category for positioning
         self.first_category_label = None
