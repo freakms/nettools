@@ -142,7 +142,7 @@ class IPv4Scanner:
             'Medium': 300,
             'Aggressive (short timeout)': 150
         }
-        timeout_ms = timeout_map.get(aggression, 300)
+        timeout_ms = int(timeout_map.get(aggression, 300))
         
         # Set max workers based on aggression
         worker_map = {
@@ -204,7 +204,7 @@ class IPv4Scanner:
             'Medium': 300,
             'Aggressive (short timeout)': 150
         }
-        timeout_ms = timeout_map.get(aggression, 300)
+        timeout_ms = int(timeout_map.get(aggression, 300))
         
         # Set max workers based on aggression
         worker_map = {
