@@ -31,6 +31,17 @@ COLORS = {
     "bg_card_hover": ("gray85", "gray20"),
     "text_primary": ("gray10", "gray90"),
     "text_secondary": ("gray60", "gray40"),
+    
+    # Dashboard Electric Violet Theme
+    "dashboard_bg": ("#F5F3FF", "#0F0D1B"),           # Deep purple-black
+    "dashboard_card": ("#FFFFFF", "#1E1B2E"),         # Dark violet cards
+    "dashboard_card_hover": ("#F9F7FF", "#2A2640"),   # Lighter on hover
+    "electric_violet": ("#8B5CF6", "#A78BFA"),        # Primary electric violet
+    "electric_violet_hover": ("#A78BFA", "#C4B5FD"),  # Violet hover
+    "neon_cyan": ("#06B6D4", "#22D3EE"),              # Accent neon cyan
+    "neon_cyan_hover": ("#22D3EE", "#67E8F9"),        # Cyan hover
+    "glow_purple": "#9333EA",                         # Glow effect color
+    "glow_cyan": "#0891B2",                           # Cyan glow
 }
 
 # Spacing System (8px base unit)
