@@ -432,14 +432,14 @@ class NetToolsApp(ctk.CTk):
         nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
         
         # Quick Access - Live Monitor (prominent button)
-        live_monitor_btn = StyledButton(
+        self.live_monitor_btn = StyledButton(
             nav_scroll,
             text="📊 Live Ping Monitor",
             command=self.open_live_ping_monitor,
             size="large",
             variant="success"
         )
-        live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
+        self.live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
         
         # Favorites section
         self.favorites_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
