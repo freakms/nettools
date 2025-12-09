@@ -5598,7 +5598,7 @@ gateway.home.lan
         self.first_page_btn.configure(state="normal" if self.scan_current_page > 1 else "disabled")
         self.prev_page_btn.configure(state="normal" if self.scan_current_page > 1 else "disabled")
         self.next_page_btn.configure(state="normal" if self.scan_current_page < self.scan_total_pages else "disabled")
-        self.last_page_btn.configure(state="normal" if self.current_page < self.total_pages else "disabled")
+        self.last_page_btn.configure(state="normal" if self.scan_current_page < self.scan_total_pages else "disabled")
     
     def filter_results(self, event=None):
         """Filter displayed results"""
