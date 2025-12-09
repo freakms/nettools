@@ -1645,14 +1645,14 @@ class PANOSUI:
         close_btn.pack(side="left", fill="x", expand=True, padx=(SPACING['xs'], 0))
         
         # Center the popup
-        popup.transient(self)
+        popup.transient(self.app)
         popup.grab_set()
         popup.focus()
     
     def copy_generated_names(self, text, popup):
         """Copy generated names to clipboard"""
-        self.clipboard_clear()
-        self.clipboard_append(text)
+        self.app.clipboard_clear()
+        self.app.clipboard_append(text)
         messagebox.showinfo("Copied", "Generated names copied to clipboard!", parent=popup)
     
     def reset_panos_name_generator(self):
