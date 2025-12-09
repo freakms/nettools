@@ -19,6 +19,9 @@ import re
 import sys
 import subprocess
 import socket
+
+# Import UI modules
+from ui.dashboard_ui import DashboardUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
