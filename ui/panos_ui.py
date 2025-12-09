@@ -1001,9 +1001,9 @@ class PANOSUI:
     def create_panos_output_panel(self, parent):
         """Create command output panel"""
         # Right side - Output
-        output_frame = ctk.CTkFrame(parent)
+        output_frame = ctk.CTkFrame(parent, width=450)
         output_frame.pack(side="right", fill="both", expand=False, padx=(0, 0))
-        output_frame.configure(width=400)
+        output_frame.pack_propagate(False)
         
         output_card = StyledCard(output_frame)
         output_card.pack(fill="both", expand=True)
