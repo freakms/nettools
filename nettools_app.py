@@ -8124,10 +8124,8 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def on_enter_key(self, event):
         """Handle Enter key press"""
-        if self.current_page == "scanner":
-            if self.start_scan_btn.cget("state") == "normal":
-                self.start_scan()
-        elif self.current_page == "mac":
+        # Note: Scanner Enter key is now handled within scanner UI
+        if self.current_page == "mac":
             if self.format_entries[0].get():
                 self.copy_to_clipboard(self.format_entries[0])
 
