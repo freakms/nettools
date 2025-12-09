@@ -380,8 +380,8 @@ class ScannerUI:
         
         # Center dialog
         dialog.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() - dialog.winfo_width()) // 2
-        y = self.winfo_y() + (self.winfo_height() - dialog.winfo_height()) // 2
+        x = self.app.winfo_x() + (self.app.winfo_width() - dialog.winfo_width()) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - dialog.winfo_height()) // 2
         dialog.geometry(f"+{x}+{y}")
         
         # Content frame
@@ -940,8 +940,8 @@ gateway.home.lan
         
         # Center dialog
         dialog.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() - 500) // 2
-        y = self.winfo_y() + (self.winfo_height() - 400) // 2
+        x = self.app.winfo_x() + (self.app.winfo_width() - 500) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - 400) // 2
         dialog.geometry(f"+{x}+{y}")
         
         # Content
@@ -1359,8 +1359,8 @@ gateway.home.lan
         
         # Center dialog
         dialog.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() - 400) // 2
-        y = self.winfo_y() + (self.winfo_height() - 250) // 2
+        x = self.app.winfo_x() + (self.app.winfo_width() - 400) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - 250) // 2
         dialog.geometry(f"+{x}+{y}")
         
         # Content
@@ -1451,8 +1451,8 @@ gateway.home.lan
         
         # Center dialog
         dialog.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() - 500) // 2
-        y = self.winfo_y() + (self.winfo_height() - 400) // 2
+        x = self.app.winfo_x() + (self.app.winfo_width() - 500) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - 400) // 2
         dialog.geometry(f"+{x}+{y}")
         
         # Content
