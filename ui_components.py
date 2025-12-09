@@ -28,7 +28,7 @@ class StyledCard(ctk.CTkFrame):
 
 
 class StyledButton(ctk.CTkButton):
-    """A styled button with consistent appearance and sizes"""
+    """A styled button with electric violet theme"""
     
     def __init__(self, parent, size="medium", variant="primary", **kwargs):
         # Get size dimensions
@@ -36,10 +36,10 @@ class StyledButton(ctk.CTkButton):
         kwargs.setdefault('width', button_size['width'])
         kwargs.setdefault('height', button_size['height'])
         
-        # Get variant colors
+        # Get variant colors with electric violet theme
         if variant == "primary":
-            kwargs.setdefault('fg_color', COLORS['primary'])
-            kwargs.setdefault('hover_color', COLORS['primary_hover'])
+            kwargs.setdefault('fg_color', COLORS['electric_violet'])
+            kwargs.setdefault('hover_color', COLORS['electric_violet_hover'])
         elif variant == "success":
             kwargs.setdefault('fg_color', COLORS['success'])
             kwargs.setdefault('hover_color', COLORS['success_hover'])
