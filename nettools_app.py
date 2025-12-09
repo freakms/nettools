@@ -201,7 +201,7 @@ class NetToolsApp(ctk.CTk):
         self.geometry(f"{self.base_width}x{self.base_height}+{x}+{y}")
     
     def save_window_state(self):
-        """Save current window geometry"""
+        """Save current window geometry and preferences"""
         try:
             config = {}
             if self.config_file.exists():
@@ -211,10 +211,27 @@ class NetToolsApp(ctk.CTk):
             # Save geometry
             config['window_geometry'] = self.geometry()
             
+            # Save favorites
+            config['favorite_tools'] = list(self.favorite_tools)
+            
+            # Save recent tools
+            config['recent_tools'] = self.recent_tools
+            
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
             print(f"Could not save window state: {e}")
+    
+    def load_favorites(self):
+        """Load favorite tools from config"""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    return set(config.get('favorite_tools', []))
+        except Exception as e:
+            print(f"Could not load favorites: {e}")
+        return set()
     
     def on_closing(self):
         """Handle window closing"""
