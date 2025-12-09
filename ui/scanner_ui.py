@@ -643,12 +643,12 @@ gateway.home.lan
         else:
             # Schedule delayed flush if not already scheduled
             if self.app.update_timer is None:
-                self.app.update_timer = self.after(self.app.UPDATE_INTERVAL_MS, self._flush_update_buffer)
+                self.app.update_timer = self.app.after(self.app.UPDATE_INTERVAL_MS, self._flush_update_buffer)
     
     def _flush_update_buffer(self):
         """Flush buffered updates to UI"""
         if self.app.update_timer:
-            self.after_cancel(self.app.update_timer)
+            self.app.after_cancel(self.app.update_timer)
             self.app.update_timer = None
         
         if not self.app.update_buffer:
