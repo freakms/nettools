@@ -213,11 +213,11 @@ class DataGrid(ctk.CTkFrame):
         self._create_header()
     
     def _create_header(self):
-        """Create the header row"""
+        """Create the header row with electric violet theme"""
         header_frame = ctk.CTkFrame(
             self,
             corner_radius=RADIUS['medium'],
-            fg_color=COLORS['primary']
+            fg_color=COLORS['electric_violet']
         )
         header_frame.pack(fill="x", pady=(0, SPACING['xs']))
         
