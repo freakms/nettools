@@ -216,7 +216,7 @@ class MACFormatterUI:
         self.mac_warning_label.configure(text="")
         
         # Lookup and display vendor
-        vendor = self.lookup_vendor(hex_mac)
+        vendor = self.app.lookup_vendor(hex_mac)
         if vendor and vendor != "Unknown Vendor":
             self.vendor_label.configure(text=f"🏢 Vendor: {vendor}")
         else:
