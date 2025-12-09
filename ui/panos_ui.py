@@ -114,9 +114,9 @@ class PANOSUI:
         self.create_panos_urlcat_tab()
         self.create_panos_service_tab()
         
-        # Show name generator by default
-        self.panos_current_tab = "name"
-        self.panos_name_gen_tab.pack(fill="both", expand=True)
+        # Show addresses tab by default (which shows name generator)
+        self.panos_current_tab = "addresses"
+        self.panos_addresses_tab.pack(fill="both", expand=True)
         
         # Right side - Output panel
         self.create_panos_output_panel(main_container)
