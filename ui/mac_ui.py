@@ -8,7 +8,7 @@ from tkinter import messagebox
 import re
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
-from ui_components import StyledCard, StyledButton, StyledEntry
+from ui_components import StyledCard, StyledButton, StyledEntry, SectionTitle
 
 
 class MACFormatterUI:
