@@ -8656,6 +8656,30 @@ gateway.home.lan
             else:
                 btn.configure(text=original_text)
     
+    def show_tool_context_menu(self, event, tool_id):
+        """Show context menu for tool (right-click)"""
+        import tkinter as tk
+        
+        context_menu = tk.Menu(self, tearoff=0)
+        
+        # Favorite/Unfavorite option
+        if tool_id in self.favorite_tools:
+            context_menu.add_command(
+                label="⭐ Remove from Favorites",
+                command=lambda: self.toggle_favorite(tool_id)
+            )
+        else:
+            context_menu.add_command(
+                label="☆ Add to Favorites",
+                command=lambda: self.toggle_favorite(tool_id)
+            )
+        
+        # Show menu at cursor position
+        try:
+            context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            context_menu.grab_release()
+    
     def switch_tool(self, tool_id):
         """Switch to a tool and add to recent"""
         # Add to recent tools
