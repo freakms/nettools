@@ -79,11 +79,11 @@ class SectionTitle(ctk.CTkLabel):
 
 
 class SubTitle(ctk.CTkLabel):
-    """A styled subtitle"""
+    """A styled subtitle with neon cyan accent"""
     
     def __init__(self, parent, text, **kwargs):
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['body']))
-        kwargs.setdefault('text_color', COLORS['text_secondary'])
+        kwargs.setdefault('text_color', COLORS['neon_cyan'])
         kwargs.setdefault('text', text)
         
         super().__init__(parent, **kwargs)
