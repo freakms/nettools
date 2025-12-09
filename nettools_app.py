@@ -547,8 +547,7 @@ class NetToolsApp(ctk.CTk):
                     fg_color="transparent",
                     text_color=("gray10", "gray90"),
                     hover_color=COLORS['dashboard_card_hover'],
-                    border_width=1,
-                    border_color="transparent"
+                    border_width=0
                 )
                 btn.pack(fill="x", padx=12, pady=2)
                 
