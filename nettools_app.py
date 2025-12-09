@@ -886,7 +886,7 @@ class NetToolsApp(ctk.CTk):
         self.last_page_btn = StyledButton(
             pagination_buttons,
             text="Last ⏭",
-            command=lambda: self.go_to_page(self.total_pages),
+            command=lambda: self.go_to_page(self.scan_total_pages),
             size="small",
             variant="neutral"
         )
