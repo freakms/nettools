@@ -491,8 +491,11 @@ class NetToolsApp(ctk.CTk):
         
         self.current_page = "scanner"
         
+        # Store first category for positioning
+        self.first_category_label = None
+        
         # Render navigation with categories
-        for category_name, items in nav_categories:
+        for idx, (category_name, items) in enumerate(nav_categories):
             # Category header
             category_label = ctk.CTkLabel(
                 nav_scroll,
@@ -502,6 +505,10 @@ class NetToolsApp(ctk.CTk):
                 anchor="w"
             )
             category_label.pack(fill="x", padx=15, pady=(15, 5))
+            
+            # Store reference to first category
+            if idx == 0:
+                self.first_category_label = category_label
             
             # Category items
             for page_id, label, tooltip in items:
