@@ -5560,23 +5560,30 @@ gateway.home.lan
             self.go_to_page(self.scan_current_page - 1)
     
     def render_current_page(self):
-        """Render results for current page"""
+        """Render results for current page with filtering"""
         # Clear existing rows
         for widget in self.results_scrollable.winfo_children():
             widget.destroy()
         self.result_rows.clear()
         
-        # Calculate slice
+        # Apply filter if checkbox is checked
+        only_responding = self.only_responding_check.get()
+        if only_responding:
+            filtered_results = [r for r in self.all_results if r['status'] == 'Online']
+        else:
+            filtered_results = self.all_results
+        
+        # Calculate slice based on filtered results
         start_idx = (self.scan_current_page - 1) * self.results_per_page
         end_idx = start_idx + self.results_per_page
-        page_results = self.all_results[start_idx:end_idx]
+        page_results = filtered_results[start_idx:end_idx]
         
         # Render page results
         for result in page_results:
             self.add_result_row(result)
         
-        # Update pagination UI
-        self.update_pagination_ui()
+        # Update pagination UI with filtered count
+        self.update_pagination_ui(filtered_results)
     
     def update_pagination_ui(self):
         """Update pagination controls"""
