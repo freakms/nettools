@@ -8886,17 +8886,12 @@ gateway.home.lan
     def update_favorites_ui(self):
         """Update favorites section in sidebar"""
         try:
-            # Clear existing
+            # Clear existing buttons
             for widget in self.favorites_buttons_frame.winfo_children():
                 widget.destroy()
             
             if self.favorite_tools:
-                # Show favorites section - pack after Live Monitor (before categories)
-                try:
-                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
-                except:
-                    # Fallback: just pack normally
-                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
+                # Show favorites section (already packed in correct position)
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
                 
@@ -8925,8 +8920,9 @@ gateway.home.lan
                     )
                     btn.pack(fill="x", pady=2)
             else:
-                # Hide if no favorites
-                self.favorites_frame.pack_forget()
+                # Hide label and buttons (but keep frame packed for positioning)
+                self.favorites_label.pack_forget()
+                self.favorites_buttons_frame.pack_forget()
         except Exception as e:
             print(f"Error updating favorites UI: {e}")
     
