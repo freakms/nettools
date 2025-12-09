@@ -8949,13 +8949,16 @@ gateway.home.lan
                 widget.destroy()
             
             if self.recent_tools:
-                # Smart positioning: after Favorites if it exists, otherwise after Live Monitor
+                # Smart positioning: after Favorites if it exists, otherwise before first category
                 if self.favorite_tools and self.favorites_frame.winfo_manager():
                     # Pack after Favorites
                     self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
+                elif hasattr(self, 'first_category_label') and self.first_category_label:
+                    # Pack before first category (will be first)
+                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), before=self.first_category_label)
                 else:
-                    # Pack after Live Monitor (will be first)
-                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
+                    # Fallback: just pack normally
+                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
                 
                 self.recent_label.pack(anchor="w", pady=(5, 5))
                 self.recent_buttons_frame.pack(fill="x")
