@@ -372,7 +372,7 @@ class ScannerUI:
     def import_ip_list(self):
         """Import and scan IP list from text or file"""
         # Create dialog
-        dialog = ctk.CTkToplevel(self)
+        dialog = ctk.CTkToplevel(self.app)
         dialog.title("Import IP List")
         dialog.geometry("600x500")
         dialog.transient(self)
@@ -932,7 +932,7 @@ gateway.home.lan
     
     def show_export_dialog(self):
         """Show export options dialog"""
-        dialog = ctk.CTkToplevel(self)
+        dialog = ctk.CTkToplevel(self.app)
         dialog.title("Export Options")
         dialog.geometry("500x400")
         dialog.transient(self)
@@ -1351,7 +1351,7 @@ gateway.home.lan
             return
         
         # Create dialog
-        dialog = ctk.CTkToplevel(self)
+        dialog = ctk.CTkToplevel(self.app)
         dialog.title("Save Scan Profile")
         dialog.geometry("400x250")
         dialog.transient(self)
@@ -1443,7 +1443,7 @@ gateway.home.lan
             return
         
         # Create dialog
-        dialog = ctk.CTkToplevel(self)
+        dialog = ctk.CTkToplevel(self.app)
         dialog.title("Load Scan Profile")
         dialog.geometry("500x400")
         dialog.transient(self)
