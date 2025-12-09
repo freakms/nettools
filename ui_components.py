@@ -170,10 +170,10 @@ class LoadingSpinner(ctk.CTkLabel):
 
 
 class InfoBox(ctk.CTkFrame):
-    """An information/alert box"""
+    """An information/alert box with electric violet theme"""
     
     def __init__(self, parent, message, box_type="info", **kwargs):
-        # Determine color based on type
+        # Determine color based on type with violet theme
         if box_type == "success":
             bg_color = COLORS['success']
         elif box_type == "warning":
@@ -181,7 +181,7 @@ class InfoBox(ctk.CTkFrame):
         elif box_type == "error":
             bg_color = COLORS['danger']
         else:
-            bg_color = COLORS['primary']
+            bg_color = COLORS['electric_violet']
         
         kwargs.setdefault('fg_color', bg_color)
         kwargs.setdefault('corner_radius', RADIUS['medium'])
