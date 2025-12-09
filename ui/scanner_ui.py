@@ -275,6 +275,9 @@ class ScannerUI:
         self.app.results_scrollable.pack(fill="both", expand=True, padx=SPACING['xs'], pady=(0, SPACING['xs']))
         
         self.app.result_rows = []
+        
+        # Bind keyboard shortcut for export (Ctrl+E) when scanner is active
+        parent.bind('<Control-e>', self.export_csv)
     
     def create_mac_content(self, parent):
         """Create MAC Formatter page content"""
