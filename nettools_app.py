@@ -8885,6 +8885,7 @@ gateway.home.lan
     def update_favorites_ui(self):
         """Update favorites section in sidebar"""
         try:
+            print(f"DEBUG: update_favorites_ui called with {len(self.favorite_tools)} favorites")
             # Clear existing buttons
             for widget in self.favorites_buttons_frame.winfo_children():
                 widget.destroy()
