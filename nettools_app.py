@@ -604,12 +604,13 @@ class NetToolsApp(ctk.CTk):
             if btn_id == page_id:
                 btn.configure(
                     fg_color=COLORS['dashboard_card_hover'],
+                    border_width=2,
                     border_color=COLORS['electric_violet']
                 )
             else:
                 btn.configure(
                     fg_color="transparent",
-                    border_color="transparent"
+                    border_width=0
                 )
         
         # Hide all pages
