@@ -23,7 +23,7 @@ class MACFormatterUI:
         """
         self.app = app
 
-    def create_mac_content(self, parent):
+    def create_content(self, parent):
         """Create MAC Formatter page content"""
         # Input section with styled card
         input_card = StyledCard(parent)
@@ -95,7 +95,7 @@ class MACFormatterUI:
             "Format 4 (Dash-2):"
         ]
         
-        self.format_entries = []
+        self.app.format_entries = []
         for label_text in format_labels:
             row_frame = ctk.CTkFrame(self.formats_frame, fg_color="transparent")
             row_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['xs'])
@@ -112,7 +112,7 @@ class MACFormatterUI:
             entry = StyledEntry(row_frame)
             entry.pack(side="left", fill="x", expand=True, padx=(0, SPACING['md']))
             entry.configure(state="readonly")
-            self.format_entries.append(entry)
+            self.app.format_entries.append(entry)
             
             copy_btn = StyledButton(
                 row_frame,
@@ -187,7 +187,7 @@ class MACFormatterUI:
         if not mac_input:
             self.mac_warning_label.configure(text="")
             self.vendor_label.configure(text="")
-            for entry in self.format_entries:
+            for entry in self.app.format_entries:
                 entry.configure(state="normal")
                 entry.delete(0, 'end')
                 entry.configure(state="readonly")
@@ -202,7 +202,7 @@ class MACFormatterUI:
         if error:
             self.mac_warning_label.configure(text=error)
             self.vendor_label.configure(text="")
-            for entry in self.format_entries:
+            for entry in self.app.format_entries:
                 entry.configure(state="normal")
                 entry.delete(0, 'end')
                 entry.configure(state="readonly")
@@ -233,7 +233,7 @@ class MACFormatterUI:
             formats['dash_2']
         ]
         
-        for entry, value in zip(self.format_entries, format_values):
+        for entry, value in zip(self.app.format_entries, format_values):
             entry.configure(state="normal")
             entry.delete(0, 'end')
             entry.insert(0, value)
