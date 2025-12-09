@@ -712,8 +712,21 @@ class NetToolsApp(ctk.CTk):
         dashboard_ui.create_content(parent)
     def create_scanner_content(self, parent):
         """Create IPv4 Scanner page content"""
-        scanner_ui = ScannerUI(self)
-        scanner_ui.create_content(parent)
+        try:
+            scanner_ui = ScannerUI(self)
+            scanner_ui.create_content(parent)
+        except Exception as e:
+            # Show error if scanner fails to load
+            error_label = ctk.CTkLabel(
+                parent,
+                text=f"Error loading scanner:\n{str(e)}",
+                font=ctk.CTkFont(size=14),
+                text_color="red"
+            )
+            error_label.pack(padx=20, pady=20)
+            print(f"Scanner error: {e}")
+            import traceback
+            traceback.print_exc()
     
     def create_mac_content(self, parent):
         """Create MAC Formatter page content"""
