@@ -126,7 +126,7 @@ class SubnetCalculatorUI:
         # Add to history
         self.app.history.add_cidr(cidr)
         
-        self.status_label.configure(text=f"Calculated subnet information for {cidr}")
+        self.app.status_label.configure(text=f"Calculated subnet information for {cidr}")
     
     # get_network_class method removed - now handled by SubnetCalculator
     
