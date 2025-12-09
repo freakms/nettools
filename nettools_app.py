@@ -5583,9 +5583,150 @@ gateway.home.lan
         self.filter_results()
     
     def export_csv(self, event=None):
-        """Export scanner results in multiple formats"""
-        if not self.scanner.results:
+        """Export scanner results in multiple formats with options"""
+        if not self.all_results:
             messagebox.showinfo("Information", "No data to export.")
+            return
+        
+        # Show export options dialog
+        self.show_export_dialog()
+    
+    def show_export_dialog(self):
+        """Show export options dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Export Options")
+        dialog.geometry("500x400")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - 500) // 2
+        y = self.winfo_y() + (self.winfo_height() - 400) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content
+        content = ctk.CTkFrame(dialog)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Title
+        title = ctk.CTkLabel(
+            content,
+            text="📤 Export Scan Results",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(pady=(0, SPACING['lg']))
+        
+        # Export scope
+        scope_frame = ctk.CTkFrame(content, fg_color="transparent")
+        scope_frame.pack(fill="x", pady=SPACING['md'])
+        
+        scope_label = ctk.CTkLabel(
+            scope_frame,
+            text="Export Scope:",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        scope_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        scope_var = ctk.StringVar(value="all")
+        
+        all_radio = ctk.CTkRadioButton(
+            scope_frame,
+            text=f"All Results ({len(self.all_results)} total)",
+            variable=scope_var,
+            value="all"
+        )
+        all_radio.pack(anchor="w", pady=SPACING['xs'])
+        
+        current_page_radio = ctk.CTkRadioButton(
+            scope_frame,
+            text=f"Current Page Only ({len(self.result_rows)} results)",
+            variable=scope_var,
+            value="page"
+        )
+        current_page_radio.pack(anchor="w", pady=SPACING['xs'])
+        
+        online_radio = ctk.CTkRadioButton(
+            scope_frame,
+            text=f"Online Hosts Only ({sum(1 for r in self.all_results if r.get('status') == 'Online')} results)",
+            variable=scope_var,
+            value="online"
+        )
+        online_radio.pack(anchor="w", pady=SPACING['xs'])
+        
+        # Format selection
+        format_frame = ctk.CTkFrame(content, fg_color="transparent")
+        format_frame.pack(fill="x", pady=SPACING['md'])
+        
+        format_label = ctk.CTkLabel(
+            format_frame,
+            text="Export Format:",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        format_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        format_var = ctk.StringVar(value="csv")
+        
+        formats = [
+            ("csv", "CSV - Comma Separated Values"),
+            ("json", "JSON - JavaScript Object Notation"),
+            ("xlsx", "Excel - Microsoft Excel (requires openpyxl)"),
+            ("html", "HTML - Web Page Report"),
+            ("txt", "TXT - Plain Text"),
+            ("xml", "XML - Extensible Markup Language"),
+        ]
+        
+        for value, label in formats:
+            radio = ctk.CTkRadioButton(
+                format_frame,
+                text=label,
+                variable=format_var,
+                value=value
+            )
+            radio.pack(anchor="w", pady=SPACING['xs'])
+        
+        # Buttons
+        button_frame = ctk.CTkFrame(content, fg_color="transparent")
+        button_frame.pack(fill="x", pady=SPACING['lg'], side="bottom")
+        
+        cancel_btn = StyledButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            size="medium",
+            variant="neutral"
+        )
+        cancel_btn.pack(side="right", padx=SPACING['xs'])
+        
+        def do_export():
+            scope = scope_var.get()
+            format_type = format_var.get()
+            dialog.destroy()
+            self.perform_export(scope, format_type)
+        
+        export_btn = StyledButton(
+            button_frame,
+            text="📤 Export",
+            command=do_export,
+            size="large",
+            variant="primary"
+        )
+        export_btn.pack(side="right")
+    
+    def perform_export(self, scope, format_type):
+        """Perform the actual export"""
+        # Filter results based on scope
+        if scope == "all":
+            results_to_export = self.all_results
+        elif scope == "page":
+            results_to_export = [row.result_data for row in self.result_rows if hasattr(row, 'result_data')]
+        elif scope == "online":
+            results_to_export = [r for r in self.all_results if r.get('status') == 'Online']
+        else:
+            results_to_export = self.all_results
+        
+        if not results_to_export:
+            messagebox.showinfo("Information", "No data to export with selected filter.")
             return
         
         # Get desktop path
@@ -5593,16 +5734,20 @@ gateway.home.lan
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         default_filename = f"NetToolsScan_{timestamp}"
         
-        # Ask for save location with format selection
+        # File extension mapping
+        ext_map = {
+            "csv": ".csv",
+            "json": ".json",
+            "xlsx": ".xlsx",
+            "html": ".html",
+            "txt": ".txt",
+            "xml": ".xml"
+        }
+        
+        # Ask for save location
         filepath = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[
-                ("CSV files", "*.csv"),
-                ("JSON files", "*.json"),
-                ("XML files", "*.xml"),
-                ("Text files", "*.txt"),
-                ("All files", "*.*")
-            ],
+            defaultextension=ext_map.get(format_type, ".csv"),
+            filetypes=[(f"{format_type.upper()} files", f"*{ext_map.get(format_type, '.csv')}")],
             initialdir=desktop,
             initialfile=default_filename
         )
@@ -5611,23 +5756,22 @@ gateway.home.lan
             return
         
         try:
-            file_ext = Path(filepath).suffix.lower()
-            
-            if file_ext == ".csv":
-                self._export_scan_csv(filepath)
-            elif file_ext == ".json":
-                self._export_scan_json(filepath)
-            elif file_ext == ".xml":
-                self._export_scan_xml(filepath)
-            elif file_ext == ".txt":
-                self._export_scan_txt(filepath)
-            else:
-                # Default to CSV for unknown extensions
-                self._export_scan_csv(filepath)
+            if format_type == "csv":
+                self._export_as_csv(filepath, results_to_export)
+            elif format_type == "json":
+                self._export_as_json(filepath, results_to_export)
+            elif format_type == "xlsx":
+                self._export_as_excel(filepath, results_to_export)
+            elif format_type == "html":
+                self._export_as_html(filepath, results_to_export)
+            elif format_type == "txt":
+                self._export_as_txt(filepath, results_to_export)
+            elif format_type == "xml":
+                self._export_as_xml(filepath, results_to_export)
             
             messagebox.showinfo(
                 "Export Successful",
-                f"Scan results successfully exported to:\n{filepath}"
+                f"{len(results_to_export)} results exported to:\n{filepath}"
             )
         except Exception as e:
             messagebox.showerror(
