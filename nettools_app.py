@@ -441,9 +441,8 @@ class NetToolsApp(ctk.CTk):
         )
         self.live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
         
-        # Favorites section - create and pack immediately in correct position
+        # Favorites section - create but don't pack yet (will pack when populated)
         self.favorites_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
-        self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))  # Pack now, will be hidden if empty
         self.favorites_label = ctk.CTkLabel(
             self.favorites_frame,
             text="⭐ FAVORITES",
@@ -452,9 +451,8 @@ class NetToolsApp(ctk.CTk):
         )
         self.favorites_buttons_frame = ctk.CTkFrame(self.favorites_frame, fg_color="transparent")
         
-        # Recent tools section - create and pack immediately in correct position
+        # Recent tools section - create but don't pack yet (will pack when populated)
         self.recent_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
-        self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))  # Pack now, will be hidden if empty
         self.recent_label = ctk.CTkLabel(
             self.recent_frame,
             text="🕐 RECENT",
