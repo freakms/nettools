@@ -8,20 +8,23 @@ from design_constants import COLORS, SPACING, RADIUS, FONTS, BUTTON_SIZES, CARD_
 
 
 class StyledCard(ctk.CTkFrame):
-    """A styled card container with consistent appearance"""
+    """A styled card container with electric violet theme"""
     
     def __init__(self, parent, **kwargs):
         # Extract custom parameters
         show_border = kwargs.pop('show_border', False)
         
-        # Apply default card styling
+        # Apply electric violet card styling
         kwargs.setdefault('corner_radius', CARD_STYLE['radius'])
-        kwargs.setdefault('fg_color', COLORS['bg_card'])
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
         
         super().__init__(parent, **kwargs)
         
         if show_border:
-            self.configure(border_width=CARD_STYLE['border_width'])
+            self.configure(
+                border_width=CARD_STYLE['border_width'],
+                border_color=COLORS['electric_violet']
+            )
 
 
 class StyledButton(ctk.CTkButton):
