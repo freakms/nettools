@@ -159,12 +159,12 @@ class SectionSeparator(ctk.CTkFrame):
 
 
 class LoadingSpinner(ctk.CTkLabel):
-    """A simple loading indicator"""
+    """A simple loading indicator with electric violet"""
     
     def __init__(self, parent, text="Loading...", **kwargs):
         kwargs.setdefault('text', f"⏳ {text}")
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['subheading']))
-        kwargs.setdefault('text_color', COLORS['primary'])
+        kwargs.setdefault('text_color', COLORS['electric_violet'])
         
         super().__init__(parent, **kwargs)
 
