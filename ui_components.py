@@ -68,10 +68,11 @@ class StyledEntry(ctk.CTkEntry):
 
 
 class SectionTitle(ctk.CTkLabel):
-    """A styled section title"""
+    """A styled section title with electric violet theme"""
     
     def __init__(self, parent, text, **kwargs):
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['heading'], weight="bold"))
+        kwargs.setdefault('text_color', COLORS['electric_violet'])
         kwargs.setdefault('text', text)
         
         super().__init__(parent, **kwargs)
