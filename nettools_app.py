@@ -8932,7 +8932,14 @@ gateway.home.lan
                 widget.destroy()
             
             if self.recent_tools:
-                # Show recent section (already packed in correct position)
+                # Smart positioning: after Favorites if it exists, otherwise after Live Monitor
+                if self.favorite_tools and self.favorites_frame.winfo_manager():
+                    # Pack after Favorites
+                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
+                else:
+                    # Pack after Live Monitor (will be first)
+                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
+                
                 self.recent_label.pack(anchor="w", pady=(5, 5))
                 self.recent_buttons_frame.pack(fill="x")
                 
@@ -8961,9 +8968,8 @@ gateway.home.lan
                     )
                     btn.pack(fill="x", pady=1)
             else:
-                # Hide label and buttons (but keep frame packed for positioning)
-                self.recent_label.pack_forget()
-                self.recent_buttons_frame.pack_forget()
+                # Completely hide frame when empty (no gap)
+                self.recent_frame.pack_forget()
         except Exception as e:
             print(f"Error updating recent UI: {e}")
     
