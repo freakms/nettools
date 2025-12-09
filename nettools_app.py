@@ -545,10 +545,8 @@ class NetToolsApp(ctk.CTk):
         self.theme_selector.pack()
         self.theme_selector.set("Dark")
         
-        # Initialize favorites and recent UI
-        print(f"DEBUG: Initializing with favorites={self.favorite_tools}, recent={self.recent_tools}")
+        # Initialize favorites UI
         self.update_favorites_ui()
-        self.update_recent_ui()
         self.update_nav_button_stars()
     
     def switch_page(self, page_id):
