@@ -5567,7 +5567,7 @@ gateway.home.lan
         self.result_rows.clear()
         
         # Calculate slice
-        start_idx = (self.current_page - 1) * self.results_per_page
+        start_idx = (self.scan_current_page - 1) * self.results_per_page
         end_idx = start_idx + self.results_per_page
         page_results = self.all_results[start_idx:end_idx]
         
@@ -5581,23 +5581,23 @@ gateway.home.lan
     def update_pagination_ui(self):
         """Update pagination controls"""
         total_results = len(self.all_results)
-        self.total_pages = max(1, (total_results + self.results_per_page - 1) // self.results_per_page)
+        self.scan_total_pages = max(1, (total_results + self.results_per_page - 1) // self.results_per_page)
         
         # Update labels
-        start_idx = (self.current_page - 1) * self.results_per_page + 1
-        end_idx = min(self.current_page * self.results_per_page, total_results)
+        start_idx = (self.scan_current_page - 1) * self.results_per_page + 1
+        end_idx = min(self.scan_current_page * self.results_per_page, total_results)
         
         if total_results == 0:
             self.pagination_label.configure(text="No results")
             self.page_indicator.configure(text="Page 0 of 0")
         else:
             self.pagination_label.configure(text=f"Showing {start_idx}-{end_idx} of {total_results} results")
-            self.page_indicator.configure(text=f"Page {self.current_page} of {self.total_pages}")
+            self.page_indicator.configure(text=f"Page {self.scan_current_page} of {self.scan_total_pages}")
         
         # Enable/disable buttons
-        self.first_page_btn.configure(state="normal" if self.current_page > 1 else "disabled")
-        self.prev_page_btn.configure(state="normal" if self.current_page > 1 else "disabled")
-        self.next_page_btn.configure(state="normal" if self.current_page < self.total_pages else "disabled")
+        self.first_page_btn.configure(state="normal" if self.scan_current_page > 1 else "disabled")
+        self.prev_page_btn.configure(state="normal" if self.scan_current_page > 1 else "disabled")
+        self.next_page_btn.configure(state="normal" if self.scan_current_page < self.scan_total_pages else "disabled")
         self.last_page_btn.configure(state="normal" if self.current_page < self.total_pages else "disabled")
     
     def filter_results(self, event=None):
