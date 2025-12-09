@@ -214,9 +214,6 @@ class NetToolsApp(ctk.CTk):
             # Save favorites
             config['favorite_tools'] = list(self.favorite_tools)
             
-            # Save recent tools
-            config['recent_tools'] = self.recent_tools
-            
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
