@@ -151,7 +151,7 @@ class IPv4Scanner:
             'Aggressive (short timeout)': 128
         }
         if max_workers is None:
-            max_workers = worker_map.get(aggression, 64)
+            max_workers = int(worker_map.get(aggression, 64))
         
         try:
             ip_list = self.parse_cidr(cidr)
@@ -213,7 +213,7 @@ class IPv4Scanner:
             'Aggressive (short timeout)': 128
         }
         if max_workers is None:
-            max_workers = worker_map.get(aggression, 64)
+            max_workers = int(worker_map.get(aggression, 64))
         
         try:
             total = len(ip_list)
