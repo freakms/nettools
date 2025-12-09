@@ -5543,21 +5543,21 @@ gateway.home.lan
     
     def go_to_page(self, page_num):
         """Go to specific page"""
-        if page_num < 1 or page_num > self.total_pages:
+        if page_num < 1 or page_num > self.scan_total_pages:
             return
         
-        self.current_page = page_num
+        self.scan_current_page = page_num
         self.render_current_page()
     
     def next_page(self):
         """Go to next page"""
-        if self.current_page < self.total_pages:
-            self.go_to_page(self.current_page + 1)
+        if self.scan_current_page < self.scan_total_pages:
+            self.go_to_page(self.scan_current_page + 1)
     
     def previous_page(self):
         """Go to previous page"""
-        if self.current_page > 1:
-            self.go_to_page(self.current_page - 1)
+        if self.scan_current_page > 1:
+            self.go_to_page(self.scan_current_page - 1)
     
     def render_current_page(self):
         """Render results for current page"""
