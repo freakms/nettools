@@ -24,7 +24,7 @@ class DNSLookupUI:
         """
         self.app = app
 
-    def create_dns_content(self, parent):
+    def create_content(self, parent):
         """Create DNS Lookup page content"""
         # Scrollable content area
         scrollable = ctk.CTkScrollableFrame(parent)
@@ -64,12 +64,12 @@ class DNSLookupUI:
         )
         query_info.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
-        self.dns_query_entry = StyledEntry(
+        self.app.dns_query_entry = StyledEntry(
             input_frame,
             placeholder_text="google.com or 8.8.8.8"
         )
-        self.dns_query_entry.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
-        self.dns_query_entry.bind('<Return>', lambda e: self.perform_dns_lookup())
+        self.app.dns_query_entry.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        self.app.dns_query_entry.bind('<Return>', lambda e: self.perform_dns_lookup())
         
         # DNS server selection
         dns_server_label = ctk.CTkLabel(
@@ -149,7 +149,7 @@ class DNSLookupUI:
     
     def perform_dns_lookup(self):
         """Perform DNS lookup"""
-        query = self.dns_query_entry.get().strip()
+        query = self.app.dns_query_entry.get().strip()
         if not query:
             messagebox.showwarning("Invalid Input", "Please enter a hostname or IP address")
             return
