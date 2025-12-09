@@ -127,13 +127,11 @@ class NetToolsApp(ctk.CTk):
         self.results_per_page = 100
         self.total_pages = 1
         
-        # Window persistence - MUST be set before loading favorites/recent
+        # Window persistence - MUST be set before loading favorites
         self.config_file = Path.home() / '.nettools_config.json'
         
-        # Favorites and recent tools
+        # Favorites only (recent removed as not useful)
         self.favorite_tools = self.load_favorites()
-        self.recent_tools = self.load_recent_tools()
-        self.max_recent = 5
         
         # Initialize history manager
         self.history = HistoryManager()
