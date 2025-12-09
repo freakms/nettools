@@ -173,7 +173,7 @@ class NetToolsApp(ctk.CTk):
         
         # Bind keyboard shortcuts
         self.bind('<Return>', self.on_enter_key)
-        self.bind('<Control-e>', self.export_csv)
+        # Note: Ctrl+E for export is handled within scanner UI
         self.bind('<Control-k>', self.open_quick_switcher)  # Quick switcher
         
         # Bind window resize for auto-scaling
