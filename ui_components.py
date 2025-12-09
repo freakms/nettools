@@ -149,11 +149,11 @@ class StatusBadge(ctk.CTkFrame):
 
 
 class SectionSeparator(ctk.CTkFrame):
-    """A visual separator between sections"""
+    """A visual separator with electric violet theme"""
     
     def __init__(self, parent, **kwargs):
-        kwargs.setdefault('height', 1)
-        kwargs.setdefault('fg_color', COLORS['text_secondary'])
+        kwargs.setdefault('height', 2)
+        kwargs.setdefault('fg_color', COLORS['electric_violet'])
         
         super().__init__(parent, **kwargs)
 
