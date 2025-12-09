@@ -550,7 +550,7 @@ gateway.home.lan
                     
                     # Update UI
                     self.app.start_scan_btn.configure(state="disabled")
-                    self.import_list_btn.configure(state="disabled")
+                    self.app.import_list_btn.configure(state="disabled")
                     self.app.cancel_scan_btn.configure(state="normal")
                     self.app.export_btn.configure(state="disabled")
                     self.app.compare_btn.configure(state="disabled")
