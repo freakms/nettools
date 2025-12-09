@@ -53,7 +53,7 @@ class MACFormatterUI:
             text="⏱",
             size="small",
             variant="neutral",
-            command=self.show_mac_history
+            command=self.app.show_mac_history
         )
         self.mac_history_btn.pack(side="left")
         
