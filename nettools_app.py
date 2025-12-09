@@ -123,9 +123,9 @@ class NetToolsApp(ctk.CTk):
         
         # Pagination for results
         self.all_results = []  # Store all results
-        self.current_page = 1
+        self.scan_current_page = 1
         self.results_per_page = 100
-        self.total_pages = 1
+        self.scan_total_pages = 1
         
         # Window persistence - MUST be set before loading favorites
         self.config_file = Path.home() / '.nettools_config.json'
