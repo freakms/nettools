@@ -430,6 +430,26 @@ class NetToolsApp(ctk.CTk):
         )
         live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
         
+        # Favorites section
+        self.favorites_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
+        self.favorites_label = ctk.CTkLabel(
+            self.favorites_frame,
+            text="⭐ FAVORITES",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            anchor="w"
+        )
+        self.favorites_buttons_frame = ctk.CTkFrame(self.favorites_frame, fg_color="transparent")
+        
+        # Recent tools section
+        self.recent_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
+        self.recent_label = ctk.CTkLabel(
+            self.recent_frame,
+            text="🕐 RECENT",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            anchor="w"
+        )
+        self.recent_buttons_frame = ctk.CTkFrame(self.recent_frame, fg_color="transparent")
+        
         # Navigation organized by categories
         self.nav_buttons = {}
         
