@@ -479,6 +479,7 @@ class NetToolsApp(ctk.CTk):
             self.favorites_frame,
             text="⭐ FAVORITES",
             font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=COLORS['neon_cyan'],
             anchor="w"
         )
         self.favorites_buttons_frame = ctk.CTkFrame(self.favorites_frame, fg_color="transparent")
