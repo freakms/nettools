@@ -129,7 +129,7 @@ class NetToolsApp(ctk.CTk):
         
         # Favorites and recent tools
         self.favorite_tools = self.load_favorites()
-        self.recent_tools = []
+        self.recent_tools = self.load_recent_tools()
         self.max_recent = 5
         
         # Initialize history manager
