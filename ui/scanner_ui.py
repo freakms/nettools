@@ -51,7 +51,7 @@ class ScannerUI:
         )
         self.app.cidr_entry.grid(row=0, column=1, padx=(SPACING['md'], SPACING['xs']), pady=SPACING['md'], sticky="ew")
         input_card.grid_columnconfigure(1, weight=1)
-        self.app.cidr_entry.bind('<KeyRelease>', self.app.update_host_count)
+        self.app.cidr_entry.bind('<KeyRelease>', self.update_host_count)
         
         # History button for CIDR
         self.app.cidr_history_btn = StyledButton(
