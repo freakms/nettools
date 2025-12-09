@@ -589,7 +589,9 @@ class NetToolsApp(ctk.CTk):
                 self.pages[page_id] = ctk.CTkFrame(self.main_content, corner_radius=0)
             
             # Load page content based on page_id
-            if page_id == "mac":
+            if page_id == "dashboard":
+                self.create_dashboard_content(self.pages[page_id])
+            elif page_id == "mac":
                 self.create_mac_content(self.pages[page_id])
             elif page_id == "compare":
                 self.create_comparison_content(self.pages[page_id])
