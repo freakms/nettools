@@ -8897,34 +8897,36 @@ gateway.home.lan
                     self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
-            
-            # Tool names mapping
-            tool_names = {
-                "scanner": "📡 IPv4 Scanner",
-                "portscan": "🔌 Port Scanner",
-                "traceroute": "🛣️ Traceroute",
-                "bandwidth": "⚡ Bandwidth Test",
-                "dns": "🌐 DNS Lookup",
-                "subnet": "🧮 Subnet Calculator",
-                "mac": "💻 MAC Formatter",
-                "compare": "📊 Scan Comparison",
-                "profiles": "📁 Network Profiles",
-                "panos": "🔥 PAN-OS Generator",
-                "phpipam": "📦 phpIPAM",
-            }
-            
-            for tool_id in sorted(self.favorite_tools):
-                btn = StyledButton(
-                    self.favorites_buttons_frame,
-                    text=tool_names.get(tool_id, tool_id),
-                    command=lambda tid=tool_id: self.switch_tool(tid),
-                    size="medium",
-                    variant="neutral"
-                )
-                btn.pack(fill="x", pady=2)
-        else:
-            # Hide if no favorites
-            self.favorites_frame.pack_forget()
+                
+                # Tool names mapping
+                tool_names = {
+                    "scanner": "📡 IPv4 Scanner",
+                    "portscan": "🔌 Port Scanner",
+                    "traceroute": "🛣️ Traceroute",
+                    "bandwidth": "⚡ Bandwidth Test",
+                    "dns": "🌐 DNS Lookup",
+                    "subnet": "🧮 Subnet Calculator",
+                    "mac": "💻 MAC Formatter",
+                    "compare": "📊 Scan Comparison",
+                    "profiles": "📁 Network Profiles",
+                    "panos": "🔥 PAN-OS Generator",
+                    "phpipam": "📦 phpIPAM",
+                }
+                
+                for tool_id in sorted(self.favorite_tools):
+                    btn = StyledButton(
+                        self.favorites_buttons_frame,
+                        text=tool_names.get(tool_id, tool_id),
+                        command=lambda tid=tool_id: self.switch_tool(tid),
+                        size="medium",
+                        variant="neutral"
+                    )
+                    btn.pack(fill="x", pady=2)
+            else:
+                # Hide if no favorites
+                self.favorites_frame.pack_forget()
+        except Exception as e:
+            print(f"Error updating favorites UI: {e}")
     
     def update_recent_ui(self):
         """Update recent tools section in sidebar"""
