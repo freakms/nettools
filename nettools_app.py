@@ -5428,7 +5428,9 @@ gateway.home.lan
         else:
             self.status_label.configure(text=message)
         
-        self.filter_results()
+        # Render first page to ensure results are visible
+        self.scan_current_page = 1
+        self.render_current_page()
     
     def add_result_row(self, result):
         """Add a result row to the display with alternating colors"""
