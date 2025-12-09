@@ -8531,6 +8531,130 @@ gateway.home.lan
         """This method is defined in LivePingMonitorWindow class"""
         pass
     
+    def toggle_favorite(self, tool_id):
+        """Toggle tool as favorite"""
+        if tool_id in self.favorite_tools:
+            self.favorite_tools.remove(tool_id)
+        else:
+            self.favorite_tools.add(tool_id)
+        
+        # Save and update UI
+        self.save_window_state()
+        self.update_favorites_ui()
+        self.update_nav_button_stars()
+    
+    def add_to_recent(self, tool_id):
+        """Add tool to recent list"""
+        # Remove if already in list
+        if tool_id in self.recent_tools:
+            self.recent_tools.remove(tool_id)
+        
+        # Add to front
+        self.recent_tools.insert(0, tool_id)
+        
+        # Keep only last 5
+        self.recent_tools = self.recent_tools[:self.max_recent]
+        
+        # Update UI
+        self.update_recent_ui()
+    
+    def update_favorites_ui(self):
+        """Update favorites section in sidebar"""
+        # Clear existing
+        for widget in self.favorites_buttons_frame.winfo_children():
+            widget.destroy()
+        
+        if self.favorite_tools:
+            # Show favorites section
+            self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
+            self.favorites_label.pack(anchor="w", pady=(5, 5))
+            self.favorites_buttons_frame.pack(fill="x")
+            
+            # Tool names mapping
+            tool_names = {
+                "scanner": "📡 IPv4 Scanner",
+                "portscan": "🔌 Port Scanner",
+                "traceroute": "🛣️ Traceroute",
+                "bandwidth": "⚡ Bandwidth Test",
+                "dns": "🌐 DNS Lookup",
+                "subnet": "🧮 Subnet Calculator",
+                "mac": "💻 MAC Formatter",
+                "compare": "📊 Scan Comparison",
+                "profiles": "📁 Network Profiles",
+                "panos": "🔥 PAN-OS Generator",
+                "phpipam": "📦 phpIPAM",
+            }
+            
+            for tool_id in sorted(self.favorite_tools):
+                btn = StyledButton(
+                    self.favorites_buttons_frame,
+                    text=tool_names.get(tool_id, tool_id),
+                    command=lambda tid=tool_id: self.switch_tool(tid),
+                    size="medium",
+                    variant="neutral"
+                )
+                btn.pack(fill="x", pady=2)
+        else:
+            # Hide if no favorites
+            self.favorites_frame.pack_forget()
+    
+    def update_recent_ui(self):
+        """Update recent tools section in sidebar"""
+        # Clear existing
+        for widget in self.recent_buttons_frame.winfo_children():
+            widget.destroy()
+        
+        if self.recent_tools:
+            # Show recent section
+            self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
+            self.recent_label.pack(anchor="w", pady=(5, 5))
+            self.recent_buttons_frame.pack(fill="x")
+            
+            # Tool names mapping
+            tool_names = {
+                "scanner": "📡 IPv4 Scanner",
+                "portscan": "🔌 Port Scanner",
+                "traceroute": "🛣️ Traceroute",
+                "bandwidth": "⚡ Bandwidth Test",
+                "dns": "🌐 DNS Lookup",
+                "subnet": "🧮 Subnet Calculator",
+                "mac": "💻 MAC Formatter",
+                "compare": "📊 Scan Comparison",
+                "profiles": "📁 Network Profiles",
+                "panos": "🔥 PAN-OS Generator",
+                "phpipam": "📦 phpIPAM",
+            }
+            
+            for tool_id in self.recent_tools:
+                btn = StyledButton(
+                    self.recent_buttons_frame,
+                    text=tool_names.get(tool_id, tool_id),
+                    command=lambda tid=tool_id: self.switch_tool(tid),
+                    size="small",
+                    variant="neutral"
+                )
+                btn.pack(fill="x", pady=1)
+        else:
+            # Hide if no recent
+            self.recent_frame.pack_forget()
+    
+    def update_nav_button_stars(self):
+        """Update star indicators on navigation buttons"""
+        for tool_id, btn in self.nav_buttons.items():
+            original_text = btn.cget("text").replace(" ⭐", "")
+            if tool_id in self.favorite_tools:
+                btn.configure(text=f"{original_text} ⭐")
+            else:
+                btn.configure(text=original_text)
+    
+    def switch_tool(self, tool_id):
+        """Switch to a tool and add to recent"""
+        # Add to recent tools
+        self.add_to_recent(tool_id)
+        
+        # Switch to the page
+        self.switch_page(tool_id)
+    
     def on_enter_key(self, event):
         """Handle Enter key press"""
         if self.current_page == "scanner":
