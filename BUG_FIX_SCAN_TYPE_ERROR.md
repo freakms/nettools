@@ -7,9 +7,19 @@ Error: unsupported operand type(s) for -: 'str' and 'int'
 ```
 
 ## Root Cause
-In `/app/tools/scanner.py`, the `timeout_ms` value was retrieved from a dictionary using `.get()` which could potentially return the value in a way that Python treated it ambiguously in some contexts. When this value was used in the calculation `timeout_ms/1000` (line 50), Python raised a type error.
+**Variable Name Collision**: The application was using `self.current_page` for TWO different purposes:
 
-Similarly, the `max_workers` value had the same potential issue.
+1. **Navigation** (string): To track which tool is currently displayed (e.g., "scanner", "mac", "panos")
+2. **Pagination** (integer): To track which page of scan results is displayed
+
+When the navigation system set `self.current_page = "scanner"`, the pagination code tried to calculate:
+```python
+current_page_start = (self.current_page - 1) * self.results_per_page
+# This became: ("scanner" - 1) * 100  → Type Error!
+```
+
+## Initial Fix Attempt
+First, we added explicit `int()` conversions in `/app/tools/scanner.py` for `timeout_ms` and `max_workers`, but this didn't solve the root issue.
 
 ## Solution
 Added explicit `int()` conversions to ensure both `timeout_ms` and `max_workers` are always integers:
