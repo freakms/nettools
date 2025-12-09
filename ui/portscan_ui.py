@@ -7,7 +7,11 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import threading
 import socket
-import telnetlib
+try:
+    import telnetlib
+    TELNETLIB_AVAILABLE = True
+except ImportError:
+    TELNETLIB_AVAILABLE = False
 import subprocess
 import json
 import csv
