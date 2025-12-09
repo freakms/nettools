@@ -707,13 +707,8 @@ class NetToolsApp(ctk.CTk):
 
     def create_dashboard_content(self, parent):
         """Create Dashboard home page with electric violet theme"""
-        # Main dashboard container with dark violet background
-        dashboard = ctk.CTkScrollableFrame(
-            parent,
-            fg_color=COLORS['dashboard_bg'],
-            corner_radius=0
-        )
-        dashboard.pack(fill="both", expand=True)
+        dashboard_ui = DashboardUI(self)
+        dashboard_ui.create_content(parent)
         
         # Header section
         header_frame = ctk.CTkFrame(dashboard, fg_color="transparent")
