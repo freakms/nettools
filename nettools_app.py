@@ -1002,8 +1002,7 @@ class NetToolsApp(ctk.CTk):
         except Exception as e:
             error_label = ctk.CTkLabel(
                 parent,
-                text=f"Error loading port scanner:
-{str(e)}",
+                text=f"Error loading port scanner:\n{str(e)}",
                 font=ctk.CTkFont(size=14),
                 text_color="red"
             )
