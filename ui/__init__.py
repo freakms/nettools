@@ -8,5 +8,6 @@ from .scanner_ui import ScannerUI
 from .portscan_ui import PortScannerUI
 from .dns_ui import DNSLookupUI
 from .subnet_ui import SubnetCalculatorUI
+from .mac_ui import MACFormatterUI
 
-__all__ = ['DashboardUI', 'ScannerUI', 'PortScannerUI', 'DNSLookupUI', 'SubnetCalculatorUI']
+__all__ = ['DashboardUI', 'ScannerUI', 'PortScannerUI', 'DNSLookupUI', 'SubnetCalculatorUI', 'MACFormatterUI']
