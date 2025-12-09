@@ -24,6 +24,7 @@ import socket
 from ui.dashboard_ui import DashboardUI
 from ui.scanner_ui import ScannerUI
 from ui.portscan_ui import PortScannerUI
+from ui.dns_ui import DNSLookupUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
