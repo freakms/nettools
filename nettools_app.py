@@ -8883,15 +8883,20 @@ gateway.home.lan
     
     def update_favorites_ui(self):
         """Update favorites section in sidebar"""
-        # Clear existing
-        for widget in self.favorites_buttons_frame.winfo_children():
-            widget.destroy()
-        
-        if self.favorite_tools:
-            # Show favorites section - pack after Live Monitor (before categories)
-            self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
-            self.favorites_label.pack(anchor="w", pady=(5, 5))
-            self.favorites_buttons_frame.pack(fill="x")
+        try:
+            # Clear existing
+            for widget in self.favorites_buttons_frame.winfo_children():
+                widget.destroy()
+            
+            if self.favorite_tools:
+                # Show favorites section - pack after Live Monitor (before categories)
+                try:
+                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
+                except:
+                    # Fallback: just pack normally
+                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
+                self.favorites_label.pack(anchor="w", pady=(5, 5))
+                self.favorites_buttons_frame.pack(fill="x")
             
             # Tool names mapping
             tool_names = {
