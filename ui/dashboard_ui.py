@@ -177,30 +177,40 @@ class DashboardUI:
         current_interface = None
         
         for line in output.split('\n'):
-            line = line.strip()
-            
-            if line and not line.startswith(' '):
-                # New adapter
-                if 'adapter' in line.lower():
-                    if current_interface:
-                        self.network_interfaces.append(current_interface)
-                    current_interface = {
-                        'name': line.split(':')[0].strip(),
-                        'ipv4': 'N/A',
-                        'subnet': 'N/A',
-                        'mac': 'N/A',
-                        'status': 'Unknown'
-                    }
-            elif current_interface:
-                if 'IPv4 Address' in line:
-                    current_interface['ipv4'] = line.split(':')[1].strip().split('(')[0].strip()
-                    current_interface['status'] = 'Up'
-                elif 'Subnet Mask' in line:
-                    current_interface['subnet'] = line.split(':')[1].strip()
-                elif 'Physical Address' in line:
-                    current_interface['mac'] = line.split(':')[1].strip()
+            # Check for new adapter (lines that end with colon and contain 'adapter')
+            if line and not line.startswith(' ') and ':' in line and 'adapter' in line.lower():
+                if current_interface and current_interface['ipv4'] != 'N/A':
+                    # Only add if we found an IP address
+                    self.network_interfaces.append(current_interface)
+                
+                current_interface = {
+                    'name': line.split(':')[0].strip(),
+                    'ipv4': 'N/A',
+                    'subnet': 'N/A',
+                    'mac': 'N/A',
+                    'status': 'Down'
+                }
+            elif current_interface and line.strip():
+                # Parse interface details (lines with leading spaces)
+                line_stripped = line.strip()
+                if 'IPv4' in line_stripped or 'IPv4-Adresse' in line_stripped:
+                    # Handle both English and German Windows
+                    parts = line_stripped.split(':', 1)
+                    if len(parts) > 1:
+                        ip = parts[1].strip().split('(')[0].strip()
+                        current_interface['ipv4'] = ip
+                        current_interface['status'] = 'Up'
+                elif 'Subnet' in line_stripped or 'Subnetzmaske' in line_stripped:
+                    parts = line_stripped.split(':', 1)
+                    if len(parts) > 1:
+                        current_interface['subnet'] = parts[1].strip()
+                elif 'Physical' in line_stripped or 'Physikalische' in line_stripped:
+                    parts = line_stripped.split(':', 1)
+                    if len(parts) > 1:
+                        current_interface['mac'] = parts[1].strip()
         
-        if current_interface:
+        # Add last interface if it has an IP
+        if current_interface and current_interface['ipv4'] != 'N/A':
             self.network_interfaces.append(current_interface)
     
     def _parse_linux_interfaces(self, output):
