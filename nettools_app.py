@@ -505,6 +505,10 @@ class NetToolsApp(ctk.CTk):
                     hover_color=("gray70", "gray30")
                 )
                 btn.pack(fill="x", padx=12, pady=2)
+                
+                # Add right-click context menu for favorites
+                btn.bind("<Button-3>", lambda e, tid=page_id: self.show_tool_context_menu(e, tid))
+                
                 self.nav_buttons[page_id] = btn
         
         # Update initial button state
