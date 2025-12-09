@@ -8894,59 +8894,6 @@ gateway.home.lan
         except Exception as e:
             print(f"Error updating favorites UI: {e}")
     
-    def update_recent_ui(self):
-        """Update recent tools section in sidebar"""
-        try:
-            print(f"DEBUG: update_recent_ui called with {len(self.recent_tools)} recent tools")
-            # Clear existing buttons
-            for widget in self.recent_buttons_frame.winfo_children():
-                widget.destroy()
-            
-            if self.recent_tools:
-                # Smart positioning: after Favorites if it exists, otherwise before first category
-                if self.favorite_tools and self.favorites_frame.winfo_manager():
-                    # Pack after Favorites
-                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
-                elif hasattr(self, 'first_category_label') and self.first_category_label:
-                    # Pack before first category (will be first)
-                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), before=self.first_category_label)
-                else:
-                    # Fallback: just pack normally
-                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
-                
-                self.recent_label.pack(anchor="w", pady=(5, 5))
-                self.recent_buttons_frame.pack(fill="x")
-                
-                # Tool names mapping
-                tool_names = {
-                    "scanner": "📡 IPv4 Scanner",
-                    "portscan": "🔌 Port Scanner",
-                    "traceroute": "🛣️ Traceroute",
-                    "bandwidth": "⚡ Bandwidth Test",
-                    "dns": "🌐 DNS Lookup",
-                    "subnet": "🧮 Subnet Calculator",
-                    "mac": "💻 MAC Formatter",
-                    "compare": "📊 Scan Comparison",
-                    "profiles": "📁 Network Profiles",
-                    "panos": "🔥 PAN-OS Generator",
-                    "phpipam": "📦 phpIPAM",
-                }
-                
-                for tool_id in self.recent_tools:
-                    btn = StyledButton(
-                        self.recent_buttons_frame,
-                        text=tool_names.get(tool_id, tool_id),
-                        command=lambda tid=tool_id: self.switch_tool(tid),
-                        size="small",
-                        variant="neutral"
-                    )
-                    btn.pack(fill="x", pady=1)
-            else:
-                # Completely hide frame when empty (no gap)
-                self.recent_frame.pack_forget()
-        except Exception as e:
-            print(f"Error updating recent UI: {e}")
-    
     def update_nav_button_stars(self):
         """Update star indicators on navigation buttons"""
         for tool_id, btn in self.nav_buttons.items():
