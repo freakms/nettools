@@ -495,7 +495,7 @@ class NetToolsApp(ctk.CTk):
                 btn = ctk.CTkButton(
                     nav_scroll,
                     text=label,
-                    command=lambda p=page_id: self.switch_page(p),
+                    command=lambda p=page_id: self.switch_tool(p),
                     height=40,
                     corner_radius=6,
                     anchor="w",
