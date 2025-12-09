@@ -8893,8 +8893,15 @@ gateway.home.lan
                 widget.destroy()
             
             if self.favorite_tools:
-                # Pack frame right after Live Monitor button
-                self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
+                # Pack frame in nav_scroll (its original parent)
+                # Use before= to place before first category frame
+                if hasattr(self, 'category_frames') and self.category_frames:
+                    first_category = list(self.category_frames.values())[0]
+                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), before=first_category)
+                else:
+                    # Fallback: just pack normally
+                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
+                
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
                 
