@@ -236,10 +236,10 @@ class DataGrid(ctk.CTkFrame):
         """Add a data row to the grid"""
         row_frame = ResultRow(
             self,
-            fg_color=("gray92", "gray15") if alternate else COLORS['bg_card']
+            fg_color=("gray92", "gray15") if alternate else COLORS['dashboard_card']
         )
         row_frame.pack(fill="x", pady=ROW_STYLE['spacing'])
-        row_frame._original_color = ("gray92", "gray15") if alternate else COLORS['bg_card']
+        row_frame._original_color = ("gray92", "gray15") if alternate else COLORS['dashboard_card']
         
         for i, column in enumerate(self.columns):
             value = data.get(column['key'], '')
