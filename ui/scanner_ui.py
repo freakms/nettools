@@ -706,7 +706,7 @@ gateway.home.lan
         self.update_pagination_ui()
     def on_scan_complete(self, results, message):
         """Handle scan completion"""
-        self.after(0, self._finalize_scan, results, message)
+        self.app.after(0, self._finalize_scan, results, message)
     
     def _finalize_scan(self, results, message):
         """Finalize scan in main thread"""
