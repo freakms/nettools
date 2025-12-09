@@ -127,6 +127,11 @@ class NetToolsApp(ctk.CTk):
         self.results_per_page = 100
         self.total_pages = 1
         
+        # Favorites and recent tools
+        self.favorite_tools = self.load_favorites()
+        self.recent_tools = []
+        self.max_recent = 5
+        
         # Initialize history manager
         self.history = HistoryManager()
         
