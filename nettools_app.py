@@ -8929,6 +8929,7 @@ gateway.home.lan
     def update_recent_ui(self):
         """Update recent tools section in sidebar"""
         try:
+            print(f"DEBUG: update_recent_ui called with {len(self.recent_tools)} recent tools")
             # Clear existing buttons
             for widget in self.recent_buttons_frame.winfo_children():
                 widget.destroy()
