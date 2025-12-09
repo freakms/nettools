@@ -8900,13 +8900,11 @@ gateway.home.lan
                 widget.destroy()
             
             if self.favorite_tools:
-                # Pack frame in nav_scroll (its original parent)
-                # Use before= to place before first category frame
-                if hasattr(self, 'category_frames') and self.category_frames:
-                    first_category = list(self.category_frames.values())[0]
-                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), before=first_category)
+                # Pack frame before first category
+                if hasattr(self, 'first_category_label') and self.first_category_label:
+                    self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), before=self.first_category_label)
                 else:
-                    # Fallback: just pack normally
+                    # Fallback: just pack normally  
                     self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
                 
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
