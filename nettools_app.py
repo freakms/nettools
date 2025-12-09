@@ -5183,19 +5183,29 @@ Option 4: Using WSL (Windows Subsystem for Linux)
                 messagebox.showerror("Error", f"Failed to save file: {e}")
     
     def create_status_bar(self):
-        """Create status bar"""
-        status_frame = ctk.CTkFrame(self, height=35, corner_radius=0)
+        """Create status bar with electric violet theme"""
+        status_frame = ctk.CTkFrame(
+            self, 
+            height=35, 
+            corner_radius=0,
+            fg_color=COLORS['dashboard_card']
+        )
         status_frame.pack(fill="x", side="bottom")
         status_frame.pack_propagate(False)
         
         self.status_label = ctk.CTkLabel(
             status_frame,
             text="Ready.",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['neon_cyan']
         )
         self.status_label.pack(side="left", padx=15, pady=5)
         
-        self.progress_bar = ctk.CTkProgressBar(status_frame, width=200)
+        self.progress_bar = ctk.CTkProgressBar(
+            status_frame, 
+            width=200,
+            progress_color=COLORS['electric_violet']
+        )
         self.progress_bar.pack(side="left", padx=15, pady=5)
         self.progress_bar.set(0)
         self.progress_bar.pack_forget()  # Hide initially
@@ -5203,7 +5213,8 @@ Option 4: Using WSL (Windows Subsystem for Linux)
         copyright_label = ctk.CTkLabel(
             status_frame,
             text=f"© {APP_COMPANY}",
-            font=ctk.CTkFont(size=10)
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_secondary']
         )
         copyright_label.pack(side="right", padx=15, pady=5)
     
