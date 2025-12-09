@@ -230,17 +230,6 @@ class NetToolsApp(ctk.CTk):
             print(f"Could not load favorites: {e}")
         return set()
     
-    def load_recent_tools(self):
-        """Load recent tools from config"""
-        try:
-            if self.config_file.exists():
-                with open(self.config_file, 'r') as f:
-                    config = json.load(f)
-                    return config.get('recent_tools', [])
-        except Exception as e:
-            print(f"Could not load recent tools: {e}")
-        return []
-    
     def on_closing(self):
         """Handle window closing"""
         self.save_window_state()
