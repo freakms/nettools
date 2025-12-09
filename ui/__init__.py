@@ -4,5 +4,6 @@ Contains individual tool UI implementations
 """
 
 from .dashboard_ui import DashboardUI
+from .scanner_ui import ScannerUI
 
-__all__ = ['DashboardUI']
+__all__ = ['DashboardUI', 'ScannerUI']
