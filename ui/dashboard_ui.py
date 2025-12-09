@@ -133,7 +133,14 @@ class DashboardUI:
             
             if system == "Windows":
                 # Use ipconfig on Windows
-                result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, timeout=5)
+                result = subprocess.run(
+                    ['ipconfig', '/all'], 
+                    capture_output=True, 
+                    text=True,
+                    encoding='utf-8',
+                    errors='ignore',  # Ignore encoding errors
+                    timeout=5
+                )
                 output = result.stdout
                 self._parse_windows_interfaces(output)
             else:
