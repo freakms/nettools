@@ -592,12 +592,18 @@ class NetToolsApp(ctk.CTk):
         if page_id == self.current_page:
             return
         
-        # Update button states
+        # Update button states with electric violet theme
         for btn_id, btn in self.nav_buttons.items():
             if btn_id == page_id:
-                btn.configure(fg_color=("gray75", "gray25"))
+                btn.configure(
+                    fg_color=COLORS['dashboard_card_hover'],
+                    border_color=COLORS['electric_violet']
+                )
             else:
-                btn.configure(fg_color="transparent")
+                btn.configure(
+                    fg_color="transparent",
+                    border_color="transparent"
+                )
         
         # Hide all pages
         for page in self.pages.values():
