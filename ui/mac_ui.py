@@ -9,6 +9,7 @@ import re
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 from ui_components import StyledCard, StyledButton, StyledEntry, SectionTitle
+from tools.mac_formatter import MACFormatter
 
 
 class MACFormatterUI:
