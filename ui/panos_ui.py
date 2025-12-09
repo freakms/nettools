@@ -38,7 +38,7 @@ class PANOSUI:
         
         # Left side - Input forms
         left_frame = ctk.CTkFrame(main_container)
-        left_frame.pack(side="left", fill="both", expand=True, padx=(0, SPACING['md']))
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, SPACING['sm']))
         
         # Tab buttons
         tab_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
