@@ -5601,14 +5601,9 @@ gateway.home.lan
         self.last_page_btn.configure(state="normal" if self.scan_current_page < self.scan_total_pages else "disabled")
     
     def filter_results(self, event=None):
-        """Filter displayed results"""
-        only_responding = self.only_responding_check.get()
-        
-        for row in self.result_rows:
-            if only_responding and row.result_data['status'] != 'Online':
-                row.pack_forget()
-            else:
-                row.pack(fill="x", padx=2, pady=1)
+        """Filter displayed results and re-render with pagination"""
+        # Re-render current page to apply filter
+        self.render_current_page()
     
     def show_all_addresses(self):
         """Show all addresses (uncheck the filter)"""
