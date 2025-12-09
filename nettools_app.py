@@ -9010,11 +9010,19 @@ gateway.home.lan
     
     def switch_tool(self, tool_id):
         """Switch to a tool and add to recent"""
-        # Add to recent tools
-        self.add_to_recent(tool_id)
-        
-        # Switch to the page
-        self.switch_page(tool_id)
+        try:
+            # Switch to the page first (most important)
+            self.switch_page(tool_id)
+            
+            # Add to recent tools (do in background to avoid blocking)
+            self.after(50, lambda: self.add_to_recent(tool_id))
+        except Exception as e:
+            print(f"Error switching tool: {e}")
+            # Fallback to direct page switch
+            try:
+                self.switch_page(tool_id)
+            except Exception as e2:
+                print(f"Critical error switching page: {e2}")
     
     def on_enter_key(self, event):
         """Handle Enter key press"""
