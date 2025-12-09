@@ -30,7 +30,7 @@ class PortScannerUI:
         """
         self.app = app
 
-    def create_portscan_content(self, parent):
+    def create_content(self, parent):
         """Create Port Scanner page content"""
         # Scrollable content area
         scrollable = ctk.CTkScrollableFrame(parent)
@@ -182,7 +182,7 @@ class PortScannerUI:
         )
         self.port_scan_btn.pack(side="left", padx=(0, SPACING['md']))
         
-        self.port_cancel_btn = StyledButton(
+        self.app.port_cancel_btn = StyledButton(
             button_frame,
             text="⏹ Cancel",
             command=self.cancel_port_scan,
@@ -190,9 +190,9 @@ class PortScannerUI:
             variant="danger",
             state="disabled"
         )
-        self.port_cancel_btn.pack(side="left")
+        self.app.port_cancel_btn.pack(side="left")
         
-        self.port_export_btn = StyledButton(
+        self.app.port_export_btn = StyledButton(
             button_frame,
             text="📤 Export Results",
             command=self.export_port_scan,
@@ -200,18 +200,18 @@ class PortScannerUI:
             variant="success",
             state="disabled"
         )
-        self.port_export_btn.pack(side="left", padx=(SPACING['md'], 0))
+        self.app.port_export_btn.pack(side="left", padx=(SPACING['md'], 0))
         
         # Progress
-        self.port_progress_label = SubTitle(
+        self.app.port_progress_label = SubTitle(
             scrollable,
             text=""
         )
-        self.port_progress_label.pack(pady=(0, SPACING['xs']))
+        self.app.port_progress_label.pack(pady=(0, SPACING['xs']))
         
-        self.port_progress_bar = ctk.CTkProgressBar(scrollable, width=400, height=20)
-        self.port_progress_bar.pack(pady=(0, SPACING['lg']))
-        self.port_progress_bar.set(0)
+        self.app.port_progress_bar = ctk.CTkProgressBar(scrollable, width=400, height=20)
+        self.app.port_progress_bar.pack(pady=(0, SPACING['lg']))
+        self.app.port_progress_bar.set(0)
         
         # Results section
         results_title = SectionTitle(
@@ -221,12 +221,12 @@ class PortScannerUI:
         results_title.pack(pady=(SPACING['md'], SPACING['md']), anchor="w")
         
         # Results frame with styled card
-        self.port_results_frame = StyledCard(scrollable)
-        self.port_results_frame.pack(fill="both", expand=True)
+        self.app.port_results_frame = StyledCard(scrollable)
+        self.app.port_results_frame.pack(fill="both", expand=True)
         
         # Initial message
         no_results_label = ctk.CTkLabel(
-            self.port_results_frame,
+            self.app.port_results_frame,
             text="No scan results yet. Enter a target and start scanning.",
             font=ctk.CTkFont(size=12),
             text_color=("gray60", "gray40")
@@ -237,7 +237,7 @@ class PortScannerUI:
         self.port_scan_running = False
         self.port_scan_cancelled = False
         self.port_scan_results = []  # Store port scan results for export
-        self.port_scan_target = ""   # Store target for export
+        self.app.port_scan_target = ""   # Store target for export
     
     def update_port_mode(self):
         """Update port input based on selected mode"""
@@ -285,14 +285,14 @@ class PortScannerUI:
         
         # Update UI
         self.port_scan_btn.configure(state="disabled")
-        self.port_cancel_btn.configure(state="normal")
+        self.app.port_cancel_btn.configure(state="normal")
         self.port_scan_running = True
         self.port_scan_cancelled = False
-        self.port_progress_bar.set(0)
-        self.port_progress_label.configure(text=f"Scanning {target} - {len(ports)} port(s)...")
+        self.app.port_progress_bar.set(0)
+        self.app.port_progress_label.configure(text=f"Scanning {target} - {len(ports)} port(s)...")
         
         # Clear previous results
-        for widget in self.port_results_frame.winfo_children():
+        for widget in self.app.port_results_frame.winfo_children():
             widget.destroy()
         
         # Start scan in background thread
@@ -306,7 +306,7 @@ class PortScannerUI:
     def cancel_port_scan(self):
         """Cancel ongoing port scan"""
         self.port_scan_cancelled = True
-        self.port_progress_label.configure(text="Cancelling scan...")
+        self.app.port_progress_label.configure(text="Cancelling scan...")
     
     def run_port_scan(self, target, ports, method):
         """Run port scan in background"""
@@ -319,8 +319,8 @@ class PortScannerUI:
             
             # Update progress
             progress = (i + 1) / total_ports
-            self.after(0, self.port_progress_bar.set, progress)
-            self.after(0, self.port_progress_label.configure, 
+            self.after(0, self.app.port_progress_bar.set, progress)
+            self.after(0, self.app.port_progress_label.configure, 
                       {"text": f"Scanning {target}:{port} ({i+1}/{total_ports})..."})
             
             # Scan port
@@ -366,31 +366,31 @@ class PortScannerUI:
         """Display port scan results"""
         # Store results for export
         self.port_scan_results = results
-        self.port_scan_target = target
+        self.app.port_scan_target = target
         
         # Clear frame
-        for widget in self.port_results_frame.winfo_children():
+        for widget in self.app.port_results_frame.winfo_children():
             widget.destroy()
         
         # Reset UI state
         self.port_scan_btn.configure(state="normal")
-        self.port_cancel_btn.configure(state="disabled")
+        self.app.port_cancel_btn.configure(state="disabled")
         self.port_scan_running = False
         
         # Enable/disable export button
         if results and not was_cancelled:
-            self.port_export_btn.configure(state="normal")
+            self.app.port_export_btn.configure(state="normal")
         else:
-            self.port_export_btn.configure(state="disabled")
+            self.app.port_export_btn.configure(state="disabled")
         
         if was_cancelled:
-            self.port_progress_label.configure(text="Scan cancelled")
+            self.app.port_progress_label.configure(text="Scan cancelled")
         else:
-            self.port_progress_label.configure(text="Scan complete")
+            self.app.port_progress_label.configure(text="Scan complete")
         
         if not results:
             no_results_label = ctk.CTkLabel(
-                self.port_results_frame,
+                self.app.port_results_frame,
                 text=f"No open ports found on {target}" if not was_cancelled else "Scan was cancelled",
                 font=ctk.CTkFont(size=12),
                 text_color=("gray60", "gray40")
@@ -399,7 +399,7 @@ class PortScannerUI:
             return
         
         # Summary
-        summary_frame = ctk.CTkFrame(self.port_results_frame, fg_color="transparent")
+        summary_frame = ctk.CTkFrame(self.app.port_results_frame, fg_color="transparent")
         summary_frame.pack(fill="x", padx=15, pady=15)
         
         summary_text = f"Found {len(results)} open port(s) on {target}"
@@ -411,7 +411,7 @@ class PortScannerUI:
         summary_label.pack(anchor="w")
         
         # Results table header
-        header_frame = ctk.CTkFrame(self.port_results_frame, corner_radius=0)
+        header_frame = ctk.CTkFrame(self.app.port_results_frame, corner_radius=0)
         header_frame.pack(fill="x", padx=15, pady=(0, 5))
         
         port_header = ctk.CTkLabel(
@@ -443,7 +443,7 @@ class PortScannerUI:
         
         # Results rows
         for result in results:
-            row_frame = ctk.CTkFrame(self.port_results_frame, corner_radius=4)
+            row_frame = ctk.CTkFrame(self.app.port_results_frame, corner_radius=4)
             row_frame.pack(fill="x", padx=15, pady=2)
             
             port_label = ctk.CTkLabel(
@@ -483,7 +483,7 @@ class PortScannerUI:
         # Get desktop path
         desktop = Path.home() / "Desktop"
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_filename = f"PortScan_{self.port_scan_target.replace('.', '_')}_{timestamp}"
+        default_filename = f"PortScan_{self.app.port_scan_target.replace('.', '_')}_{timestamp}"
         
         # Ask for save location with format selection
         filepath = filedialog.asksaveasfilename(
@@ -534,7 +534,7 @@ class PortScannerUI:
             writer.writeheader()
             for result in self.port_scan_results:
                 writer.writerow({
-                    'target': self.port_scan_target,
+                    'target': self.app.port_scan_target,
                     'port': result['port'],
                     'state': result['state'],
                     'service': result['service']
@@ -544,7 +544,7 @@ class PortScannerUI:
         """Export port scan to JSON format"""
         export_data = {
             'scan_info': {
-                'target': self.port_scan_target,
+                'target': self.app.port_scan_target,
                 'timestamp': datetime.now().isoformat(),
                 'total_open_ports': len(self.port_scan_results)
             },
@@ -559,7 +559,7 @@ class PortScannerUI:
         
         # Add scan info
         info = ET.SubElement(root, 'scan_info')
-        ET.SubElement(info, 'target').text = self.port_scan_target
+        ET.SubElement(info, 'target').text = self.app.port_scan_target
         ET.SubElement(info, 'timestamp').text = datetime.now().isoformat()
         ET.SubElement(info, 'total_open_ports').text = str(len(self.port_scan_results))
         
@@ -581,7 +581,7 @@ class PortScannerUI:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(f"Port Scan Results\n")
             f.write(f"=" * 60 + "\n")
-            f.write(f"Target: {self.port_scan_target}\n")
+            f.write(f"Target: {self.app.port_scan_target}\n")
             f.write(f"Scan Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"Total Open Ports: {len(self.port_scan_results)}\n")
             f.write(f"=" * 60 + "\n\n")
