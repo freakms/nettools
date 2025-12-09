@@ -451,16 +451,6 @@ class NetToolsApp(ctk.CTk):
         )
         self.favorites_buttons_frame = ctk.CTkFrame(self.favorites_frame, fg_color="transparent")
         
-        # Recent tools section - create but don't pack yet (will pack when populated)
-        self.recent_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
-        self.recent_label = ctk.CTkLabel(
-            self.recent_frame,
-            text="🕐 RECENT",
-            font=ctk.CTkFont(size=11, weight="bold"),
-            anchor="w"
-        )
-        self.recent_buttons_frame = ctk.CTkFrame(self.recent_frame, fg_color="transparent")
-        
         # Navigation organized by categories
         self.nav_buttons = {}
         
