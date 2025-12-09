@@ -269,7 +269,7 @@ class MACFormatterUI:
         """Copy entry content to clipboard"""
         text = entry.get()
         if text:
-            self.clipboard_clear()
-            self.clipboard_append(text)
+            self.app.clipboard_clear()
+            self.app.clipboard_append(text)
             self.status_label.configure(text="Copied to clipboard!")
-            self.after(2000, lambda: self.status_label.configure(text="Ready."))
+            self.app.after(2000, lambda: self.status_label.configure(text="Ready."))
