@@ -8948,34 +8948,36 @@ gateway.home.lan
                 
                 self.recent_label.pack(anchor="w", pady=(5, 5))
                 self.recent_buttons_frame.pack(fill="x")
-            
-            # Tool names mapping
-            tool_names = {
-                "scanner": "📡 IPv4 Scanner",
-                "portscan": "🔌 Port Scanner",
-                "traceroute": "🛣️ Traceroute",
-                "bandwidth": "⚡ Bandwidth Test",
-                "dns": "🌐 DNS Lookup",
-                "subnet": "🧮 Subnet Calculator",
-                "mac": "💻 MAC Formatter",
-                "compare": "📊 Scan Comparison",
-                "profiles": "📁 Network Profiles",
-                "panos": "🔥 PAN-OS Generator",
-                "phpipam": "📦 phpIPAM",
-            }
-            
-            for tool_id in self.recent_tools:
-                btn = StyledButton(
-                    self.recent_buttons_frame,
-                    text=tool_names.get(tool_id, tool_id),
-                    command=lambda tid=tool_id: self.switch_tool(tid),
-                    size="small",
-                    variant="neutral"
-                )
-                btn.pack(fill="x", pady=1)
-        else:
-            # Hide if no recent
-            self.recent_frame.pack_forget()
+                
+                # Tool names mapping
+                tool_names = {
+                    "scanner": "📡 IPv4 Scanner",
+                    "portscan": "🔌 Port Scanner",
+                    "traceroute": "🛣️ Traceroute",
+                    "bandwidth": "⚡ Bandwidth Test",
+                    "dns": "🌐 DNS Lookup",
+                    "subnet": "🧮 Subnet Calculator",
+                    "mac": "💻 MAC Formatter",
+                    "compare": "📊 Scan Comparison",
+                    "profiles": "📁 Network Profiles",
+                    "panos": "🔥 PAN-OS Generator",
+                    "phpipam": "📦 phpIPAM",
+                }
+                
+                for tool_id in self.recent_tools:
+                    btn = StyledButton(
+                        self.recent_buttons_frame,
+                        text=tool_names.get(tool_id, tool_id),
+                        command=lambda tid=tool_id: self.switch_tool(tid),
+                        size="small",
+                        variant="neutral"
+                    )
+                    btn.pack(fill="x", pady=1)
+            else:
+                # Hide if no recent
+                self.recent_frame.pack_forget()
+        except Exception as e:
+            print(f"Error updating recent UI: {e}")
     
     def update_nav_button_stars(self):
         """Update star indicators on navigation buttons"""
