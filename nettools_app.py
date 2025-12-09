@@ -8865,18 +8865,21 @@ gateway.home.lan
     
     def add_to_recent(self, tool_id):
         """Add tool to recent list"""
-        # Remove if already in list
-        if tool_id in self.recent_tools:
-            self.recent_tools.remove(tool_id)
-        
-        # Add to front
-        self.recent_tools.insert(0, tool_id)
-        
-        # Keep only last 5
-        self.recent_tools = self.recent_tools[:self.max_recent]
-        
-        # Update UI
-        self.update_recent_ui()
+        try:
+            # Remove if already in list
+            if tool_id in self.recent_tools:
+                self.recent_tools.remove(tool_id)
+            
+            # Add to front
+            self.recent_tools.insert(0, tool_id)
+            
+            # Keep only last 5
+            self.recent_tools = self.recent_tools[:self.max_recent]
+            
+            # Update UI in background to avoid blocking
+            self.after(100, self.update_recent_ui)
+        except Exception as e:
+            print(f"Error adding to recent: {e}")
     
     def update_favorites_ui(self):
         """Update favorites section in sidebar"""
