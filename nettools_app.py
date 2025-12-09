@@ -5585,10 +5585,18 @@ gateway.home.lan
         # Update pagination UI with filtered count
         self.update_pagination_ui(filtered_results)
     
-    def update_pagination_ui(self):
+    def update_pagination_ui(self, filtered_results=None):
         """Update pagination controls"""
-        total_results = len(self.all_results)
+        # Use filtered results if provided, otherwise use all results
+        if filtered_results is None:
+            filtered_results = self.all_results
+        
+        total_results = len(filtered_results)
         self.scan_total_pages = max(1, (total_results + self.results_per_page - 1) // self.results_per_page)
+        
+        # Ensure current page is within bounds
+        if self.scan_current_page > self.scan_total_pages:
+            self.scan_current_page = self.scan_total_pages
         
         # Update labels
         start_idx = (self.scan_current_page - 1) * self.results_per_page + 1
