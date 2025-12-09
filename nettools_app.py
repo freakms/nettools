@@ -568,7 +568,12 @@ class NetToolsApp(ctk.CTk):
         theme_frame = ctk.CTkFrame(self.sidebar, corner_radius=0, fg_color="transparent")
         theme_frame.pack(side="bottom", fill="x", padx=10, pady=10)
         
-        theme_label = ctk.CTkLabel(theme_frame, text="Theme", font=ctk.CTkFont(size=12))
+        theme_label = ctk.CTkLabel(
+            theme_frame, 
+            text="Theme", 
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['neon_cyan']
+        )
         theme_label.pack(pady=(0, 5))
         
         self.theme_selector = ctk.CTkOptionMenu(
@@ -578,7 +583,10 @@ class NetToolsApp(ctk.CTk):
             width=220,
             height=40,
             corner_radius=8,
-            font=ctk.CTkFont(size=13)
+            font=ctk.CTkFont(size=13),
+            fg_color=COLORS['electric_violet'],
+            button_color=COLORS['neon_cyan'],
+            button_hover_color=COLORS['neon_cyan_hover']
         )
         self.theme_selector.pack()
         self.theme_selector.set("Dark")
