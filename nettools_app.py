@@ -471,6 +471,9 @@ class NetToolsApp(ctk.CTk):
         
         # Category structure: (category_name, [(page_id, label, tooltip), ...])
         nav_categories = [
+            ("🏠 HOME", [
+                ("dashboard", "   Dashboard", "Overview and quick actions"),
+            ]),
             ("🔍 NETWORK SCANNING", [
                 ("scanner", "   IPv4 Scanner", "Scan network for active hosts"),
                 ("portscan", "   Port Scanner", "Scan for open ports on hosts"),
