@@ -9,6 +9,7 @@ import ipaddress
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 from ui_components import StyledCard, StyledButton, StyledEntry, SubTitle, SectionTitle
+from tools.subnet_calculator import SubnetCalculator
 
 
 class SubnetCalculatorUI:
