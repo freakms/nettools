@@ -591,6 +591,8 @@ class NetToolsApp(ctk.CTk):
             # Load page content based on page_id
             if page_id == "dashboard":
                 self.create_dashboard_content(self.pages[page_id])
+            elif page_id == "scanner":
+                self.create_scanner_content(self.pages[page_id])
             elif page_id == "mac":
                 self.create_mac_content(self.pages[page_id])
             elif page_id == "compare":
