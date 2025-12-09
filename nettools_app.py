@@ -744,6 +744,28 @@ class NetToolsApp(ctk.CTk):
         )
         self.cancel_scan_btn.pack(side="left", padx=SPACING['xs'])
         
+        # Spacer
+        ctk.CTkLabel(button_frame, text=" ", width=20).pack(side="left")
+        
+        # Profile buttons
+        self.save_profile_btn = StyledButton(
+            button_frame,
+            text="💾 Save Profile",
+            command=self.save_scan_profile_dialog,
+            size="small",
+            variant="neutral"
+        )
+        self.save_profile_btn.pack(side="left", padx=SPACING['xs'])
+        
+        self.load_profile_btn = StyledButton(
+            button_frame,
+            text="📂 Load Profile",
+            command=self.load_scan_profile_dialog,
+            size="small",
+            variant="neutral"
+        )
+        self.load_profile_btn.pack(side="left", padx=SPACING['xs'])
+        
         # Options section
         options_frame = ctk.CTkFrame(parent)
         options_frame.pack(fill="x", padx=15, pady=(0, 15))
