@@ -90,13 +90,13 @@ class SubTitle(ctk.CTkLabel):
 
 
 class ResultRow(ctk.CTkFrame):
-    """A styled result row with hover effect"""
+    """A styled result row with electric violet hover effect"""
     
     def __init__(self, parent, **kwargs):
-        # Apply default row styling
+        # Apply electric violet row styling
         kwargs.setdefault('height', ROW_STYLE['height'])
         kwargs.setdefault('corner_radius', ROW_STYLE['radius'])
-        kwargs.setdefault('fg_color', COLORS['bg_card'])
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
         
         super().__init__(parent, **kwargs)
         
@@ -108,11 +108,11 @@ class ResultRow(ctk.CTkFrame):
         self.bind('<Leave>', self._on_leave)
         
         # Store original color
-        self._original_color = kwargs.get('fg_color', COLORS['bg_card'])
+        self._original_color = kwargs.get('fg_color', COLORS['dashboard_card'])
     
     def _on_enter(self, event):
-        """Handle mouse enter"""
-        self.configure(fg_color=COLORS['bg_card_hover'])
+        """Handle mouse enter with violet glow"""
+        self.configure(fg_color=COLORS['dashboard_card_hover'])
     
     def _on_leave(self, event):
         """Handle mouse leave"""
