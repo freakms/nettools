@@ -8953,6 +8953,211 @@ gateway.home.lan
             else:
                 btn.configure(text=original_text)
     
+    def save_scan_profile_dialog(self):
+        """Show dialog to save current scan configuration as a profile"""
+        # Get current settings
+        current_cidr = self.cidr_entry.get()
+        current_aggression = self.aggro_selector.get()
+        
+        if not current_cidr:
+            messagebox.showinfo("No Configuration", "Please enter a CIDR/IP before saving a profile.")
+            return
+        
+        # Create dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Save Scan Profile")
+        dialog.geometry("400x250")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - 400) // 2
+        y = self.winfo_y() + (self.winfo_height() - 250) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content
+        content = ctk.CTkFrame(dialog)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Title
+        title = ctk.CTkLabel(
+            content,
+            text="💾 Save Scan Profile",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(pady=(0, SPACING['lg']))
+        
+        # Profile name
+        name_label = ctk.CTkLabel(content, text="Profile Name:", font=ctk.CTkFont(size=FONTS['body']))
+        name_label.pack(anchor="w", pady=(0, SPACING['xs']))
+        
+        name_entry = StyledEntry(content, placeholder_text="e.g., Home Network, DMZ, Guest VLAN")
+        name_entry.pack(fill="x", pady=(0, SPACING['md']))
+        name_entry.focus()
+        
+        # Show current config
+        config_frame = ctk.CTkFrame(content, fg_color=("gray85", "gray25"))
+        config_frame.pack(fill="x", pady=SPACING['md'])
+        
+        config_text = f"CIDR: {current_cidr}\nAggression: {current_aggression}"
+        config_label = ctk.CTkLabel(
+            config_frame,
+            text=config_text,
+            font=ctk.CTkFont(size=FONTS['small']),
+            justify="left"
+        )
+        config_label.pack(padx=SPACING['md'], pady=SPACING['md'])
+        
+        # Buttons
+        button_frame = ctk.CTkFrame(content, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(SPACING['lg'], 0))
+        
+        def save_profile():
+            profile_name = name_entry.get().strip()
+            if not profile_name:
+                messagebox.showwarning("No Name", "Please enter a profile name.")
+                return
+            
+            # Save profile
+            self.scan_profiles[profile_name] = {
+                'cidr': current_cidr,
+                'aggression': current_aggression
+            }
+            self.save_scan_profiles()
+            
+            messagebox.showinfo("Profile Saved", f"Profile '{profile_name}' saved successfully!")
+            dialog.destroy()
+        
+        cancel_btn = StyledButton(
+            button_frame,
+            text="Cancel",
+            command=dialog.destroy,
+            size="medium",
+            variant="neutral"
+        )
+        cancel_btn.pack(side="right", padx=SPACING['xs'])
+        
+        save_btn = StyledButton(
+            button_frame,
+            text="💾 Save",
+            command=save_profile,
+            size="medium",
+            variant="primary"
+        )
+        save_btn.pack(side="right")
+        
+        # Bind Enter key
+        name_entry.bind('<Return>', lambda e: save_profile())
+    
+    def load_scan_profile_dialog(self):
+        """Show dialog to load a saved scan profile"""
+        if not self.scan_profiles:
+            messagebox.showinfo("No Profiles", "No saved profiles found. Save a profile first!")
+            return
+        
+        # Create dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Load Scan Profile")
+        dialog.geometry("500x400")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - 500) // 2
+        y = self.winfo_y() + (self.winfo_height() - 400) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Content
+        content = ctk.CTkFrame(dialog)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Title
+        title = ctk.CTkLabel(
+            content,
+            text="📂 Load Scan Profile",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(pady=(0, SPACING['lg']))
+        
+        # Profiles list
+        profiles_frame = ctk.CTkScrollableFrame(content)
+        profiles_frame.pack(fill="both", expand=True, pady=SPACING['md'])
+        
+        def load_profile(profile_name):
+            profile = self.scan_profiles[profile_name]
+            self.cidr_entry.delete(0, 'end')
+            self.cidr_entry.insert(0, profile['cidr'])
+            self.aggro_selector.set(profile['aggression'])
+            messagebox.showinfo("Profile Loaded", f"Profile '{profile_name}' loaded successfully!")
+            dialog.destroy()
+        
+        def delete_profile(profile_name):
+            if messagebox.askyesno("Delete Profile", f"Delete profile '{profile_name}'?"):
+                del self.scan_profiles[profile_name]
+                self.save_scan_profiles()
+                dialog.destroy()
+                # Reopen dialog to show updated list
+                self.load_scan_profile_dialog()
+        
+        for profile_name, profile_data in self.scan_profiles.items():
+            profile_frame = ctk.CTkFrame(profiles_frame, fg_color=("gray85", "gray25"))
+            profile_frame.pack(fill="x", pady=SPACING['xs'])
+            
+            # Profile info
+            info_frame = ctk.CTkFrame(profile_frame, fg_color="transparent")
+            info_frame.pack(side="left", fill="both", expand=True, padx=SPACING['md'], pady=SPACING['md'])
+            
+            name_label = ctk.CTkLabel(
+                info_frame,
+                text=profile_name,
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
+                anchor="w"
+            )
+            name_label.pack(anchor="w")
+            
+            details_label = ctk.CTkLabel(
+                info_frame,
+                text=f"CIDR: {profile_data['cidr']} | Aggression: {profile_data['aggression']}",
+                font=ctk.CTkFont(size=FONTS['small']),
+                text_color=COLORS['text_secondary'],
+                anchor="w"
+            )
+            details_label.pack(anchor="w")
+            
+            # Buttons
+            button_frame = ctk.CTkFrame(profile_frame, fg_color="transparent")
+            button_frame.pack(side="right", padx=SPACING['md'])
+            
+            load_btn = StyledButton(
+                button_frame,
+                text="📂 Load",
+                command=lambda pn=profile_name: load_profile(pn),
+                size="small",
+                variant="primary"
+            )
+            load_btn.pack(side="left", padx=SPACING['xs'])
+            
+            delete_btn = StyledButton(
+                button_frame,
+                text="🗑️",
+                command=lambda pn=profile_name: delete_profile(pn),
+                size="small",
+                variant="danger"
+            )
+            delete_btn.pack(side="left")
+        
+        # Close button
+        close_btn = StyledButton(
+            content,
+            text="Close",
+            command=dialog.destroy,
+            size="medium",
+            variant="neutral"
+        )
+        close_btn.pack(pady=(SPACING['md'], 0))
+    
     def show_tool_context_menu(self, event, tool_id):
         """Show context menu for tool (right-click)"""
         import tkinter as tk
