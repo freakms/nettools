@@ -621,7 +621,9 @@ class NetToolsApp(ctk.CTk):
         self.current_page = page_id
         
         # Update status bar based on page
-        if page_id == "scanner":
+        if page_id == "dashboard":
+            self.status_label.configure(text="Network Command Center - Ready")
+        elif page_id == "scanner":
             self.status_label.configure(text="Ready to scan network")
         elif page_id == "mac":
             self.status_label.configure(text="Ready to format MAC address")
