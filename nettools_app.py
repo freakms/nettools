@@ -25,6 +25,7 @@ from ui.dashboard_ui import DashboardUI
 from ui.scanner_ui import ScannerUI
 from ui.portscan_ui import PortScannerUI
 from ui.dns_ui import DNSLookupUI
+from ui.subnet_ui import SubnetCalculatorUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
