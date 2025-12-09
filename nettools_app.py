@@ -640,6 +640,11 @@ class NetToolsApp(ctk.CTk):
         elif page_id == "phpipam":
             self.status_label.configure(text="Manage IP addresses with phpIPAM")
     
+    
+    def show_page(self, page_id):
+        """Alias for switch_page() - used by dashboard"""
+        self.switch_page(page_id)
+
     def create_main_content(self):
         """Create main content area with pages (lazy loading for faster startup)"""
         # Main content frame
