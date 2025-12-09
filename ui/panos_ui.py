@@ -1591,7 +1591,16 @@ class PANOSUI:
                 'generated_name': generated_name
             })
         
-        # Show popup with generated names
+        # Show inline preview with Step 2
+        preview_text = '\n'.join([item['generated_name'] for item in self.panos_generated_names])
+        self.panos_preview_text.delete("1.0", "end")
+        self.panos_preview_text.insert("1.0", preview_text)
+        
+        # Show preview and Step 2 sections
+        self.panos_preview_frame.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['md'], 0))
+        self.panos_step2_frame.pack(fill="x", pady=(SPACING['md'], 0))
+        
+        # Also show popup with generated names
         self.show_generated_names_popup()
     
     def show_generated_names_popup(self):
