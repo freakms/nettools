@@ -8885,8 +8885,8 @@ gateway.home.lan
             widget.destroy()
         
         if self.favorite_tools:
-            # Show favorites section
-            self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10))
+            # Show favorites section - pack after Live Monitor (before categories)
+            self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
             self.favorites_label.pack(anchor="w", pady=(5, 5))
             self.favorites_buttons_frame.pack(fill="x")
             
