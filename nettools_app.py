@@ -413,33 +413,50 @@ class NetToolsApp(ctk.CTk):
         return "Unknown"
         
     def create_sidebar(self):
-        """Create modern sidebar navigation"""
-        # Sidebar frame
-        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0)
+        """Create modern sidebar navigation with electric violet theme"""
+        # Sidebar frame with dark violet background
+        self.sidebar = ctk.CTkFrame(
+            self, 
+            width=250, 
+            corner_radius=0,
+            fg_color=COLORS['dashboard_card']
+        )
         self.sidebar.pack(side="left", fill="y", padx=0, pady=0)
         self.sidebar.pack_propagate(False)
         
         # Logo/Title section
-        logo_frame = ctk.CTkFrame(self.sidebar, height=100, corner_radius=0, fg_color="transparent")
+        logo_frame = ctk.CTkFrame(
+            self.sidebar, 
+            height=100, 
+            corner_radius=0, 
+            fg_color="transparent"
+        )
         logo_frame.pack(fill="x", padx=0, pady=0)
         logo_frame.pack_propagate(False)
         
         title_label = ctk.CTkLabel(
             logo_frame,
-            text="NetTools",
-            font=ctk.CTkFont(size=28, weight="bold")
+            text="⚡ NetTools",
+            font=ctk.CTkFont(size=28, weight="bold"),
+            text_color=COLORS['electric_violet']
         )
         title_label.pack(padx=20, pady=(25, 5))
         
         subtitle_label = ctk.CTkLabel(
             logo_frame,
             text="Professional Suite",
-            font=ctk.CTkFont(size=13)
+            font=ctk.CTkFont(size=13),
+            text_color=COLORS['neon_cyan']
         )
         subtitle_label.pack(padx=20, pady=(0, 10))
         
-        # Separator
-        separator = ctk.CTkFrame(self.sidebar, height=2, corner_radius=0)
+        # Separator with electric violet glow
+        separator = ctk.CTkFrame(
+            self.sidebar, 
+            height=2, 
+            corner_radius=0,
+            fg_color=COLORS['electric_violet']
+        )
         separator.pack(fill="x", padx=10, pady=10)
         
         # Scrollable navigation container
