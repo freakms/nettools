@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
-from ui_components import StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle
+from ui_components import StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle, SectionTitle
 from tools.port_scanner import PortScanner
 
 
