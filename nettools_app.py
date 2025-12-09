@@ -39,10 +39,18 @@ from PIL import Image, ImageDraw
 import io
 import json
 import xml.etree.ElementTree as ET
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+# Try to import matplotlib (optional, used for Live Ping Monitor graphing)
+try:
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-interactive backend
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+    Figure = None
+    FigureCanvasTkAgg = None
 
 # Design system and UI components
 from design_constants import COLORS, SPACING, RADIUS, FONTS, BUTTON_SIZES
