@@ -5779,6 +5779,162 @@ gateway.home.lan
                 f"Error exporting scan results: {str(e)}"
             )
     
+    def _export_as_csv(self, filepath, results):
+        """Export results as CSV"""
+        with open(filepath, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['IP Address', 'Hostname', 'Status', 'Response Time'])
+            for result in results:
+                writer.writerow([
+                    result.get('ip', ''),
+                    result.get('hostname', ''),
+                    result.get('status', ''),
+                    result.get('rtt', '')
+                ])
+    
+    def _export_as_json(self, filepath, results):
+        """Export results as JSON"""
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+    
+    def _export_as_excel(self, filepath, results):
+        """Export results as Excel (requires openpyxl)"""
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, PatternFill, Alignment
+            
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Scan Results"
+            
+            # Header
+            headers = ['IP Address', 'Hostname', 'Status', 'Response Time']
+            ws.append(headers)
+            
+            # Style header
+            for cell in ws[1]:
+                cell.font = Font(bold=True, color="FFFFFF")
+                cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+                cell.alignment = Alignment(horizontal="center")
+            
+            # Data
+            for result in results:
+                ws.append([
+                    result.get('ip', ''),
+                    result.get('hostname', ''),
+                    result.get('status', ''),
+                    result.get('rtt', '')
+                ])
+            
+            # Auto-adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                ws.column_dimensions[column_letter].width = max_length + 2
+            
+            wb.save(filepath)
+        except ImportError:
+            messagebox.showerror(
+                "Module Not Found",
+                "Excel export requires 'openpyxl' module.\n\nInstall with: pip install openpyxl"
+            )
+    
+    def _export_as_html(self, filepath, results):
+        """Export results as HTML report"""
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NetTools Scan Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
+        h1 {{ color: #333; }}
+        .info {{ background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+        table {{ width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        th {{ background: #4472C4; color: white; padding: 12px; text-align: left; }}
+        td {{ padding: 10px; border-bottom: 1px solid #ddd; }}
+        tr:hover {{ background: #f5f5f5; }}
+        .online {{ color: green; font-weight: bold; }}
+        .offline {{ color: red; }}
+    </style>
+</head>
+<body>
+    <h1>🔍 NetTools Scan Report</h1>
+    <div class="info">
+        <strong>Generated:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}<br>
+        <strong>Total Results:</strong> {len(results)}<br>
+        <strong>Online Hosts:</strong> {sum(1 for r in results if r.get('status') == 'Online')}<br>
+        <strong>Offline Hosts:</strong> {sum(1 for r in results if r.get('status') == 'Offline')}
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Hostname</th>
+                <th>Status</th>
+                <th>Response Time</th>
+            </tr>
+        </thead>
+        <tbody>
+"""
+        for result in results:
+            status_class = "online" if result.get('status') == 'Online' else "offline"
+            html_content += f"""
+            <tr>
+                <td>{result.get('ip', '')}</td>
+                <td>{result.get('hostname', '-')}</td>
+                <td class="{status_class}">{result.get('status', '')}</td>
+                <td>{result.get('rtt', '')}</td>
+            </tr>
+"""
+        
+        html_content += """
+        </tbody>
+    </table>
+</body>
+</html>
+"""
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+    
+    def _export_as_txt(self, filepath, results):
+        """Export results as plain text"""
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("NetTools Scan Report\n")
+            f.write("=" * 80 + "\n\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Total Results: {len(results)}\n\n")
+            f.write("-" * 80 + "\n")
+            f.write(f"{'IP Address':<20} {'Hostname':<30} {'Status':<10} {'RTT':<10}\n")
+            f.write("-" * 80 + "\n")
+            for result in results:
+                f.write(f"{result.get('ip', ''):<20} {result.get('hostname', '-'):<30} {result.get('status', ''):<10} {result.get('rtt', ''):<10}\n")
+    
+    def _export_as_xml(self, filepath, results):
+        """Export results as XML"""
+        xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml_content += '<scan_results>\n'
+        xml_content += f'  <metadata>\n'
+        xml_content += f'    <timestamp>{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</timestamp>\n'
+        xml_content += f'    <total_results>{len(results)}</total_results>\n'
+        xml_content += f'  </metadata>\n'
+        xml_content += '  <hosts>\n'
+        for result in results:
+            xml_content += '    <host>\n'
+            xml_content += f'      <ip>{result.get("ip", "")}</ip>\n'
+            xml_content += f'      <hostname>{result.get("hostname", "")}</hostname>\n'
+            xml_content += f'      <status>{result.get("status", "")}</status>\n'
+            xml_content += f'      <response_time>{result.get("rtt", "")}</response_time>\n'
+            xml_content += '    </host>\n'
+        xml_content += '  </hosts>\n'
+        xml_content += '</scan_results>\n'
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(xml_content)
+    
     def _export_scan_csv(self, filepath):
         """Export IP scan to CSV format"""
         with open(filepath, 'w', newline='', encoding='utf-8') as f:
