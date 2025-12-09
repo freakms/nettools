@@ -336,7 +336,7 @@ class DashboardUI:
         header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
         
         # Table header
-        table_header = ctk.CTkFrame(section, fg_color=COLORS['bg_secondary'])
+        table_header = ctk.CTkFrame(section, fg_color=("gray85", "gray20"))
         table_header.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
         
         headers = [
