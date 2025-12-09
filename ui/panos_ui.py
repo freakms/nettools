@@ -6,7 +6,7 @@ from tkinter import messagebox, filedialog
 import re
 
 from design_constants import COLORS, FONTS, SPACING
-from ui_components import StyledCard, StyledButton, StyledEntry, SectionTitle, SubTitle
+from ui_components import StyledCard, StyledButton, StyledEntry, SectionTitle, SubTitle, InfoBox
 
 
 class PANOSUI:
