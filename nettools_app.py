@@ -653,7 +653,7 @@ class NetToolsApp(ctk.CTk):
             elif page_id == "portscan":
                 self.create_portscan_content(self.pages[page_id])
             elif page_id == "traceroute":
-                self.create_traceroute_content(self.pages[page_id])
+                TracerouteUI(self, self.pages[page_id])
             elif page_id == "dns":
                 self.create_dns_content(self.pages[page_id])
             elif page_id == "panos":
