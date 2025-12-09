@@ -7,6 +7,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import threading
 import socket
+import platform
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
@@ -20,6 +21,7 @@ from datetime import datetime
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 from ui_components import StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle
+from tools.port_scanner import PortScanner
 
 
 class PortScannerUI:
