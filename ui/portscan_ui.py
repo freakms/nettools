@@ -325,8 +325,8 @@ class PortScannerUI:
             
             # Update progress
             progress = (i + 1) / total_ports
-            self.after(0, self.app.port_progress_bar.set, progress)
-            self.after(0, self.app.port_progress_label.configure, 
+            self.app.after(0, self.app.port_progress_bar.set, progress)
+            self.app.after(0, self.app.port_progress_label.configure, 
                       {"text": f"Scanning {target}:{port} ({i+1}/{total_ports})..."})
             
             # Scan port
@@ -340,7 +340,7 @@ class PortScannerUI:
                 })
         
         # Update UI with results
-        self.after(0, self.display_port_results, target, results, self.port_scan_cancelled)
+        self.app.after(0, self.display_port_results, target, results, self.port_scan_cancelled)
     
     def scan_single_port(self, target, port, method):
         """Scan a single port using specified method"""
