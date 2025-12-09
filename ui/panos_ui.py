@@ -1596,7 +1596,7 @@ class PANOSUI:
     
     def show_generated_names_popup(self):
         """Show popup window with generated names"""
-        popup = ctk.CTkToplevel(self)
+        popup = ctk.CTkToplevel(self.app)
         popup.title("Generated Names")
         popup.geometry("600x500")
         
