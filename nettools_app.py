@@ -28,6 +28,7 @@ from ui.dns_ui import DNSLookupUI
 from ui.subnet_ui import SubnetCalculatorUI
 from ui.mac_ui import MACFormatterUI
 from ui.traceroute_ui import TracerouteUI
+from ui.panos_ui import PANOSUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
