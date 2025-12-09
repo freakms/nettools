@@ -650,13 +650,13 @@ class NetToolsApp(ctk.CTk):
         self.pages = {}
         self.pages_loaded = {}  # Track which pages have been loaded
         
-        # Pre-create only the scanner page for fast initial display
-        self.pages["scanner"] = ctk.CTkFrame(self.main_content, corner_radius=0)
-        self.create_scanner_content(self.pages["scanner"])
-        self.pages_loaded["scanner"] = True
+        # Pre-create the dashboard page for fast initial display
+        self.pages["dashboard"] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        self.create_dashboard_content(self.pages["dashboard"])
+        self.pages_loaded["dashboard"] = True
         
-        # Show the initial page (scanner)
-        self.pages["scanner"].pack(fill="both", expand=True, padx=0, pady=0)
+        # Show the initial page (dashboard)
+        self.pages["dashboard"].pack(fill="both", expand=True, padx=0, pady=0)
     
 
     def create_dashboard_content(self, parent):
