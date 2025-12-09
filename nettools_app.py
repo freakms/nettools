@@ -549,6 +549,7 @@ class NetToolsApp(ctk.CTk):
         self.theme_selector.set("Dark")
         
         # Initialize favorites and recent UI
+        print(f"DEBUG: Initializing with favorites={self.favorite_tools}, recent={self.recent_tools}")
         self.update_favorites_ui()
         self.update_recent_ui()
         self.update_nav_button_stars()
