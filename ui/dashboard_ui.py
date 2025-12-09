@@ -29,7 +29,7 @@ class DashboardUI:
         # Main dashboard container
         dashboard = ctk.CTkScrollableFrame(
             parent,
-            fg_color=COLORS['bg_primary'],
+            fg_color=COLORS['dashboard_bg'],
             corner_radius=0
         )
         dashboard.pack(fill="both", expand=True)
