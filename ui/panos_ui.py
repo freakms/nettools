@@ -30,13 +30,10 @@ class PANOSUI:
         # Build UI
         self.create_ui()
     
+    def create_ui(self):
         """Create PAN-OS CLI Generator content"""
-        # Initialize storage
-        self.panos_commands = []
-        self.panos_generated_names = []
-        
         # Main container with scrollable area
-        main_container = ctk.CTkFrame(parent)
+        main_container = ctk.CTkFrame(self.parent)
         main_container.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
         
         # Left side - Input forms
