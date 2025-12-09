@@ -532,6 +532,11 @@ class NetToolsApp(ctk.CTk):
         )
         self.theme_selector.pack()
         self.theme_selector.set("Dark")
+        
+        # Initialize favorites and recent UI
+        self.update_favorites_ui()
+        self.update_recent_ui()
+        self.update_nav_button_stars()
     
     def switch_page(self, page_id):
         """Switch between pages with lazy loading"""
