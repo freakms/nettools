@@ -8889,7 +8889,8 @@ gateway.home.lan
                 widget.destroy()
             
             if self.favorite_tools:
-                # Show favorites section (already packed in correct position)
+                # Pack frame right after Live Monitor button
+                self.favorites_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
                 
@@ -8918,9 +8919,8 @@ gateway.home.lan
                     )
                     btn.pack(fill="x", pady=2)
             else:
-                # Hide label and buttons (but keep frame packed for positioning)
-                self.favorites_label.pack_forget()
-                self.favorites_buttons_frame.pack_forget()
+                # Completely hide frame when empty (no gap)
+                self.favorites_frame.pack_forget()
         except Exception as e:
             print(f"Error updating favorites UI: {e}")
     
