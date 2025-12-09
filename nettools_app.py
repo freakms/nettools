@@ -658,7 +658,7 @@ class NetToolsApp(ctk.CTk):
             elif page_id == "dns":
                 self.create_dns_content(self.pages[page_id])
             elif page_id == "panos":
-                self.create_panos_content(self.pages[page_id])
+                PANOSUI(self, self.pages[page_id])
             elif page_id == "subnet":
                 self.create_subnet_content(self.pages[page_id])
             elif page_id == "phpipam":
