@@ -146,12 +146,26 @@ class DashboardUI:
             else:
                 # Use ip addr on Linux/Mac
                 try:
-                    result = subprocess.run(['ip', 'addr'], capture_output=True, text=True, timeout=5)
+                    result = subprocess.run(
+                        ['ip', 'addr'], 
+                        capture_output=True, 
+                        text=True,
+                        encoding='utf-8',
+                        errors='ignore',
+                        timeout=5
+                    )
                     output = result.stdout
                     self._parse_linux_interfaces(output)
                 except FileNotFoundError:
                     # Fallback to ifconfig if ip command not available
-                    result = subprocess.run(['ifconfig'], capture_output=True, text=True, timeout=5)
+                    result = subprocess.run(
+                        ['ifconfig'], 
+                        capture_output=True, 
+                        text=True,
+                        encoding='utf-8',
+                        errors='ignore',
+                        timeout=5
+                    )
                     output = result.stdout
                     self._parse_ifconfig_interfaces(output)
         except Exception as e:
