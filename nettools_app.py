@@ -22,6 +22,7 @@ import socket
 
 # Import UI modules
 from ui.dashboard_ui import DashboardUI
+from ui.scanner_ui import ScannerUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
