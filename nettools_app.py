@@ -158,8 +158,7 @@ class NetToolsApp(ctk.CTk):
         self.subtitle_font_size = 12
         self.label_font_size = 12
         
-        # Window persistence
-        self.config_file = Path.home() / '.nettools_config.json'
+        # Load window state
         self.load_window_state()
         
         # Create UI (order matters: status bar must be packed before main content)
