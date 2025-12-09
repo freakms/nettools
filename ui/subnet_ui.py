@@ -23,7 +23,7 @@ class SubnetCalculatorUI:
         """
         self.app = app
 
-    def create_subnet_content(self, parent):
+    def create_content(self, parent):
         """Create Subnet Calculator page content"""
         # Scrollable content area
         scrollable = ctk.CTkScrollableFrame(parent)
