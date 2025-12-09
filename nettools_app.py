@@ -8923,18 +8923,24 @@ gateway.home.lan
     
     def update_recent_ui(self):
         """Update recent tools section in sidebar"""
-        # Clear existing
-        for widget in self.recent_buttons_frame.winfo_children():
-            widget.destroy()
-        
-        if self.recent_tools:
-            # Show recent section - pack after Favorites (or Live Monitor if no favorites)
-            if self.favorite_tools and self.favorites_frame.winfo_manager():
-                self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
-            else:
-                self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
-            self.recent_label.pack(anchor="w", pady=(5, 5))
-            self.recent_buttons_frame.pack(fill="x")
+        try:
+            # Clear existing
+            for widget in self.recent_buttons_frame.winfo_children():
+                widget.destroy()
+            
+            if self.recent_tools:
+                # Show recent section - pack after Favorites (or Live Monitor if no favorites)
+                try:
+                    if self.favorite_tools and hasattr(self.favorites_frame, 'winfo_manager') and self.favorites_frame.winfo_manager():
+                        self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.favorites_frame)
+                    else:
+                        self.recent_frame.pack(fill="x", padx=10, pady=(0, 10), after=self.live_monitor_btn)
+                except:
+                    # Fallback: just pack normally
+                    self.recent_frame.pack(fill="x", padx=10, pady=(0, 10))
+                
+                self.recent_label.pack(anchor="w", pady=(5, 5))
+                self.recent_buttons_frame.pack(fill="x")
             
             # Tool names mapping
             tool_names = {
