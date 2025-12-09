@@ -276,8 +276,9 @@ class ScannerUI:
         
         self.app.result_rows = []
         
-        # Bind keyboard shortcut for export (Ctrl+E) when scanner is active
-        parent.bind('<Control-e>', self.export_csv)
+        # Bind keyboard shortcuts when scanner is active
+        parent.bind('<Control-e>', self.export_csv)  # Ctrl+E for export
+        self.app.cidr_entry.bind('<Return>', lambda e: self.start_scan() if self.app.start_scan_btn.cget("state") == "normal" else None)
     
     def update_host_count(self, event=None):
         """Update host count label based on CIDR input"""
