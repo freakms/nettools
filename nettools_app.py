@@ -233,6 +233,32 @@ class NetToolsApp(ctk.CTk):
             print(f"Could not load favorites: {e}")
         return set()
     
+    def load_scan_profiles(self):
+        """Load saved scan profiles"""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    return config.get('scan_profiles', {})
+        except Exception as e:
+            print(f"Could not load scan profiles: {e}")
+        return {}
+    
+    def save_scan_profiles(self):
+        """Save scan profiles to config"""
+        try:
+            config = {}
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            
+            config['scan_profiles'] = self.scan_profiles
+            
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            print(f"Could not save scan profiles: {e}")
+    
     def on_closing(self):
         """Handle window closing"""
         self.save_window_state()
