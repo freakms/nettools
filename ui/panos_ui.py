@@ -2305,8 +2305,8 @@ class PANOSUI:
             return
         
         text = '\n\n'.join(self.panos_commands)
-        self.clipboard_clear()
-        self.clipboard_append(text)
+        self.app.clipboard_clear()
+        self.app.clipboard_append(text)
         messagebox.showinfo("Success", "Commands copied to clipboard!")
     
     def download_panos_commands(self):
