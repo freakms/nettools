@@ -133,6 +133,9 @@ class NetToolsApp(ctk.CTk):
         # Favorites only (recent removed as not useful)
         self.favorite_tools = self.load_favorites()
         
+        # Scan profiles
+        self.scan_profiles = self.load_scan_profiles()
+        
         # Initialize history manager
         self.history = HistoryManager()
         
