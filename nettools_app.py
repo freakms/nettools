@@ -519,12 +519,12 @@ class NetToolsApp(ctk.CTk):
         
         # Render navigation with categories
         for idx, (category_name, items) in enumerate(nav_categories):
-            # Category header
+            # Category header with electric violet theme
             category_label = ctk.CTkLabel(
                 nav_scroll,
                 text=category_name,
                 font=ctk.CTkFont(size=11, weight="bold"),
-                text_color=("gray40", "gray60"),
+                text_color=COLORS['neon_cyan'],
                 anchor="w"
             )
             category_label.pack(fill="x", padx=15, pady=(15, 5))
@@ -533,7 +533,7 @@ class NetToolsApp(ctk.CTk):
             if idx == 0:
                 self.first_category_label = category_label
             
-            # Category items
+            # Category items with violet theme
             for page_id, label, tooltip in items:
                 btn = ctk.CTkButton(
                     nav_scroll,
@@ -545,7 +545,9 @@ class NetToolsApp(ctk.CTk):
                     font=ctk.CTkFont(size=13, family="Segoe UI"),
                     fg_color="transparent",
                     text_color=("gray10", "gray90"),
-                    hover_color=("gray70", "gray30")
+                    hover_color=COLORS['dashboard_card_hover'],
+                    border_width=1,
+                    border_color="transparent"
                 )
                 btn.pack(fill="x", padx=12, pady=2)
                 
