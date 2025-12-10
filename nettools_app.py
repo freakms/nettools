@@ -1556,6 +1556,15 @@ Actions:
         self.progress_bar.set(0)
         self.progress_bar.pack_forget()  # Hide initially
         
+        # Keyboard shortcuts hint (Phase 5)
+        shortcuts_hint = ctk.CTkLabel(
+            status_frame,
+            text="⌨️ Ctrl+K: Search  |  Ctrl+H: History  |  Ctrl+,: Settings  |  Right-click: Context menu",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_secondary']
+        )
+        shortcuts_hint.pack(side="right", padx=(0, 20), pady=5)
+        
         copyright_label = ctk.CTkLabel(
             status_frame,
             text=f"© {APP_COMPANY}",
