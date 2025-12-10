@@ -101,6 +101,28 @@ class SubnetCalculatorUI:
         )
         split_info.pack(pady=(0, SPACING['sm']), padx=SPACING['lg'], anchor="w")
         
+        # Available subnets preview frame
+        self.subnet_preview_frame = ctk.CTkFrame(split_frame, fg_color=COLORS['bg_card'])
+        self.subnet_preview_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['sm']))
+        
+        preview_label = ctk.CTkLabel(
+            self.subnet_preview_frame,
+            text="Enter a network above and click 'Show Options' to see available splits",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        preview_label.pack(pady=SPACING['sm'])
+        
+        # Show options button
+        show_options_btn = StyledButton(
+            split_frame,
+            text="📊 Show Split Options",
+            command=self.show_split_options,
+            size="small",
+            variant="secondary"
+        )
+        show_options_btn.pack(padx=SPACING['lg'], pady=(0, SPACING['sm']), anchor="w")
+        
         # Split controls row
         split_controls = ctk.CTkFrame(split_frame, fg_color="transparent")
         split_controls.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
