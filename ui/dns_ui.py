@@ -11,6 +11,7 @@ import socket
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 from ui_components import StyledCard, StyledButton, StyledEntry, SubTitle, SectionTitle
 from tools.dns_lookup import DNSLookup
+from tools.dnsdumpster import DNSDumpster
 
 
 class DNSLookupUI:
