@@ -899,19 +899,25 @@ gateway.home.lan
         """Go to previous page"""
         if self.app.scan_current_page > 1:
             self.go_to_page(self.app.scan_current_page - 1)
-    def render_current_page(self):
+    def render_current_page(self, use_filtered=False):
         """Render results for current page with filtering"""
         # Clear existing rows
         for widget in self.app.results_scrollable.winfo_children():
             widget.destroy()
         self.app.result_rows.clear()
         
-        # Apply filter if checkbox is checked
+        # Determine which results to use
+        if use_filtered and hasattr(self.app, 'filtered_results'):
+            base_results = self.app.filtered_results
+        else:
+            base_results = self.app.all_results
+        
+        # Apply "only responding" filter if checkbox is checked
         only_responding = self.app.only_responding_check.get()
         if only_responding:
-            filtered_results = [r for r in self.app.all_results if r['status'] == 'Online']
+            filtered_results = [r for r in base_results if r['status'] == 'Online']
         else:
-            filtered_results = self.app.all_results
+            filtered_results = base_results
         
         # Calculate slice based on filtered results
         start_idx = (self.app.scan_current_page - 1) * self.app.results_per_page
