@@ -938,6 +938,21 @@ class NetToolsApp(ctk.CTk):
                 self.scan_current_page = 1
                 self.scanner_ui_instance.render_current_page(use_filtered=False)
     
+    def toggle_history_panel(self):
+        """Toggle the history panel visibility"""
+        if hasattr(self, 'history_panel'):
+            self.history_panel.toggle()
+            # Update button appearance
+            if self.history_panel.is_visible:
+                self.history_btn.configure(fg_color=COLORS['neon_cyan'])
+            else:
+                self.history_btn.configure(fg_color="transparent")
+    
+    def add_to_history(self, action_type, title, subtitle="", data=None, on_click=None):
+        """Add an item to the history panel"""
+        if hasattr(self, 'history_panel'):
+            self.history_panel.add_item(action_type, title, subtitle, data, on_click)
+    
 
     def create_dashboard_content(self, parent):
         """Create Dashboard home page with electric violet theme"""
