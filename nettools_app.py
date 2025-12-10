@@ -192,6 +192,7 @@ class NetToolsApp(ctk.CTk):
         self.bind('<Return>', self.on_enter_key)
         # Note: Ctrl+E for export is handled within scanner UI
         self.bind('<Control-k>', self.open_quick_switcher)  # Quick switcher
+        self.bind('<Control-h>', lambda e: self.toggle_history_panel())  # History panel
         
         # Bind window resize for auto-scaling
         self.bind('<Configure>', self.on_window_resize)
