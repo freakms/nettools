@@ -183,6 +183,9 @@ class NetToolsApp(ctk.CTk):
         # Load window state
         self.load_window_state()
         
+        # Load theme preferences
+        self.load_theme_preferences()
+        
         # Create UI (order matters: status bar must be packed before main content)
         self.create_sidebar()
         self.create_status_bar()
