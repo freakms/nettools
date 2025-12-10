@@ -816,12 +816,13 @@ class NetToolsApp(ctk.CTk):
         self.pages["dashboard"].pack(fill="both", expand=True, padx=0, pady=0)
     
     def on_global_search_typing(self, event=None):
-        """Handle typing in global search - filter current page results"""
-        search_text = self.global_search_var.get().strip().lower()
+        """Handle typing in global search - debounced filter"""
+        # Cancel previous scheduled filter
+        if hasattr(self, '_search_debounce_id') and self._search_debounce_id:
+            self.after_cancel(self._search_debounce_id)
         
-        # If on scanner page, filter results
-        if self.current_page == "scanner" and hasattr(self, 'all_results') and self.all_results:
-            self.filter_scanner_results(search_text)
+        # Schedule filter after 300ms of no typing
+        self._search_debounce_id = self.after(300, self._do_search_filter)
     
     def perform_global_search(self, event=None):
         """Handle global search on Enter key"""
