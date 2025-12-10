@@ -118,8 +118,11 @@ class DNSDumpster:
                     "domain": domain
                 }
             
-            # Parse results
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Set encoding to handle special characters
+            response.encoding = response.apparent_encoding or 'utf-8'
+            
+            # Parse results with error handling for encoding issues
+            soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
             
             # Check if we got blocked or error page
             if 'blocked' in response.text.lower() or 'captcha' in response.text.lower():
