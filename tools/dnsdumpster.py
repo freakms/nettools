@@ -367,5 +367,5 @@ class DNSDumpster:
         try:
             response = requests.get(DNSDumpster.BASE_URL, timeout=5)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
