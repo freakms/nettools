@@ -895,19 +895,24 @@ gateway.home.lan
         """Show export options dialog"""
         dialog = ctk.CTkToplevel(self.app)
         dialog.title("Export Options")
-        dialog.geometry("500x400")
+        dialog.geometry("500x520")
         dialog.transient(self.app)
         dialog.grab_set()
+        dialog.resizable(False, False)
         
         # Center dialog
         dialog.update_idletasks()
         x = self.app.winfo_x() + (self.app.winfo_width() - 500) // 2
-        y = self.app.winfo_y() + (self.app.winfo_height() - 400) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - 520) // 2
         dialog.geometry(f"+{x}+{y}")
         
-        # Content
-        content = ctk.CTkFrame(dialog)
-        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        # Main container with scrollable content
+        main_frame = ctk.CTkFrame(dialog)
+        main_frame.pack(fill="both", expand=True)
+        
+        # Scrollable content area
+        content = ctk.CTkScrollableFrame(main_frame, height=420)
+        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(SPACING['lg'], 0))
         
         # Title
         title = ctk.CTkLabel(
