@@ -621,9 +621,18 @@ class NetToolsApp(ctk.CTk):
             label = getattr(btn, '_nav_label', page_id)
             btn.configure(text=f" {icon}  {label}", anchor="w")
         
-        # Restore category labels by re-packing them in the correct order
-        # Need to rebuild the navigation in the correct sequence
-        self._rebuild_navigation_labels()
+        # Restore category labels in the correct order by re-packing them before their buttons
+        for label_widget, icon, name, button_ids in self.category_labels:
+            # Restore full text
+            label_widget.configure(text=f"{icon} {name}", font=ctk.CTkFont(size=11, weight="bold"))
+            
+            # Re-pack the category label before its first button
+            if button_ids and button_ids[0] in self.nav_buttons:
+                first_button = self.nav_buttons[button_ids[0]]
+                label_widget.pack(fill="x", padx=15, pady=(12, 5), before=first_button)
+            else:
+                # Fallback: just pack it normally
+                label_widget.pack(fill="x", padx=15, pady=(12, 5))
     
     def show_toast(self, message, toast_type="info"):
         """Show a toast notification"""
