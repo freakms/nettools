@@ -1037,3 +1037,262 @@ NAV_ICONS = {
     "panos": "🛡️",
     "phpipam": "📊",
 }
+
+
+
+class HistoryPanel(ctk.CTkFrame):
+    """
+    Slide-out history panel showing recent actions and queries.
+    """
+    
+    PANEL_WIDTH = 300
+    
+    def __init__(self, parent, **kwargs):
+        kwargs.setdefault('width', self.PANEL_WIDTH)
+        kwargs.setdefault('corner_radius', 0)
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        super().__init__(parent, **kwargs)
+        
+        self.pack_propagate(False)
+        self.is_visible = False
+        self.history_items = []
+        
+        self._create_ui()
+    
+    def _create_ui(self):
+        """Create panel UI"""
+        # Header
+        header = ctk.CTkFrame(self, fg_color="transparent", height=50)
+        header.pack(fill="x", padx=10, pady=10)
+        header.pack_propagate(False)
+        
+        title = ctk.CTkLabel(
+            header,
+            text="📜 History",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=COLORS['electric_violet']
+        )
+        title.pack(side="left")
+        
+        close_btn = ctk.CTkButton(
+            header,
+            text="✕",
+            width=30,
+            height=30,
+            corner_radius=15,
+            fg_color="transparent",
+            hover_color=COLORS['dashboard_card_hover'],
+            command=self.hide
+        )
+        close_btn.pack(side="right")
+        
+        # Separator
+        sep = ctk.CTkFrame(self, height=2, fg_color=COLORS['electric_violet'])
+        sep.pack(fill="x", padx=10, pady=(0, 10))
+        
+        # History list
+        self.history_list = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.history_list.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Clear button at bottom
+        clear_btn = ctk.CTkButton(
+            self,
+            text="🗑️ Clear History",
+            height=35,
+            corner_radius=8,
+            fg_color="transparent",
+            border_width=1,
+            border_color=COLORS['danger'],
+            hover_color=COLORS['danger'],
+            command=self.clear_history
+        )
+        clear_btn.pack(fill="x", padx=10, pady=10)
+    
+    def add_item(self, action_type, title, subtitle="", data=None, on_click=None):
+        """Add an item to history"""
+        # Icons for different action types
+        icons = {
+            "scan": "📡",
+            "dns": "🌐",
+            "port": "🔌",
+            "subnet": "🔢",
+            "traceroute": "🛤️",
+            "export": "📤",
+            "search": "🔍",
+        }
+        
+        icon = icons.get(action_type, "📌")
+        
+        # Create history item frame
+        item_frame = ctk.CTkFrame(
+            self.history_list,
+            fg_color=COLORS['bg_card'],
+            corner_radius=8
+        )
+        item_frame.pack(fill="x", pady=3)
+        
+        # Content
+        content = ctk.CTkFrame(item_frame, fg_color="transparent")
+        content.pack(fill="x", padx=10, pady=8)
+        
+        # Icon and title row
+        title_row = ctk.CTkFrame(content, fg_color="transparent")
+        title_row.pack(fill="x")
+        
+        icon_label = ctk.CTkLabel(
+            title_row,
+            text=icon,
+            font=ctk.CTkFont(size=16)
+        )
+        icon_label.pack(side="left", padx=(0, 5))
+        
+        title_label = ctk.CTkLabel(
+            title_row,
+            text=title,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            anchor="w"
+        )
+        title_label.pack(side="left", fill="x", expand=True)
+        
+        # Timestamp
+        from datetime import datetime
+        time_label = ctk.CTkLabel(
+            title_row,
+            text=datetime.now().strftime("%H:%M"),
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_secondary']
+        )
+        time_label.pack(side="right")
+        
+        # Subtitle
+        if subtitle:
+            sub_label = ctk.CTkLabel(
+                content,
+                text=subtitle,
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS['text_secondary'],
+                anchor="w"
+            )
+            sub_label.pack(fill="x", pady=(2, 0))
+        
+        # Make clickable
+        if on_click:
+            for widget in [item_frame, content, title_row, icon_label, title_label]:
+                widget.bind("<Button-1>", lambda e: on_click(data))
+                widget.configure(cursor="hand2")
+        
+        # Store item
+        self.history_items.insert(0, {
+            'frame': item_frame,
+            'type': action_type,
+            'title': title,
+            'data': data
+        })
+        
+        # Limit history to 50 items
+        if len(self.history_items) > 50:
+            old_item = self.history_items.pop()
+            old_item['frame'].destroy()
+    
+    def clear_history(self):
+        """Clear all history items"""
+        for item in self.history_items:
+            item['frame'].destroy()
+        self.history_items = []
+    
+    def show(self):
+        """Show the panel"""
+        if not self.is_visible:
+            self.pack(side="right", fill="y", padx=0, pady=0)
+            self.is_visible = True
+    
+    def hide(self):
+        """Hide the panel"""
+        if self.is_visible:
+            self.pack_forget()
+            self.is_visible = False
+    
+    def toggle(self):
+        """Toggle panel visibility"""
+        if self.is_visible:
+            self.hide()
+        else:
+            self.show()
+
+
+class TabView(ctk.CTkFrame):
+    """
+    Tab container for organizing content into tabs.
+    """
+    
+    def __init__(self, parent, tabs=None, **kwargs):
+        kwargs.setdefault('fg_color', 'transparent')
+        super().__init__(parent, **kwargs)
+        
+        self.tabs = {}
+        self.tab_buttons = {}
+        self.active_tab = None
+        
+        # Tab bar
+        self.tab_bar = ctk.CTkFrame(self, fg_color=COLORS['dashboard_card'], height=45)
+        self.tab_bar.pack(fill="x")
+        self.tab_bar.pack_propagate(False)
+        
+        # Tab content area
+        self.content_area = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_area.pack(fill="both", expand=True)
+        
+        # Add initial tabs
+        if tabs:
+            for tab_id, tab_name in tabs:
+                self.add_tab(tab_id, tab_name)
+    
+    def add_tab(self, tab_id, tab_name, content_creator=None):
+        """Add a new tab"""
+        # Create tab button
+        btn = ctk.CTkButton(
+            self.tab_bar,
+            text=tab_name,
+            height=35,
+            corner_radius=0,
+            fg_color="transparent",
+            hover_color=COLORS['dashboard_card_hover'],
+            font=ctk.CTkFont(size=12),
+            command=lambda: self.select_tab(tab_id)
+        )
+        btn.pack(side="left", padx=2, pady=5)
+        
+        # Create content frame
+        content_frame = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        
+        # Call content creator if provided
+        if content_creator:
+            content_creator(content_frame)
+        
+        self.tabs[tab_id] = content_frame
+        self.tab_buttons[tab_id] = btn
+        
+        # Select first tab
+        if len(self.tabs) == 1:
+            self.select_tab(tab_id)
+        
+        return content_frame
+    
+    def select_tab(self, tab_id):
+        """Select a tab"""
+        if tab_id not in self.tabs:
+            return
+        
+        # Hide current tab
+        if self.active_tab and self.active_tab in self.tabs:
+            self.tabs[self.active_tab].pack_forget()
+            self.tab_buttons[self.active_tab].configure(fg_color="transparent")
+        
+        # Show selected tab
+        self.tabs[tab_id].pack(fill="both", expand=True)
+        self.tab_buttons[tab_id].configure(fg_color=COLORS['electric_violet'])
+        self.active_tab = tab_id
+    
+    def get_tab_content(self, tab_id):
+        """Get the content frame for a tab"""
+        return self.tabs.get(tab_id)
