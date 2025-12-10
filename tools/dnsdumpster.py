@@ -69,6 +69,36 @@ def decode_response(response):
     return response.content.decode('utf-8', errors='ignore')
 
 
+def sanitize_text(text):
+    """
+    Clean text by removing or replacing problematic characters.
+    Ensures the output is clean displayable text.
+    """
+    if not text:
+        return text
+    
+    # Replace common problematic characters
+    replacements = {
+        '\ufffd': '',  # Unicode replacement character
+        '\x00': '',    # Null character
+        '\r': '',      # Carriage return (normalize to just \n)
+    }
+    
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    
+    # Remove any remaining non-printable characters except newlines and tabs
+    cleaned = ''.join(
+        char for char in text 
+        if char.isprintable() or char in '\n\t'
+    )
+    
+    # Normalize whitespace
+    cleaned = ' '.join(cleaned.split())
+    
+    return cleaned.strip()
+
+
 class DNSDumpster:
     """DNSDumpster API for domain reconnaissance"""
     
