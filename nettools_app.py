@@ -433,6 +433,7 @@ class NetToolsApp(ctk.CTk):
         # Navigation organized by categories with icons
         self.nav_buttons = {}
         self.category_labels = []
+        self.nav_categories_data = []  # Store category data for rebuilding
         
         # Category structure with icons: (category_name, icon, [(page_id, icon, label, tooltip), ...])
         nav_categories = [
