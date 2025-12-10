@@ -338,17 +338,23 @@ class ScannerUI:
         # Save to history
         self.app.history.add_cidr(cidr)
         
-        # Clear previous results
-        for row in self.app.result_rows:
-            row.destroy()
+        # Clear previous results from display
+        for widget in self.app.results_scrollable.winfo_children():
+            widget.destroy()
         self.app.result_rows = []
+        self.app.all_results = []  # Clear stored results too
         
-        # Update UI
+        # Update UI for scan start
         self.app.start_scan_btn.configure(state="disabled")
+        self.app.import_list_btn.configure(state="disabled")
         self.app.cancel_scan_btn.configure(state="normal")
         self.app.export_btn.configure(state="disabled")
+        self.app.compare_btn.configure(state="disabled")
         self.app.progress_bar.pack(side="left", padx=15, pady=5)
         self.app.progress_bar.set(0)
+        
+        # Show scanning status
+        self.app.status_label.configure(text="Starting scan...")
         
         # Set callbacks
         self.app.scanner.progress_callback = self.on_scan_progress
@@ -362,8 +368,6 @@ class ScannerUI:
             daemon=True
         )
         self.app.scan_thread.start()
-        
-        self.app.status_label.configure(text="Scan running...")
     def cancel_scan(self):
         """Cancel ongoing scan"""
         self.app.scanner.cancel_scan()
