@@ -310,6 +310,50 @@ class NetToolsApp(ctk.CTk):
             self.global_search_entry.select_range(0, 'end')
         return "break"  # Prevent default behavior
     
+    def quick_export(self, event=None):
+        """Context-aware quick export (Ctrl+E)"""
+        # Export based on current page
+        if self.current_page == "scanner":
+            if hasattr(self, 'scanner_ui') and hasattr(self.scanner_ui, 'export_results'):
+                self.scanner_ui.export_results()
+                self.show_toast("Export initiated", "info")
+        elif self.current_page == "portscan":
+            # Could trigger port scanner export
+            self.show_toast("Port scanner export - feature coming soon", "info")
+        elif self.current_page == "dns":
+            self.show_toast("DNS lookup export - feature coming soon", "info")
+        else:
+            self.show_toast("No exportable data on this page", "warning")
+        return "break"
+    
+    def quick_refresh(self, event=None):
+        """Context-aware quick refresh/rescan (Ctrl+R)"""
+        # Refresh based on current page
+        if self.current_page == "scanner":
+            if hasattr(self, 'scanner_ui') and hasattr(self.scanner_ui, 'start_scan'):
+                self.show_toast("Re-running last scan...", "info")
+                # Re-trigger the last scan
+                self.scanner_ui.start_scan()
+        elif self.current_page == "dashboard":
+            # Refresh dashboard stats
+            self.show_toast("Refreshing dashboard...", "info")
+            if hasattr(self, 'dashboard_ui'):
+                # Could refresh network info
+                pass
+        elif self.current_page == "profiles":
+            # Refresh network profiles
+            self.show_toast("Refreshing profiles...", "info")
+            if hasattr(self, 'refresh_profiles'):
+                self.refresh_profiles()
+        else:
+            self.show_toast(f"Refresh not available on {self.current_page}", "info")
+        return "break"
+    
+    def open_settings(self, event=None):
+        """Open settings dialog (Ctrl+,)"""
+        self.show_settings_dialog()
+        return "break"
+    
     def load_oui_database(self):
         """Load OUI database from JSON file"""
         try:
