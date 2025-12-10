@@ -4347,7 +4347,7 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         
         self.hosts_entry = StyledEntry(
             input_frame,
-            placeholder_text="Enter IPs or Hostnames (comma/space separated): e.g., 8.8.8.8 google.com 1.1.1.1"
+            placeholder_text="IPs, CIDRs, Ranges: e.g., 192.168.1.0/24, 10.0.0.1-10.0.0.50, 8.8.8.8"
         )
         self.hosts_entry.pack(side="left", fill="x", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
         
