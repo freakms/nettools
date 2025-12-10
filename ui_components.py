@@ -1020,20 +1020,6 @@ class StatCard(ctk.CTkFrame):
         self.value_label.configure(text=str(value))
         if color:
             self.value_label.configure(text_color=color)
-
-        # Hide category labels
-        for label, icon, name in self.category_labels:
-            label.configure(text=icon if icon else "•")
-    
-    def _expand(self):
-        """Expand sidebar to full width"""
-        self.configure(width=self.EXPANDED_WIDTH)
-        self.collapse_btn.configure(text="◀")
-        self.logo_text.pack(side="left")
-        
-        # Update nav items to show icons + text
-        for item in self.nav_items:
-            item['button'].configure(text=f" {item['icon']}  {item['text']}")
         
         # Show category labels
         for label, icon, name in self.category_labels:
