@@ -4526,23 +4526,16 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         graph_frame = ctk.CTkFrame(row, fg_color="transparent")
         graph_frame.pack(side="left", fill="both", expand=True, padx=4)
         
-        # Create inline graph with matplotlib (smaller for compact rows)
-        fig = Figure(figsize=(3.5, 0.38), dpi=75, facecolor='white')
-        ax = fig.add_subplot(111)
-        ax.set_facecolor('white')
-        ax.set_ylim(0, 500)
-        ax.set_xlim(0, 30)
-        ax.axis('off')  # Hide axes for cleaner look
-        
-        # No margins
-        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        
-        line, = ax.plot([], [], color='#0066cc', linewidth=1.2, marker='o', markersize=2)
-        
-        # Embed in tkinter
-        canvas = FigureCanvasTkAgg(fig, master=graph_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
+        # Create inline graph using Tkinter Canvas (no matplotlib needed!)
+        import tkinter as tk
+        canvas = tk.Canvas(
+            graph_frame,
+            width=260,
+            height=28,
+            bg='white',
+            highlightthickness=0
+        )
+        canvas.pack(fill="both", expand=True)
         
         # Store references
         self.host_widgets[ip] = {
@@ -4553,11 +4546,9 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
             'avg_label': avg_label,
             'min_label': min_label,
             'cur_label': cur_label,
-            'figure': fig,
-            'axis': ax,
-            'line': line,
             'canvas': canvas,
-            'min_value': float('inf')
+            'min_value': float('inf'),
+            'max_y': 500  # Track max y for scaling
         }
     
     def update_ui(self):
