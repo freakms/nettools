@@ -581,9 +581,16 @@ class NetToolsApp(ctk.CTk):
             icon = getattr(btn, '_nav_icon', '•')
             btn.configure(text=icon, anchor="center")
         
-        # Minimize category labels (just show a line/dot)
+        # Hide category labels completely
         for label, icon, name in self.category_labels:
-            label.configure(text="─", font=ctk.CTkFont(size=8))
+            # Store the pack info before forgetting
+            if not hasattr(label, '_pack_info'):
+                label._pack_info = {
+                    'fill': 'x',
+                    'padx': 15,
+                    'pady': (12, 5)
+                }
+            label.pack_forget()
     
     def _expand_sidebar(self):
         """Expand sidebar to full width"""
