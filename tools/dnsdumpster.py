@@ -157,104 +157,115 @@ class DNSDumpster:
         }
         
         try:
-            # Parse DNS records section
-            dns = data.get("dns", {})
-            
-            # A Records (Host records)
-            a_records = dns.get("a", [])
-            if isinstance(a_records, list):
-                for record in a_records:
-                    if isinstance(record, dict):
-                        host = record.get("host", "") or record.get("name", "")
-                        ip = record.get("ip", "") or record.get("address", "")
-                        provider = record.get("provider", "") or record.get("asn", {}).get("name", "Unknown")
+            # Parse A Records (Host records)
+            a_records = data.get("a", [])
+            for record in a_records:
+                host = record.get("host", "")
+                ips = record.get("ips", [])
+                
+                for ip_info in ips:
+                    ip = ip_info.get("ip", "")
+                    asn_name = ip_info.get("asn_name", "Unknown")
+                    country = ip_info.get("country", "")
+                    ptr = ip_info.get("ptr", "")
+                    
+                    # Get banner info if available
+                    banners = ip_info.get("banners", {})
+                    services = []
+                    for svc, info in banners.items():
+                        if svc != "ip" and isinstance(info, dict):
+                            if "server" in info:
+                                services.append(f"{svc}: {info['server']}")
+                            elif "banner" in info:
+                                services.append(f"{svc}: {info['banner'][:50]}")
+                    
+                    provider = asn_name
+                    if country:
+                        provider += f" ({country})"
+                    
+                    if host and ip:
+                        results["dns_records"]["host"].append({
+                            "host": host,
+                            "ip": ip,
+                            "provider": provider,
+                            "ptr": ptr,
+                            "services": services
+                        })
                         
-                        if host and ip:
-                            results["dns_records"]["host"].append({
+                        # Add to subdomains if it's a subdomain
+                        if host != domain and domain in host:
+                            results["subdomains"].append(host)
+            
+            # Parse MX Records
+            mx_records = data.get("mx", [])
+            for record in mx_records:
+                mx_host = record.get("host", "")
+                ips = record.get("ips", [])
+                
+                for ip_info in ips:
+                    ip = ip_info.get("ip", "")
+                    asn_name = ip_info.get("asn_name", "Unknown")
+                    country = ip_info.get("country", "")
+                    
+                    provider = asn_name
+                    if country:
+                        provider += f" ({country})"
+                    
+                    if mx_host:
+                        results["dns_records"]["mx"].append({
+                            "mx": mx_host,
+                            "ip": ip,
+                            "provider": provider
+                        })
+            
+            # Parse NS Records
+            ns_records = data.get("ns", [])
+            for record in ns_records:
+                ns_host = record.get("host", "")
+                ips = record.get("ips", [])
+                
+                for ip_info in ips:
+                    ip = ip_info.get("ip", "")
+                    asn_name = ip_info.get("asn_name", "Unknown")
+                    country = ip_info.get("country", "")
+                    
+                    provider = asn_name
+                    if country:
+                        provider += f" ({country})"
+                    
+                    if ns_host:
+                        results["dns_records"]["ns"].append({
+                            "ns": ns_host,
+                            "ip": ip,
+                            "provider": provider
+                        })
+            
+            # Parse TXT Records
+            txt_records = data.get("txt", [])
+            for record in txt_records:
+                if isinstance(record, str):
+                    results["dns_records"]["txt"].append(record)
+                elif isinstance(record, dict):
+                    txt = record.get("value", "") or record.get("txt", "") or record.get("host", "")
+                    if txt:
+                        results["dns_records"]["txt"].append(txt)
+            
+            # Parse CNAME Records (bonus)
+            cname_records = data.get("cname", [])
+            if cname_records:
+                results["dns_records"]["cname"] = []
+                for record in cname_records:
+                    if isinstance(record, dict):
+                        host = record.get("host", "")
+                        target = record.get("target", "") or record.get("cname", "")
+                        if host:
+                            results["dns_records"]["cname"].append({
                                 "host": host,
-                                "ip": ip,
-                                "provider": str(provider)
-                            })
-                            
-                            # Add to subdomains if it's a subdomain
-                            if host != domain and domain in host:
-                                results["subdomains"].append(host)
-            
-            # MX Records
-            mx_records = dns.get("mx", [])
-            if isinstance(mx_records, list):
-                for record in mx_records:
-                    if isinstance(record, dict):
-                        mx = record.get("host", "") or record.get("exchange", "")
-                        ip = record.get("ip", "") or record.get("address", "")
-                        provider = record.get("provider", "") or record.get("asn", {}).get("name", "Unknown")
-                        priority = record.get("priority", "")
-                        
-                        if mx:
-                            mx_entry = {
-                                "mx": mx,
-                                "ip": str(ip),
-                                "provider": str(provider)
-                            }
-                            if priority:
-                                mx_entry["priority"] = priority
-                            results["dns_records"]["mx"].append(mx_entry)
-            
-            # NS Records
-            ns_records = dns.get("ns", [])
-            if isinstance(ns_records, list):
-                for record in ns_records:
-                    if isinstance(record, dict):
-                        ns = record.get("host", "") or record.get("nameserver", "")
-                        ip = record.get("ip", "") or record.get("address", "")
-                        
-                        if ns:
-                            results["dns_records"]["ns"].append({
-                                "ns": ns,
-                                "ip": str(ip) if ip else "N/A"
+                                "target": target
                             })
             
-            # TXT Records
-            txt_records = dns.get("txt", [])
-            if isinstance(txt_records, list):
-                for record in txt_records:
-                    if isinstance(record, str):
-                        results["dns_records"]["txt"].append(record)
-                    elif isinstance(record, dict):
-                        txt = record.get("value", "") or record.get("txt", "")
-                        if txt:
-                            results["dns_records"]["txt"].append(txt)
-            
-            # Parse subdomains/hosts section (might be separate from DNS)
-            hosts = data.get("hosts", []) or data.get("subdomains", [])
-            if isinstance(hosts, list):
-                for host_entry in hosts:
-                    if isinstance(host_entry, dict):
-                        hostname = host_entry.get("host", "") or host_entry.get("name", "")
-                        ip = host_entry.get("ip", "") or host_entry.get("address", "")
-                        provider = host_entry.get("provider", "") or host_entry.get("asn", {}).get("name", "Unknown")
-                        
-                        if hostname:
-                            # Add to host records if not already there
-                            existing_hosts = [h["host"] for h in results["dns_records"]["host"]]
-                            if hostname not in existing_hosts and ip:
-                                results["dns_records"]["host"].append({
-                                    "host": hostname,
-                                    "ip": ip,
-                                    "provider": str(provider)
-                                })
-                            
-                            # Add to subdomains
-                            if hostname != domain and domain in hostname:
-                                if hostname not in results["subdomains"]:
-                                    results["subdomains"].append(hostname)
-                    elif isinstance(host_entry, str):
-                        if host_entry != domain and domain in host_entry:
-                            if host_entry not in results["subdomains"]:
-                                results["subdomains"].append(host_entry)
-            
-            # Statistics
-            results["statistics"]["total_hosts"] = len(results["dns_records"]["host"])
+            # Statistics from API
+            results["statistics"]["total_hosts"] = data.get("total_a_recs", len(results["dns_records"]["host"]))
             results["statistics"]["total_subdomains"] = len(results["subdomains"])
             results["statistics"]["mx_records"] = len(results["dns_records"]["mx"])
             results["statistics"]["ns_records"] = len(results["dns_records"]["ns"])
