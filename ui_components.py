@@ -112,11 +112,19 @@ class ResultRow(ctk.CTkFrame):
     
     def _on_enter(self, event):
         """Handle mouse enter with violet glow"""
-        self.configure(fg_color=COLORS['dashboard_card_hover'])
+        try:
+            self.configure(fg_color=COLORS['dashboard_card_hover'])
+        except (AttributeError, RuntimeError):
+            # Child widgets may not be fully initialized yet
+            pass
     
     def _on_leave(self, event):
         """Handle mouse leave"""
-        self.configure(fg_color=self._original_color)
+        try:
+            self.configure(fg_color=self._original_color)
+        except (AttributeError, RuntimeError):
+            # Child widgets may not be fully initialized yet
+            pass
 
 
 class StatusBadge(ctk.CTkFrame):
