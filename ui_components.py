@@ -1020,18 +1020,6 @@ class StatCard(ctk.CTkFrame):
         self.value_label.configure(text=str(value))
         if color:
             self.value_label.configure(text_color=color)
-        
-        # Show category labels
-        for label, icon, name in self.category_labels:
-            label.configure(text=f"{icon} {name}" if icon else name)
-    
-    def set_active(self, page_id):
-        """Set the active navigation item"""
-        for pid, btn in self.nav_buttons.items():
-            if pid == page_id:
-                btn.configure(fg_color=COLORS['electric_violet'])
-            else:
-                btn.configure(fg_color="transparent")
 
 
 # Icon mapping for navigation items
