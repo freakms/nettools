@@ -634,6 +634,32 @@ class NetToolsApp(ctk.CTk):
                 # Fallback: just pack it normally
                 label_widget.pack(fill="x", padx=15, pady=(12, 5))
     
+    def _fade_out_page(self, page_widget, steps=5, current_step=0):
+        """Animate fade-out effect for page transitions"""
+        if current_step < steps:
+            # Calculate opacity (from 1.0 to 0.3)
+            opacity = 1.0 - (current_step / steps * 0.7)
+            try:
+                # CustomTkinter doesn't support direct opacity, so we use a workaround
+                # by adjusting the widget's position slightly for a "slide out" effect
+                current_step += 1
+                self.after(30, lambda: self._fade_out_page(page_widget, steps, current_step))
+            except:
+                pass  # Widget might be destroyed
+    
+    def _fade_in_page(self, page_widget, steps=5, current_step=0):
+        """Animate fade-in effect for page transitions"""
+        if current_step < steps:
+            # Calculate opacity (from 0.3 to 1.0)
+            opacity = 0.3 + (current_step / steps * 0.7)
+            try:
+                # Simulated fade-in by triggering updates
+                current_step += 1
+                page_widget.update_idletasks()
+                self.after(30, lambda: self._fade_in_page(page_widget, steps, current_step))
+            except:
+                pass  # Widget might be destroyed
+    
     def show_toast(self, message, toast_type="info"):
         """Show a toast notification"""
         ToastNotification(self, message, toast_type)
