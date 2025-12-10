@@ -286,48 +286,11 @@ class NetToolsApp(ctk.CTk):
         self.destroy()
     
     def open_quick_switcher(self, event=None):
-        """Open quick tool switcher dialog (Ctrl+K)"""
-        # Create dialog
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("Quick Tool Switcher")
-        dialog.geometry("600x400")
-        dialog.transient(self)
-        dialog.grab_set()
-        
-        # Center dialog
-        dialog.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() - 600) // 2
-        y = self.winfo_y() + (self.winfo_height() - 400) // 2
-        dialog.geometry(f"+{x}+{y}")
-        
-        # Content
-        content = ctk.CTkFrame(dialog)
-        content.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
-        
-        # Search entry
-        search_frame = ctk.CTkFrame(content, fg_color="transparent")
-        search_frame.pack(fill="x", pady=(0, SPACING['md']))
-        
-        search_label = ctk.CTkLabel(
-            search_frame,
-            text="🔍 Search Tools:",
-            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
-        )
-        search_label.pack(anchor="w", pady=(0, SPACING['xs']))
-        
-        search_entry = StyledEntry(
-            search_frame,
-            placeholder_text="Type to search..."
-        )
-        search_entry.pack(fill="x")
-        search_entry.focus()
-        
-        # Results scrollable frame
-        results_frame = ctk.CTkScrollableFrame(content)
-        results_frame.pack(fill="both", expand=True, pady=SPACING['md'])
-        
-        # All tools list
-        all_tools = [
+        """Focus the global search bar (Ctrl+K)"""
+        if hasattr(self, 'global_search_entry'):
+            self.global_search_entry.focus()
+            self.global_search_entry.select_range(0, 'end')
+        return "break"  # Prevent default behavior
             ("scann", "scanning", "IPv4 Scanner", "📡 Scan network for devices"),
             ("port", "scanning", "Port Scanner", "🔌 Scan ports on devices"),
             ("trace", "scanning", "Traceroute", "🛣️ Trace network paths"),
