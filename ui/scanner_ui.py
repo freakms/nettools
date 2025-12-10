@@ -1177,57 +1177,264 @@ gateway.home.lan
             json.dump(results, f, indent=2, ensure_ascii=False)
     
     def _export_as_html(self, filepath, results):
-        """Export results as HTML report"""
+        """Export results as print-friendly HTML report"""
+        online_count = sum(1 for r in results if r.get('status') == 'Online')
+        offline_count = len(results) - online_count
+        online_pct = (online_count / len(results) * 100) if results else 0
+        
+        cidr = self.app.cidr_entry.get().strip() if hasattr(self.app, 'cidr_entry') else "N/A"
+        
         html_content = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NetTools Scan Report</title>
+    <meta charset="UTF-8">
+    <title>NetTools Scan Report - {cidr}</title>
     <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
-        h1 {{ color: #333; }}
-        .info {{ background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-        table {{ width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-        th {{ background: #4472C4; color: white; padding: 12px; text-align: left; }}
-        td {{ padding: 10px; border-bottom: 1px solid #ddd; }}
-        tr:hover {{ background: #f5f5f5; }}
-        .online {{ color: green; font-weight: bold; }}
-        .offline {{ color: red; }}
+        * {{ box-sizing: border-box; }}
+        
+        @media print {{
+            body {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+            .no-print {{ display: none !important; }}
+            .page-break {{ page-break-before: always; }}
+        }}
+        
+        body {{
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }}
+        
+        .report-container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }}
+        
+        .header h1 {{
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }}
+        
+        .header .subtitle {{
+            opacity: 0.9;
+            font-size: 14px;
+        }}
+        
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 25px;
+            background: #f8f9fa;
+        }}
+        
+        .stat-card {{
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }}
+        
+        .stat-card .value {{
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }}
+        
+        .stat-card .label {{
+            color: #666;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        
+        .stat-card.online .value {{ color: #22c55e; }}
+        .stat-card.offline .value {{ color: #ef4444; }}
+        .stat-card.percentage .value {{ color: #667eea; }}
+        
+        .section {{
+            padding: 25px;
+        }}
+        
+        .section-title {{
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+        
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }}
+        
+        th {{
+            background: #667eea;
+            color: white;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }}
+        
+        td {{
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }}
+        
+        tr:hover {{
+            background: #f8f9fa;
+        }}
+        
+        .status {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }}
+        
+        .status.online {{
+            background: #dcfce7;
+            color: #166534;
+        }}
+        
+        .status.offline {{
+            background: #fee2e2;
+            color: #991b1b;
+        }}
+        
+        .status-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }}
+        
+        .status.online .status-dot {{ background: #22c55e; }}
+        .status.offline .status-dot {{ background: #ef4444; }}
+        
+        .footer {{
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #e5e7eb;
+        }}
+        
+        .print-btn {{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }}
+        
+        .print-btn:hover {{
+            background: #5a67d8;
+        }}
     </style>
 </head>
 <body>
-    <h1>🔍 NetTools Scan Report</h1>
-    <div class="info">
-        <strong>Generated:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}<br>
-        <strong>Total Results:</strong> {len(results)}<br>
-        <strong>Online Hosts:</strong> {sum(1 for r in results if r.get('status') == 'Online')}<br>
-        <strong>Offline Hosts:</strong> {sum(1 for r in results if r.get('status') == 'Offline')}
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>IP Address</th>
-                <th>Hostname</th>
-                <th>Status</th>
-                <th>Response Time</th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="report-container">
+        <div class="header">
+            <h1>⚡ NetTools Scan Report</h1>
+            <div class="subtitle">Network: {cidr} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value">{len(results)}</div>
+                <div class="label">Total Hosts</div>
+            </div>
+            <div class="stat-card online">
+                <div class="value">{online_count}</div>
+                <div class="label">Online</div>
+            </div>
+            <div class="stat-card offline">
+                <div class="value">{offline_count}</div>
+                <div class="label">No Response</div>
+            </div>
+            <div class="stat-card percentage">
+                <div class="value">{online_pct:.1f}%</div>
+                <div class="label">Online Rate</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📋 Scan Results</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px">#</th>
+                        <th>IP Address</th>
+                        <th>Hostname</th>
+                        <th>Status</th>
+                        <th>Response Time</th>
+                    </tr>
+                </thead>
+                <tbody>
 """
-        for result in results:
-            status_class = "online" if result.get('status') == 'Online' else "offline"
+        for i, result in enumerate(results, 1):
+            status = result.get('status', '')
+            status_class = "online" if status == 'Online' else "offline"
+            hostname = result.get('hostname', '') or '-'
+            rtt = result.get('rtt', '') or '-'
+            
             html_content += f"""
-            <tr>
-                <td>{result.get('ip', '')}</td>
-                <td>{result.get('hostname', '-')}</td>
-                <td class="{status_class}">{result.get('status', '')}</td>
-                <td>{result.get('rtt', '')}</td>
-            </tr>
+                    <tr>
+                        <td>{i}</td>
+                        <td><code>{result.get('ip', '')}</code></td>
+                        <td>{hostname}</td>
+                        <td>
+                            <span class="status {status_class}">
+                                <span class="status-dot"></span>
+                                {status}
+                            </span>
+                        </td>
+                        <td>{rtt} {'ms' if rtt and rtt != '-' else ''}</td>
+                    </tr>
 """
         
-        html_content += """
-        </tbody>
-    </table>
+        html_content += f"""
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            Generated by NetTools Suite | {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        </div>
+    </div>
+    
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Print Report</button>
 </body>
 </html>
 """
