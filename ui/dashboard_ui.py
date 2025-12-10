@@ -487,10 +487,14 @@ class DashboardUI:
         )
         row.pack(fill="x", padx=SPACING['lg'], pady=SPACING['xs'])
         
-        # Interface name
+        # Interface name (truncate if too long)
+        name = iface.get('name', 'Unknown')
+        if len(name) > 22:
+            name = name[:20] + "..."
+        
         name_label = ctk.CTkLabel(
             row,
-            text=iface['name'][:25],  # Truncate long names
+            text=name,
             font=ctk.CTkFont(size=11),
             text_color=COLORS['text_primary'],
             anchor="w"
@@ -500,17 +504,30 @@ class DashboardUI:
         # IP Address
         ip_label = ctk.CTkLabel(
             row,
-            text=iface['ipv4'],
+            text=iface.get('ipv4', 'N/A'),
             font=ctk.CTkFont(size=11, family="Courier New"),
             text_color=COLORS['text_primary'],
             anchor="w"
         )
         ip_label.pack(side="left", padx=SPACING['sm'], expand=True, fill="x")
         
+        # Gateway
+        gateway = iface.get('gateway', 'N/A')
+        if not gateway or gateway == '':
+            gateway = 'N/A'
+        gateway_label = ctk.CTkLabel(
+            row,
+            text=gateway,
+            font=ctk.CTkFont(size=11, family="Courier New"),
+            text_color=COLORS['text_secondary'],
+            anchor="w"
+        )
+        gateway_label.pack(side="left", padx=SPACING['sm'], expand=True, fill="x")
+        
         # Subnet
         subnet_label = ctk.CTkLabel(
             row,
-            text=iface['subnet'],
+            text=iface.get('subnet', 'N/A'),
             font=ctk.CTkFont(size=11, family="Courier New"),
             text_color=COLORS['text_secondary'],
             anchor="w"
@@ -520,7 +537,7 @@ class DashboardUI:
         # MAC Address
         mac_label = ctk.CTkLabel(
             row,
-            text=iface['mac'],
+            text=iface.get('mac', 'N/A'),
             font=ctk.CTkFont(size=11, family="Courier New"),
             text_color=COLORS['text_secondary'],
             anchor="w"
@@ -528,10 +545,11 @@ class DashboardUI:
         mac_label.pack(side="left", padx=SPACING['sm'], expand=True, fill="x")
         
         # Status
-        status_color = COLORS['success'] if iface['status'] == 'Up' else COLORS['text_secondary']
+        status = iface.get('status', 'Down')
+        status_color = COLORS['success'] if status == 'Up' else COLORS['text_secondary']
         status_label = ctk.CTkLabel(
             row,
-            text=f"● {iface['status']}",
+            text=f"● {status}",
             font=ctk.CTkFont(size=11),
             text_color=status_color,
             anchor="w"
