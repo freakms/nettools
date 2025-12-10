@@ -682,9 +682,9 @@ class NetToolsApp(ctk.CTk):
             icon = getattr(btn, '_nav_icon', '•')
             btn.configure(text=icon, anchor="center")
         
-        # Hide category labels completely when collapsed
+        # Minimize category labels (just show a line/dot)
         for label, icon, name in self.category_labels:
-            label.pack_forget()
+            label.configure(text="─", font=ctk.CTkFont(size=8))
     
     def _expand_sidebar(self):
         """Expand sidebar to full width"""
@@ -712,11 +712,9 @@ class NetToolsApp(ctk.CTk):
             label = getattr(btn, '_nav_label', page_id)
             btn.configure(text=f" {icon}  {label}", anchor="w")
         
-        # Re-pack category labels (need to rebuild nav order)
-        # This is a simplified approach - just show them again
+        # Restore category labels
         for label, icon, name in self.category_labels:
-            label.configure(text=f"{icon} {name}")
-            # Note: labels won't be in correct order, but that's a more complex fix
+            label.configure(text=f"{icon} {name}", font=ctk.CTkFont(size=11, weight="bold"))
     
     def show_toast(self, message, toast_type="info"):
         """Show a toast notification"""
