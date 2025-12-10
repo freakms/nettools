@@ -850,6 +850,76 @@ gateway.home.lan
         
         # Add right-click context menu
         self._add_row_context_menu(row_frame, result)
+    
+    def _add_row_context_menu(self, row_frame, result):
+        """Add right-click context menu to a result row"""
+        from ui_components import ContextMenu
+        import pyperclip
+        
+        def copy_ip():
+            try:
+                import pyperclip
+                pyperclip.copy(result['ip'])
+                self.app.show_toast(f"Copied IP: {result['ip']}", "success")
+            except:
+                # Fallback to tkinter clipboard
+                self.app.clipboard_clear()
+                self.app.clipboard_append(result['ip'])
+                self.app.show_toast(f"Copied IP: {result['ip']}", "success")
+        
+        def copy_hostname():
+            hostname = result.get('hostname', '')
+            if hostname:
+                try:
+                    import pyperclip
+                    pyperclip.copy(hostname)
+                    self.app.show_toast(f"Copied hostname: {hostname}", "success")
+                except:
+                    self.app.clipboard_clear()
+                    self.app.clipboard_append(hostname)
+                    self.app.show_toast(f"Copied hostname: {hostname}", "success")
+            else:
+                self.app.show_toast("No hostname to copy", "warning")
+        
+        def copy_full_info():
+            info = f"IP: {result['ip']}\nHostname: {result.get('hostname', '-')}\nStatus: {result['status']}\nRTT: {result.get('rtt', '-')}"
+            try:
+                import pyperclip
+                pyperclip.copy(info)
+                self.app.show_toast("Copied full info", "success")
+            except:
+                self.app.clipboard_clear()
+                self.app.clipboard_append(info)
+                self.app.show_toast("Copied full info", "success")
+        
+        def ping_host():
+            # Could trigger a detailed ping test
+            self.app.show_toast(f"Pinging {result['ip']}...", "info")
+            # TODO: Implement detailed ping
+        
+        def port_scan():
+            # Switch to port scanner with this IP
+            self.app.switch_tool('portscan')
+            self.app.show_toast(f"Opening Port Scanner for {result['ip']}", "info")
+            # TODO: Pre-fill the IP in port scanner
+        
+        # Create context menu
+        menu_items = [
+            (f"📋 Copy IP ({result['ip']})", copy_ip),
+            (f"🏷️ Copy Hostname", copy_hostname),
+            ("📄 Copy Full Info", copy_full_info),
+            None,  # Separator
+            ("🔍 Ping Host", ping_host),
+            ("🔌 Port Scan", port_scan),
+        ]
+        
+        menu = ContextMenu(row_frame, menu_items)
+        
+        # Bind right-click to all widgets in the row
+        row_frame.bind("<Button-3>", menu.show)
+        for child in row_frame.winfo_children():
+            child.bind("<Button-3>", menu.show)
+    
     def update_result_row(self, row_index, result):
         """Update an existing result row with new data"""
         if row_index >= len(self.app.result_rows):
