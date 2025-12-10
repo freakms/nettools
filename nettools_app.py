@@ -4397,27 +4397,139 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
+    def parse_host_input(self, input_text):
+        """Parse various input formats: IPs, CIDRs, ranges, hostnames"""
+        hosts = []
+        
+        # Split by comma or space
+        parts = re.split(r'[,\s]+', input_text)
+        
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            
+            try:
+                # Check if it's a CIDR notation (e.g., 192.168.1.0/24)
+                if '/' in part:
+                    try:
+                        network = ipaddress.ip_network(part, strict=False)
+                        # Limit to reasonable size to avoid memory issues
+                        if network.num_addresses > 1000:
+                            messagebox.showwarning(
+                                "Too Many Hosts",
+                                f"CIDR {part} contains {network.num_addresses} hosts.\n"
+                                f"Maximum 1000 hosts allowed per input.\n"
+                                f"Please use a smaller subnet."
+                            )
+                            continue
+                        # Add all hosts in the network
+                        for ip in network.hosts():
+                            hosts.append(str(ip))
+                        continue
+                    except ValueError:
+                        pass
+                
+                # Check if it's a range (e.g., 192.168.1.1-192.168.1.50)
+                if '-' in part:
+                    try:
+                        start_ip, end_ip = part.split('-', 1)
+                        start_ip = start_ip.strip()
+                        end_ip = end_ip.strip()
+                        
+                        # Handle partial end IP (e.g., 192.168.1.1-50)
+                        if '.' not in end_ip:
+                            # Extract prefix from start IP
+                            start_parts = start_ip.split('.')
+                            if len(start_parts) == 4:
+                                end_ip = '.'.join(start_parts[:3]) + '.' + end_ip
+                        
+                        # Convert to IP objects
+                        start = ipaddress.ip_address(start_ip)
+                        end = ipaddress.ip_address(end_ip)
+                        
+                        # Calculate range size
+                        range_size = int(end) - int(start) + 1
+                        
+                        if range_size > 1000:
+                            messagebox.showwarning(
+                                "Too Many Hosts",
+                                f"Range {part} contains {range_size} hosts.\n"
+                                f"Maximum 1000 hosts allowed per input.\n"
+                                f"Please use a smaller range."
+                            )
+                            continue
+                        
+                        if range_size < 1:
+                            messagebox.showwarning(
+                                "Invalid Range",
+                                f"Invalid range {part}: start IP must be less than or equal to end IP"
+                            )
+                            continue
+                        
+                        # Add all IPs in range
+                        current = start
+                        while current <= end:
+                            hosts.append(str(current))
+                            current += 1
+                        continue
+                    except (ValueError, IndexError):
+                        pass
+                
+                # Check if it's a single IP address
+                try:
+                    ip = ipaddress.ip_address(part)
+                    hosts.append(str(ip))
+                    continue
+                except ValueError:
+                    pass
+                
+                # Assume it's a hostname
+                hosts.append(part)
+                
+            except Exception as e:
+                messagebox.showerror("Parse Error", f"Error parsing '{part}':\n{str(e)}")
+                continue
+        
+        return hosts
+    
     def start_monitoring(self):
         """Start monitoring the hosts"""
         hosts_input = self.hosts_entry.get().strip()
         
         if not hosts_input:
-            messagebox.showwarning("No Hosts", "Please enter at least one IP or hostname")
+            messagebox.showwarning("No Hosts", "Please enter at least one IP, CIDR, or range")
             return
         
-        # Parse hosts (comma or space separated)
-        hosts = re.split(r'[,\s]+', hosts_input)
-        hosts = [h.strip() for h in hosts if h.strip()]
+        # Parse hosts with support for CIDR, ranges, and individual IPs
+        hosts = self.parse_host_input(hosts_input)
         
         if not hosts:
-            messagebox.showwarning("No Hosts", "Please enter at least one IP or hostname")
+            messagebox.showwarning("No Hosts", "No valid hosts found in input")
             return
         
+        # Warn if too many hosts
+        if len(hosts) > 100:
+            result = messagebox.askyesno(
+                "Many Hosts",
+                f"You are about to monitor {len(hosts)} hosts.\n"
+                f"This may impact performance.\n\n"
+                f"Continue anyway?"
+            )
+            if not result:
+                return
+        
         # Add hosts to monitor
+        added_count = 0
         for host in hosts:
             ip = self.monitor.add_host(host)
             if ip:
                 self.create_host_widget(ip)
+                added_count += 1
+        
+        if added_count == 0:
+            messagebox.showwarning("No Hosts", "Could not add any hosts to monitor")
+            return
         
         # Start monitoring
         self.monitor.start_monitoring()
