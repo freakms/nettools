@@ -179,14 +179,14 @@ class DNSDumpster:
                     "domain": domain
                 }
             
-            # Set encoding to handle special characters
-            response.encoding = response.apparent_encoding or 'utf-8'
+            # Decode response with proper encoding detection
+            html_text = decode_response(response)
             
-            # Parse results with error handling for encoding issues
-            soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+            # Parse results
+            soup = BeautifulSoup(html_text, 'html.parser')
             
             # Check if we got blocked or error page
-            if 'blocked' in response.text.lower() or 'captcha' in response.text.lower():
+            if 'blocked' in html_text.lower() or 'captcha' in html_text.lower():
                 return {
                     "success": False,
                     "error": "DNSDumpster has blocked this request (rate limiting or bot detection).\n\n" +
