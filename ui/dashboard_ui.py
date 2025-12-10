@@ -442,10 +442,11 @@ class DashboardUI:
         table_header.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['xs']))
         
         headers = [
-            ("Interface", 0.25),
-            ("IP Address", 0.25),
-            ("Subnet", 0.20),
-            ("MAC Address", 0.20),
+            ("Interface", 0.22),
+            ("IP Address", 0.18),
+            ("Gateway", 0.15),
+            ("Subnet", 0.15),
+            ("MAC", 0.20),
             ("Status", 0.10)
         ]
         
