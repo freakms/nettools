@@ -1065,15 +1065,10 @@ gateway.home.lan
             elif format_type == "xml":
                 self._export_as_xml(filepath, results_to_export)
             
-            messagebox.showinfo(
-                "Export Successful",
-                f"{len(results_to_export)} results exported to:\n{filepath}"
-            )
+            ToastNotification(self.app, f"✓ Exported {len(results_to_export)} results", "success")
+            self.app.status_label.configure(text=f"Exported to: {filepath}")
         except Exception as e:
-            messagebox.showerror(
-                "Export Error",
-                f"Error exporting scan results: {str(e)}"
-            )
+            ToastNotification(self.app, f"Export failed: {str(e)}", "error")
     
     def _export_as_csv(self, filepath, results):
         """Export results as CSV"""
