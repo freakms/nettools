@@ -173,41 +173,112 @@ class DashboardUI:
             self._get_basic_network_info()
     
     def _parse_windows_interfaces(self, output):
-        """Parse Windows ipconfig output"""
+        """Parse Windows ipconfig output (supports English and German)"""
         current_interface = None
         
+        # Patterns for both English and German Windows
+        adapter_patterns = [
+            'adapter',           # English
+            'Adapter',           # English
+            '-Adapter',          # German: "Ethernet-Adapter", "Drahtlos-LAN-Adapter"
+        ]
+        
+        disconnected_patterns = [
+            'media disconnected',    # English
+            'Medium getrennt',       # German
+            'Medienstatus',          # German (when followed by getrennt)
+        ]
+        
         for line in output.split('\n'):
-            # Check for new adapter (lines that end with colon and contain 'adapter')
-            if line and not line.startswith(' ') and ':' in line and 'adapter' in line.lower():
+            line_stripped = line.strip()
+            
+            # Check for new adapter section
+            # Adapter lines are NOT indented and contain adapter type + name
+            is_adapter_line = False
+            if line and not line.startswith(' ') and not line.startswith('\t'):
+                for pattern in adapter_patterns:
+                    if pattern.lower() in line.lower() and ':' in line:
+                        is_adapter_line = True
+                        break
+            
+            if is_adapter_line:
+                # Save previous interface if it has an IP
                 if current_interface and current_interface['ipv4'] != 'N/A':
-                    # Only add if we found an IP address
                     self.network_interfaces.append(current_interface)
                 
+                # Extract adapter name - everything before the last colon
+                adapter_name = line.rsplit(':', 1)[0].strip()
+                
                 current_interface = {
-                    'name': line.split(':')[0].strip(),
+                    'name': adapter_name,
                     'ipv4': 'N/A',
                     'subnet': 'N/A',
+                    'gateway': 'N/A',
                     'mac': 'N/A',
+                    'dns': 'N/A',
                     'status': 'Down'
                 }
-            elif current_interface and line.strip():
-                # Parse interface details (lines with leading spaces)
-                line_stripped = line.strip()
-                if 'IPv4' in line_stripped or 'IPv4-Adresse' in line_stripped:
-                    # Handle both English and German Windows
+                continue
+            
+            # Parse interface details if we have a current interface
+            if current_interface and line_stripped:
+                line_lower = line_stripped.lower()
+                
+                # Check for disconnected status
+                for pattern in disconnected_patterns:
+                    if pattern.lower() in line_lower:
+                        current_interface['status'] = 'Down'
+                
+                # Parse IPv4 Address (English and German)
+                # English: "IPv4 Address. . . . . . . . . . . : 192.168.1.1"
+                # German: "IPv4-Adresse  . . . . . . . . . . : 192.168.3.72(Bevorzugt)"
+                if 'ipv4' in line_lower and ':' in line_stripped:
                     parts = line_stripped.split(':', 1)
                     if len(parts) > 1:
-                        ip = parts[1].strip().split('(')[0].strip()
-                        current_interface['ipv4'] = ip
-                        current_interface['status'] = 'Up'
-                elif 'Subnet' in line_stripped or 'Subnetzmaske' in line_stripped:
+                        ip = parts[1].strip()
+                        # Remove "(Preferred)" or "(Bevorzugt)" suffix
+                        ip = ip.split('(')[0].strip()
+                        if ip and ip != 'N/A':
+                            current_interface['ipv4'] = ip
+                            current_interface['status'] = 'Up'
+                
+                # Parse Subnet Mask (English and German)
+                # English: "Subnet Mask . . . . . . . . . . . : 255.255.255.0"
+                # German: "Subnetzmaske  . . . . . . . . . . : 255.255.255.0"
+                if ('subnet' in line_lower or 'subnetz' in line_lower) and ':' in line_stripped:
                     parts = line_stripped.split(':', 1)
                     if len(parts) > 1:
                         current_interface['subnet'] = parts[1].strip()
-                elif 'Physical' in line_stripped or 'Physikalische' in line_stripped:
+                
+                # Parse Default Gateway (English and German)
+                # English: "Default Gateway . . . . . . . . . : 192.168.1.1"
+                # German: "Standardgateway . . . . . . . . . : 192.168.3.1"
+                if ('gateway' in line_lower or 'standardgateway' in line_lower) and ':' in line_stripped:
                     parts = line_stripped.split(':', 1)
                     if len(parts) > 1:
-                        current_interface['mac'] = parts[1].strip()
+                        gw = parts[1].strip()
+                        if gw:
+                            current_interface['gateway'] = gw
+                
+                # Parse Physical/MAC Address (English and German)
+                # English: "Physical Address. . . . . . . . . : AA-BB-CC-DD-EE-FF"
+                # German: "Physische Adresse . . . . . . . . : AA-BB-CC-DD-EE-FF"
+                if ('physical' in line_lower or 'physische' in line_lower) and ':' in line_stripped:
+                    parts = line_stripped.split(':', 1)
+                    if len(parts) > 1:
+                        mac = parts[1].strip()
+                        if mac and len(mac) >= 17:  # MAC address is at least 17 chars (AA-BB-CC-DD-EE-FF)
+                            current_interface['mac'] = mac
+                
+                # Parse DNS Server (English and German)
+                # English: "DNS Servers . . . . . . . . . . . : 8.8.8.8"
+                # German: "DNS-Server  . . . . . . . . . . . : 192.168.178.7"
+                if 'dns' in line_lower and ('server' in line_lower) and ':' in line_stripped:
+                    parts = line_stripped.split(':', 1)
+                    if len(parts) > 1:
+                        dns = parts[1].strip()
+                        if dns:
+                            current_interface['dns'] = dns
         
         # Add last interface if it has an IP
         if current_interface and current_interface['ipv4'] != 'N/A':
