@@ -190,9 +190,26 @@ class NetToolsApp(ctk.CTk):
         
         # Bind keyboard shortcuts
         self.bind('<Return>', self.on_enter_key)
-        # Note: Ctrl+E for export is handled within scanner UI
+        # Quick access shortcuts (existing)
         self.bind('<Control-k>', self.open_quick_switcher)  # Quick switcher
         self.bind('<Control-h>', lambda e: self.toggle_history_panel())  # History panel
+        
+        # Global keyboard shortcuts (Phase 5)
+        self.bind('<Control-Key-1>', lambda e: self.switch_tool('dashboard'))
+        self.bind('<Control-Key-2>', lambda e: self.switch_tool('scanner'))
+        self.bind('<Control-Key-3>', lambda e: self.switch_tool('portscan'))
+        self.bind('<Control-Key-4>', lambda e: self.switch_tool('dns'))
+        self.bind('<Control-Key-5>', lambda e: self.switch_tool('subnet'))
+        self.bind('<Control-Key-6>', lambda e: self.switch_tool('traceroute'))
+        self.bind('<Control-Key-7>', lambda e: self.switch_tool('mac'))
+        self.bind('<Control-Key-8>', lambda e: self.switch_tool('compare'))
+        self.bind('<Control-Key-9>', lambda e: self.switch_tool('profiles'))
+        
+        # Action shortcuts
+        self.bind('<Control-e>', lambda e: self.quick_export())  # Quick export
+        self.bind('<Control-r>', lambda e: self.quick_refresh())  # Refresh/Rescan
+        self.bind('<Control-q>', lambda e: self.on_closing())  # Quit application
+        self.bind('<Control-comma>', lambda e: self.open_settings())  # Settings (Ctrl+,)
         
         # Bind window resize for auto-scaling
         self.bind('<Configure>', self.on_window_resize)
