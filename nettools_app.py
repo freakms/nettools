@@ -4127,13 +4127,7 @@ Option 4: Using WSL (Windows Subsystem for Linux)
     
     def open_live_ping_monitor(self):
         """Open the live ping monitor window"""
-        if not MATPLOTLIB_AVAILABLE:
-            messagebox.showwarning(
-                "Missing Dependency",
-                "Live Ping Monitor requires matplotlib.\n\n"
-                "Install it with: pip install matplotlib"
-            )
-            return
+        # Now works without matplotlib!
         LivePingMonitorWindow(self)
     
     def change_grid_layout(self, choice):
