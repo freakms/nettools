@@ -5,6 +5,7 @@ Handles network scanning functionality
 
 import ipaddress
 import socket
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pythonping import ping
 
@@ -18,6 +19,11 @@ class IPv4Scanner:
         self.results = []
         self.progress_callback = None
         self.complete_callback = None
+        
+        # Performance settings
+        self._last_progress_time = 0
+        self._progress_interval = 0.15  # Minimum seconds between progress updates
+        self._progress_count_interval = 20  # Or update every N results
     
     def parse_cidr(self, cidr_input):
         """Parse CIDR notation and return list of host IPs"""
@@ -33,7 +39,7 @@ class IPv4Scanner:
         except ValueError as e:
             raise ValueError(f"Invalid CIDR format: {e}")
     
-    def resolve_hostname(self, ip, timeout=2):
+    def resolve_hostname(self, ip, timeout=1):
         """Resolve hostname/FQDN for an IP address"""
         try:
             socket.setdefaulttimeout(timeout)
@@ -52,7 +58,7 @@ class IPv4Scanner:
             # Resolve hostname if requested and host is online
             hostname = ""
             if response.success() and resolve_dns:
-                hostname = self.resolve_hostname(ip, timeout=1)
+                hostname = self.resolve_hostname(ip, timeout=0.5)  # Reduced timeout
             
             if response.success():
                 rtt = response.rtt_avg_ms
@@ -76,6 +82,17 @@ class IPv4Scanner:
                 'rtt': '',
                 'hostname': ''
             }
+    
+    def _should_update_progress(self, completed):
+        """Determine if we should fire a progress update (throttled)"""
+        current_time = time.time()
+        time_elapsed = current_time - self._last_progress_time
+        
+        # Update if enough time passed OR enough results processed
+        if time_elapsed >= self._progress_interval or completed % self._progress_count_interval == 0:
+            self._last_progress_time = current_time
+            return True
+        return False
     
     def resolve_hostname_to_ip(self, hostname, timeout=2):
         """Resolve hostname/FQDN to IP address"""
@@ -135,6 +152,7 @@ class IPv4Scanner:
         self.scanning = True
         self.cancel_flag = False
         self.results = []
+        self._last_progress_time = 0
         
         # Set timeout based on aggression
         timeout_map = {
@@ -144,14 +162,14 @@ class IPv4Scanner:
         }
         timeout_ms = int(timeout_map.get(aggression, 300))
         
-        # Set max workers based on aggression
+        # Set max workers based on aggression (increased for better throughput)
         worker_map = {
-            'Gentle (longer timeout)': 32,
-            'Medium': 64,
-            'Aggressive (short timeout)': 128
+            'Gentle (longer timeout)': 50,
+            'Medium': 100,
+            'Aggressive (short timeout)': 150
         }
         if max_workers is None:
-            max_workers = int(worker_map.get(aggression, 64))
+            max_workers = int(worker_map.get(aggression, 100))
         
         try:
             ip_list = self.parse_cidr(cidr)
@@ -179,8 +197,8 @@ class IPv4Scanner:
                     self.results.append(result)
                     completed += 1
                     
-                    # Update progress
-                    if self.progress_callback:
+                    # Throttled progress update
+                    if self.progress_callback and (self._should_update_progress(completed) or completed == total):
                         self.progress_callback(completed, total, result)
             
             if self.complete_callback:
@@ -197,6 +215,7 @@ class IPv4Scanner:
         self.scanning = True
         self.cancel_flag = False
         self.results = []
+        self._last_progress_time = 0
         
         # Set timeout based on aggression
         timeout_map = {
@@ -206,14 +225,14 @@ class IPv4Scanner:
         }
         timeout_ms = int(timeout_map.get(aggression, 300))
         
-        # Set max workers based on aggression
+        # Set max workers based on aggression (increased for better throughput)
         worker_map = {
-            'Gentle (longer timeout)': 32,
-            'Medium': 64,
-            'Aggressive (short timeout)': 128
+            'Gentle (longer timeout)': 50,
+            'Medium': 100,
+            'Aggressive (short timeout)': 150
         }
         if max_workers is None:
-            max_workers = int(worker_map.get(aggression, 64))
+            max_workers = int(worker_map.get(aggression, 100))
         
         try:
             total = len(ip_list)
@@ -240,8 +259,8 @@ class IPv4Scanner:
                     self.results.append(result)
                     completed += 1
                     
-                    # Update progress
-                    if self.progress_callback:
+                    # Throttled progress update
+                    if self.progress_callback and (self._should_update_progress(completed) or completed == total):
                         self.progress_callback(completed, total, result)
             
             if self.complete_callback:
