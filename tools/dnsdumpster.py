@@ -273,7 +273,7 @@ class DNSDumpster:
                 if not header:
                     continue
                 
-                header_text = header.get_text().strip().lower()
+                header_text = sanitize_text(header.get_text()).lower()
                 
                 # Parse DNS Records (A records / Hosts)
                 if 'dns records' in header_text or 'host records' in header_text:
@@ -281,9 +281,9 @@ class DNSDumpster:
                     for row in rows:
                         cols = row.find_all('td')
                         if len(cols) >= 3:
-                            host = cols[0].get_text().strip()
-                            ip = cols[1].get_text().strip()
-                            provider = cols[2].get_text().strip() if len(cols) > 2 else "Unknown"
+                            host = sanitize_text(cols[0].get_text())
+                            ip = sanitize_text(cols[1].get_text())
+                            provider = sanitize_text(cols[2].get_text()) if len(cols) > 2 else "Unknown"
                             
                             if host and ip:
                                 results["dns_records"]["host"].append({
@@ -302,9 +302,9 @@ class DNSDumpster:
                     for row in rows:
                         cols = row.find_all('td')
                         if len(cols) >= 3:
-                            mx = cols[0].get_text().strip()
-                            ip = cols[1].get_text().strip()
-                            provider = cols[2].get_text().strip() if len(cols) > 2 else "Unknown"
+                            mx = sanitize_text(cols[0].get_text())
+                            ip = sanitize_text(cols[1].get_text())
+                            provider = sanitize_text(cols[2].get_text()) if len(cols) > 2 else "Unknown"
                             
                             if mx:
                                 results["dns_records"]["mx"].append({
@@ -319,7 +319,7 @@ class DNSDumpster:
                     for row in rows:
                         cols = row.find_all('td')
                         if cols:
-                            txt = cols[0].get_text().strip()
+                            txt = sanitize_text(cols[0].get_text())
                             if txt:
                                 results["dns_records"]["txt"].append(txt)
                 
@@ -329,8 +329,8 @@ class DNSDumpster:
                     for row in rows:
                         cols = row.find_all('td')
                         if len(cols) >= 2:
-                            ns = cols[0].get_text().strip()
-                            ip = cols[1].get_text().strip()
+                            ns = sanitize_text(cols[0].get_text())
+                            ip = sanitize_text(cols[1].get_text())
                             
                             if ns:
                                 results["dns_records"]["ns"].append({
@@ -341,7 +341,7 @@ class DNSDumpster:
             # Get statistics
             stats_div = soup.find('div', {'class': 'col-md-12'})
             if stats_div:
-                text = stats_div.get_text()
+                text = sanitize_text(stats_div.get_text())
                 
                 # Try to extract counts
                 host_match = re.search(r'(\d+)\s+host', text, re.IGNORECASE)
