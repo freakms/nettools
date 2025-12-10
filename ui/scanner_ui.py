@@ -633,77 +633,25 @@ gateway.home.lan
         )
         scan_btn.pack(side="left", fill="x", expand=True)
     def on_scan_progress(self, completed, total, result):
-        """Handle scan progress update with batching for performance"""
-        # Add to buffer
-        self.app.update_buffer.append((completed, total, result))
-        
-        # Update immediately if buffer is full OR it's the last result
-        if len(self.app.update_buffer) >= self.app.UPDATE_BATCH_SIZE or completed == total:
-            self._flush_update_buffer()
-        else:
-            # Schedule delayed flush if not already scheduled
-            if self.app.update_timer is None:
-                self.app.update_timer = self.app.after(self.app.UPDATE_INTERVAL_MS, self._flush_update_buffer)
+        """Handle scan progress update - optimized for performance"""
+        # Use after() to update UI from main thread - only update progress, not widgets
+        self.app.after(0, self._update_progress_only, completed, total, result)
     
-    def _flush_update_buffer(self):
-        """Flush buffered updates to UI"""
-        if self.app.update_timer:
-            self.app.after_cancel(self.app.update_timer)
-            self.app.update_timer = None
-        
-        if not self.app.update_buffer:
-            return
-        
-        # Process all buffered updates
-        for completed, total, result in self.app.update_buffer:
-            self._update_scan_progress(completed, total, result)
-        
-        self.app.update_buffer.clear()
-    
-    def _update_scan_progress(self, completed, total, result):
-        """Update scan progress in main thread"""
+    def _update_progress_only(self, completed, total, result):
+        """Update only progress bar and status - no widget creation during scan"""
         # Update progress bar
         progress = completed / total if total > 0 else 0
         self.app.progress_bar.set(progress)
         
-        # Show current IP being scanned if available
+        # Update status text with current progress
+        online_count = sum(1 for r in self.app.scanner.results if r.get('status') == 'Online')
         current_ip = result['ip'] if result else "..."
-        status_text = f"Scanning {current_ip}... ({completed} / {total})"
         
-        # Add result to all_results list
-        self.app.all_results.append(result)
+        status_text = f"Scanning: {completed}/{total} | Online: {online_count} | Current: {current_ip}"
+        self.app.status_label.configure(text=status_text)
         
-        # Check if this is from an imported list
-        if hasattr(self, 'current_scan_list') and self.app.current_scan_list and hasattr(self, 'ip_to_row_index'):
-            status_text = f"Scanning imported addresses: {current_ip} ({completed}/{total})"
-            self.app.status_label.configure(text=status_text)
-            
-            # Update existing row instead of adding new one
-            ip_addr = result.get('ip', '').strip()
-            if ip_addr in self.app.ip_to_row_index:
-                row_index = self.app.ip_to_row_index[ip_addr]
-                if row_index < len(self.app.result_rows):
-                    self.update_result_row(row_index, result)
-                    # Update pagination UI
-                    self.update_pagination_ui()
-                    return  # Don't add a new row
-            else:
-                # IP not in mapping - this shouldn't happen, but handle it
-                print(f"Warning: IP {ip_addr} not found in mapping. Available IPs: {list(self.app.ip_to_row_index.keys())[:5]}")
-        else:
-            self.app.status_label.configure(text=status_text)
-        
-        # Only add row if on current page and within page limit
-        current_page_start = (self.app.scan_current_page - 1) * self.app.results_per_page
-        current_page_end = self.app.scan_current_page * self.app.results_per_page
-        result_index = len(self.app.all_results) - 1
-        
-        if current_page_start <= result_index < current_page_end:
-            # Add result row (for regular scans or if IP not found in mapping)
-            self.add_result_row(result)
-        
-        # Update pagination UI
-        self.update_pagination_ui()
+        # Store results but don't render rows during scan
+        # Results will be rendered when scan completes
     def on_scan_complete(self, results, message):
         """Handle scan completion"""
         self.app.after(0, self._finalize_scan, results, message)
