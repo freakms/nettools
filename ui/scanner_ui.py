@@ -847,6 +847,9 @@ gateway.home.lan
         row_frame.status_label = status_label
         row_frame.rtt_label = rtt_label
         self.app.result_rows.append(row_frame)
+        
+        # Add right-click context menu
+        self._add_row_context_menu(row_frame, result)
     def update_result_row(self, row_index, result):
         """Update an existing result row with new data"""
         if row_index >= len(self.app.result_rows):
