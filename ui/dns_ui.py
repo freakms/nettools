@@ -455,17 +455,52 @@ class DNSLookupUI:
             )
             host_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
             
-            for host in hosts[:20]:  # Limit to 20
-                host_frame = ctk.CTkFrame(host_card, fg_color=COLORS['bg_card'])
-                host_frame.pack(fill="x", padx=SPACING['md'], pady=2)
+            # Scrollable host list for many records
+            host_scroll = ctk.CTkScrollableFrame(host_card, height=200)
+            host_scroll.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+            
+            for host in hosts[:30]:  # Limit to 30
+                host_frame = ctk.CTkFrame(host_scroll, fg_color=COLORS['bg_card'])
+                host_frame.pack(fill="x", pady=2)
+                
+                # Main host info
+                host_text = f"{host['host']} → {host['ip']}"
+                if host.get('ptr'):
+                    host_text += f" (PTR: {host['ptr']})"
                 
                 host_label = ctk.CTkLabel(
                     host_frame,
-                    text=f"{host['host']} → {host['ip']} ({host.get('provider', 'Unknown')})",
+                    text=host_text,
                     font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
                     anchor="w"
                 )
-                host_label.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
+                host_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                # Provider/ASN info
+                if host.get('provider'):
+                    provider_label = ctk.CTkLabel(
+                        host_frame,
+                        text=f"   ASN: {host['provider']}",
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    provider_label.pack(anchor="w", padx=SPACING['sm'], pady=0)
+                
+                # Services/banners info
+                services = host.get('services', [])
+                if services:
+                    services_text = "   Services: " + ", ".join(services[:3])
+                    if len(services) > 3:
+                        services_text += f" (+{len(services)-3} more)"
+                    services_label = ctk.CTkLabel(
+                        host_frame,
+                        text=services_text,
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['success'],
+                        anchor="w"
+                    )
+                    services_label.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
         
         # MX Records
         mx_records = dns_records.get("mx", [])
@@ -486,11 +521,21 @@ class DNSLookupUI:
                 
                 mx_label = ctk.CTkLabel(
                     mx_frame,
-                    text=f"{mx['mx']} → {mx.get('ip', 'N/A')} ({mx.get('provider', 'Unknown')})",
+                    text=f"{mx['mx']} → {mx.get('ip', 'N/A')}",
                     font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
                     anchor="w"
                 )
-                mx_label.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
+                mx_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                if mx.get('provider'):
+                    mx_provider = ctk.CTkLabel(
+                        mx_frame,
+                        text=f"   {mx['provider']}",
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    mx_provider.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
         
         # Name Servers
         ns_records = dns_records.get("ns", [])
@@ -515,7 +560,17 @@ class DNSLookupUI:
                     font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
                     anchor="w"
                 )
-                ns_label.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
+                ns_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                if ns.get('provider'):
+                    ns_provider = ctk.CTkLabel(
+                        ns_frame,
+                        text=f"   {ns['provider']}",
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    ns_provider.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
         
         # TXT Records
         txt_records = dns_records.get("txt", [])
