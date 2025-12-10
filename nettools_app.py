@@ -30,6 +30,7 @@ from ui.mac_ui import MACFormatterUI
 from ui.traceroute_ui import TracerouteUI
 from ui.panos_ui import PANOSUI
 from ui.bandwidth_ui import BandwidthUI
+from ui.phpipam_ui import PhpipamUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
