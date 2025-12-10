@@ -261,6 +261,58 @@ class NetToolsApp(ctk.CTk):
         except Exception as e:
             print(f"Could not save window state: {e}")
     
+    def save_theme_preference(self, theme):
+        """Save theme preference to config"""
+        try:
+            config = {}
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            
+            config['theme'] = theme
+            
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            print(f"Could not save theme preference: {e}")
+    
+    def save_accent_color(self, color_name, color_hex):
+        """Save accent color preference to config"""
+        try:
+            config = {}
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            
+            config['accent_color'] = {
+                'name': color_name,
+                'hex': color_hex
+            }
+            
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            print(f"Could not save accent color: {e}")
+    
+    def load_theme_preferences(self):
+        """Load and apply saved theme preferences"""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    
+                    # Apply theme
+                    theme = config.get('theme', 'Dark')
+                    ctk.set_appearance_mode(theme)
+                    
+                    # Apply accent color
+                    accent = config.get('accent_color')
+                    if accent and 'hex' in accent:
+                        COLORS['electric_violet'] = accent['hex']
+                        COLORS['neon_cyan'] = accent['hex']
+        except Exception as e:
+            print(f"Could not load theme preferences: {e}")
+    
     def load_favorites(self):
         """Load favorite tools from config"""
         try:
