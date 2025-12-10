@@ -48,7 +48,11 @@ class DNSDumpster:
                     "domain": domain
                 }
             
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Set encoding to handle special characters
+            response.encoding = response.apparent_encoding or 'utf-8'
+            
+            # Parse with error handling for encoding issues
+            soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
             
             # Try multiple methods to find CSRF token
             csrf_token = None
