@@ -354,6 +354,167 @@ class NetToolsApp(ctk.CTk):
         self.show_settings_dialog()
         return "break"
     
+    def show_settings_dialog(self):
+        """Show comprehensive settings dialog with theme and preferences"""
+        # Create settings window
+        settings_window = ctk.CTkToplevel(self)
+        settings_window.title("Settings")
+        settings_window.geometry("600x500")
+        settings_window.transient(self)
+        settings_window.grab_set()
+        
+        # Center window
+        settings_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - settings_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - settings_window.winfo_height()) // 2
+        settings_window.geometry(f"+{x}+{y}")
+        
+        # Make sure dialog is on top
+        settings_window.lift()
+        settings_window.focus_force()
+        
+        # Scrollable content
+        scroll_frame = ctk.CTkScrollableFrame(settings_window, fg_color="transparent")
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            scroll_frame,
+            text="⚙️ Settings",
+            font=ctk.CTkFont(size=24, weight="bold"),
+            text_color=COLORS['electric_violet']
+        )
+        title_label.pack(pady=(0, 20))
+        
+        # Theme Settings Section
+        theme_section = StyledCard(scroll_frame)
+        theme_section.pack(fill="x", pady=(0, 15))
+        
+        theme_title = ctk.CTkLabel(
+            theme_section,
+            text="🎨 Appearance",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        theme_title.pack(padx=20, pady=(15, 10), anchor="w")
+        
+        # Theme mode selector
+        theme_frame = ctk.CTkFrame(theme_section, fg_color="transparent")
+        theme_frame.pack(fill="x", padx=20, pady=(0, 15))
+        
+        theme_label = ctk.CTkLabel(
+            theme_frame,
+            text="Theme Mode:",
+            font=ctk.CTkFont(size=13)
+        )
+        theme_label.pack(side="left", padx=(0, 15))
+        
+        # Get current theme
+        current_theme = ctk.get_appearance_mode()
+        
+        def change_theme(choice):
+            ctk.set_appearance_mode(choice)
+            self.save_theme_preference(choice)
+            self.show_toast(f"Theme changed to {choice}", "success")
+        
+        theme_selector = ctk.CTkSegmentedButton(
+            theme_frame,
+            values=["Light", "Dark", "System"],
+            command=change_theme
+        )
+        theme_selector.set(current_theme)
+        theme_selector.pack(side="left", fill="x", expand=True)
+        
+        # Accent Color Picker
+        accent_frame = ctk.CTkFrame(theme_section, fg_color="transparent")
+        accent_frame.pack(fill="x", padx=20, pady=(0, 15))
+        
+        accent_label = ctk.CTkLabel(
+            accent_frame,
+            text="Accent Color:",
+            font=ctk.CTkFont(size=13)
+        )
+        accent_label.pack(side="left", padx=(0, 15))
+        
+        # Predefined accent colors
+        accent_colors = {
+            "Electric Violet": "#a78bfa",
+            "Neon Cyan": "#06b6d4",
+            "Pink": "#ec4899",
+            "Orange": "#f97316",
+            "Green": "#10b981",
+            "Blue": "#3b82f6",
+            "Red": "#ef4444",
+            "Yellow": "#eab308"
+        }
+        
+        accent_colors_frame = ctk.CTkFrame(accent_frame, fg_color="transparent")
+        accent_colors_frame.pack(side="left", fill="x")
+        
+        def change_accent_color(color_name, color_hex):
+            # Update COLORS dictionary
+            COLORS['electric_violet'] = color_hex
+            COLORS['neon_cyan'] = color_hex
+            self.save_accent_color(color_name, color_hex)
+            self.show_toast(f"Accent color changed to {color_name}. Restart to see full effect.", "info")
+        
+        # Create color buttons
+        for idx, (color_name, color_hex) in enumerate(accent_colors.items()):
+            color_btn = ctk.CTkButton(
+                accent_colors_frame,
+                text="",
+                width=40,
+                height=30,
+                fg_color=color_hex,
+                hover_color=color_hex,
+                corner_radius=6,
+                command=lambda cn=color_name, ch=color_hex: change_accent_color(cn, ch)
+            )
+            color_btn.grid(row=idx // 4, column=idx % 4, padx=3, pady=3)
+            Tooltip(color_btn, color_name)
+        
+        # Keyboard Shortcuts Section
+        shortcuts_section = StyledCard(scroll_frame)
+        shortcuts_section.pack(fill="x", pady=(0, 15))
+        
+        shortcuts_title = ctk.CTkLabel(
+            shortcuts_section,
+            text="⌨️ Keyboard Shortcuts",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        shortcuts_title.pack(padx=20, pady=(15, 10), anchor="w")
+        
+        shortcuts_text = """
+Navigation:
+  • Ctrl+1 to Ctrl+9 - Quick switch between tools
+  • Ctrl+K - Global search / Quick switcher
+  • Ctrl+H - Toggle history panel
+
+Actions:
+  • Ctrl+E - Quick export (context-aware)
+  • Ctrl+R - Refresh/Rescan (context-aware)
+  • Ctrl+Q - Quit application
+  • Ctrl+, - Open settings (this dialog)
+  • Enter - Submit/Execute (context-aware)
+        """
+        
+        shortcuts_label = ctk.CTkLabel(
+            shortcuts_section,
+            text=shortcuts_text.strip(),
+            font=ctk.CTkFont(size=12),
+            justify="left",
+            anchor="w"
+        )
+        shortcuts_label.pack(padx=20, pady=(0, 15), anchor="w")
+        
+        # Close button
+        close_btn = StyledButton(
+            scroll_frame,
+            text="Close",
+            command=settings_window.destroy,
+            variant="primary"
+        )
+        close_btn.pack(pady=(10, 0))
+    
     def load_oui_database(self):
         """Load OUI database from JSON file"""
         try:
