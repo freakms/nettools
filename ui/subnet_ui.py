@@ -221,3 +221,148 @@ class SubnetCalculatorUI:
             )
             value_widget.pack(side="left", fill="x", expand=True)
     
+    def split_subnet(self):
+        """Split a subnet into smaller subnets"""
+        cidr = self.subnet_cidr_entry.get().strip()
+        
+        if not cidr:
+            messagebox.showwarning("Invalid Input", "Please enter a network in CIDR notation first")
+            return
+        
+        try:
+            new_prefix = int(self.split_prefix_var.get())
+        except ValueError:
+            messagebox.showwarning("Invalid Input", "Please enter a valid prefix length")
+            return
+        
+        try:
+            network = ipaddress.ip_network(cidr, strict=False)
+            original_prefix = network.prefixlen
+            
+            if new_prefix <= original_prefix:
+                messagebox.showwarning(
+                    "Invalid Split", 
+                    f"New prefix (/{new_prefix}) must be larger than original prefix (/{original_prefix}).\n\n"
+                    f"Example: To split /{original_prefix} network, use /{original_prefix + 1} or higher."
+                )
+                return
+            
+            if new_prefix > 30:
+                messagebox.showwarning("Invalid Split", "Prefix cannot be larger than /30 (minimum 2 usable hosts)")
+                return
+            
+            # Calculate subnets
+            subnets = list(network.subnets(new_prefix=new_prefix))
+            num_subnets = len(subnets)
+            
+            if num_subnets > 256:
+                answer = messagebox.askyesno(
+                    "Large Split",
+                    f"This will create {num_subnets:,} subnets. Show only first 256?"
+                )
+                if answer:
+                    subnets = subnets[:256]
+                else:
+                    return
+            
+            # Display results
+            self.display_split_results(network, subnets, new_prefix)
+            self.app.status_label.configure(text=f"Split {cidr} into {num_subnets} /{new_prefix} subnets")
+            
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid CIDR notation: {str(e)}")
+    
+    def display_split_results(self, original_network, subnets, new_prefix):
+        """Display subnet split results"""
+        # Clear frame
+        for widget in self.subnet_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Header
+        header_frame = ctk.CTkFrame(self.subnet_results_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=20, pady=(15, 10))
+        
+        header_label = ctk.CTkLabel(
+            header_frame,
+            text=f"🔀 Split Results: {original_network} → /{new_prefix}",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        header_label.pack(anchor="w")
+        
+        info_label = ctk.CTkLabel(
+            header_frame,
+            text=f"Created {len(subnets)} subnets, each with {subnets[0].num_addresses - 2} usable hosts",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_secondary']
+        )
+        info_label.pack(anchor="w", pady=(2, 0))
+        
+        # Scrollable list of subnets
+        subnets_scroll = ctk.CTkScrollableFrame(
+            self.subnet_results_frame,
+            height=300,
+            fg_color=COLORS['bg_card']
+        )
+        subnets_scroll.pack(fill="both", expand=True, padx=20, pady=(0, 15))
+        
+        # Table header
+        header_row = ctk.CTkFrame(subnets_scroll, fg_color=("gray85", "gray25"))
+        header_row.pack(fill="x", pady=(0, 5))
+        
+        headers = [("#", 40), ("Network", 150), ("First Host", 130), ("Last Host", 130), ("Broadcast", 130)]
+        for header_text, width in headers:
+            h_label = ctk.CTkLabel(
+                header_row,
+                text=header_text,
+                font=ctk.CTkFont(size=11, weight="bold"),
+                width=width,
+                anchor="w"
+            )
+            h_label.pack(side="left", padx=5, pady=5)
+        
+        # Subnet rows
+        for i, subnet in enumerate(subnets, 1):
+            row_color = ("gray95", "gray20") if i % 2 == 0 else ("gray90", "gray17")
+            row = ctk.CTkFrame(subnets_scroll, fg_color=row_color)
+            row.pack(fill="x", pady=1)
+            
+            # Calculate hosts
+            hosts = list(subnet.hosts())
+            first_host = str(hosts[0]) if hosts else "N/A"
+            last_host = str(hosts[-1]) if hosts else "N/A"
+            
+            row_data = [
+                (str(i), 40),
+                (str(subnet), 150),
+                (first_host, 130),
+                (last_host, 130),
+                (str(subnet.broadcast_address), 130)
+            ]
+            
+            for value, width in row_data:
+                v_label = ctk.CTkLabel(
+                    row,
+                    text=value,
+                    font=ctk.CTkFont(size=11, family="Courier New"),
+                    width=width,
+                    anchor="w"
+                )
+                v_label.pack(side="left", padx=5, pady=4)
+        
+        # Copy all button
+        copy_btn = StyledButton(
+            self.subnet_results_frame,
+            text="📋 Copy All Subnets",
+            command=lambda: self.copy_subnets_to_clipboard(subnets),
+            size="small",
+            variant="secondary"
+        )
+        copy_btn.pack(pady=(0, 15))
+    
+    def copy_subnets_to_clipboard(self, subnets):
+        """Copy all subnet CIDRs to clipboard"""
+        subnet_list = "\n".join([str(s) for s in subnets])
+        self.app.clipboard_clear()
+        self.app.clipboard_append(subnet_list)
+        messagebox.showinfo("Copied", f"Copied {len(subnets)} subnets to clipboard")
+    
