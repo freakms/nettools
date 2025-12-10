@@ -5,10 +5,44 @@ Uses official DNSDumpster API
 """
 
 import requests
+import json
+import os
 
 
-# DNSDumpster API Key
-DNSDUMPSTER_API_KEY = "b77d2fa35f30f2b4fea96ee709d9141e61f6d1002ee47f1d0209776546589116"
+def get_api_key():
+    """
+    Get DNSDumpster API key from config file or environment variable.
+    Priority: Environment variable > Config file > Hardcoded default
+    """
+    # Check environment variable first
+    env_key = os.environ.get('DNSDUMPSTER_API_KEY')
+    if env_key:
+        return env_key
+    
+    # Try to read from config file
+    config_paths = [
+        os.path.join(os.path.dirname(__file__), '..', 'api_keys.json'),
+        os.path.join(os.path.dirname(__file__), 'api_keys.json'),
+        'api_keys.json'
+    ]
+    
+    for config_path in config_paths:
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    key = config.get('dnsdumpster_api_key')
+                    if key:
+                        return key
+        except (json.JSONDecodeError, IOError):
+            continue
+    
+    # Fallback to hardcoded key
+    return "b77d2fa35f30f2b4fea96ee709d9141e61f6d1002ee47f1d0209776546589116"
+
+
+# Load API key on module import
+DNSDUMPSTER_API_KEY = get_api_key()
 
 
 class DNSDumpster:
