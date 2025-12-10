@@ -468,6 +468,9 @@ class NetToolsApp(ctk.CTk):
         
         # Render navigation with categories
         for idx, (category_name, cat_icon, items) in enumerate(nav_categories):
+            # Store category data for rebuilding later
+            self.nav_categories_data.append((category_name, cat_icon, items))
+            
             # Category header
             category_label = ctk.CTkLabel(
                 self.nav_scroll,
@@ -477,7 +480,9 @@ class NetToolsApp(ctk.CTk):
                 anchor="w"
             )
             category_label.pack(fill="x", padx=15, pady=(12, 5))
-            self.category_labels.append((category_label, cat_icon, category_name))
+            
+            # Store category info: (label widget, cat_icon, category_name, list of button page_ids in this category)
+            category_buttons = []
             
             # Store reference to first category
             if idx == 0:
@@ -511,6 +516,10 @@ class NetToolsApp(ctk.CTk):
                 btn.bind("<Button-3>", lambda e, tid=page_id: self.show_tool_context_menu(e, tid))
                 
                 self.nav_buttons[page_id] = btn
+                category_buttons.append(page_id)
+            
+            # Append category with its associated buttons
+            self.category_labels.append((category_label, cat_icon, category_name, category_buttons))
         
         # Update initial button state
         self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
