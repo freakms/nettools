@@ -198,6 +198,113 @@ class SubnetCalculatorUI:
         self.app.history.add_cidr(cidr)
         
         self.app.status_label.configure(text=f"Calculated subnet information for {cidr}")
+        
+        # Auto-update split options preview
+        self.show_split_options()
+    
+    def show_split_options(self):
+        """Show available split options for the entered network"""
+        cidr = self.subnet_cidr_entry.get().strip()
+        
+        if not cidr:
+            messagebox.showwarning("Invalid Input", "Please enter a network in CIDR notation first")
+            return
+        
+        try:
+            network = ipaddress.ip_network(cidr, strict=False)
+            original_prefix = network.prefixlen
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid CIDR notation: {str(e)}")
+            return
+        
+        # Clear preview frame
+        for widget in self.subnet_preview_frame.winfo_children():
+            widget.destroy()
+        
+        # Title
+        title = ctk.CTkLabel(
+            self.subnet_preview_frame,
+            text=f"📊 Split Options for {network} (/{original_prefix})",
+            font=ctk.CTkFont(size=FONTS['small'], weight="bold")
+        )
+        title.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['sm'], SPACING['xs']))
+        
+        # Create scrollable frame for options
+        options_scroll = ctk.CTkScrollableFrame(
+            self.subnet_preview_frame,
+            height=150,
+            fg_color="transparent"
+        )
+        options_scroll.pack(fill="x", padx=SPACING['xs'], pady=(0, SPACING['sm']))
+        
+        # Table header
+        header_row = ctk.CTkFrame(options_scroll, fg_color=("gray85", "gray25"))
+        header_row.pack(fill="x", pady=(0, 3))
+        
+        headers = [("Prefix", 60), ("# Subnets", 90), ("Hosts/Subnet", 100), ("Total Hosts", 100)]
+        for header_text, width in headers:
+            h_label = ctk.CTkLabel(
+                header_row,
+                text=header_text,
+                font=ctk.CTkFont(size=10, weight="bold"),
+                width=width,
+                anchor="w"
+            )
+            h_label.pack(side="left", padx=3, pady=3)
+        
+        # Calculate options for each possible prefix
+        max_prefix = min(30, original_prefix + 10)  # Limit to reasonable range
+        
+        for new_prefix in range(original_prefix + 1, max_prefix + 1):
+            num_subnets = 2 ** (new_prefix - original_prefix)
+            hosts_per_subnet = (2 ** (32 - new_prefix)) - 2  # Subtract network and broadcast
+            total_usable = num_subnets * hosts_per_subnet
+            
+            # Skip if hosts per subnet is less than 2
+            if hosts_per_subnet < 2:
+                continue
+            
+            row_color = ("gray95", "gray20") if new_prefix % 2 == 0 else ("gray90", "gray17")
+            row = ctk.CTkFrame(options_scroll, fg_color=row_color)
+            row.pack(fill="x", pady=1)
+            
+            # Make row clickable to select this prefix
+            def select_prefix(p=new_prefix):
+                self.split_prefix_var.set(str(p))
+            
+            row_data = [
+                (f"/{new_prefix}", 60),
+                (f"{num_subnets:,}", 90),
+                (f"{hosts_per_subnet:,}", 100),
+                (f"{total_usable:,}", 100)
+            ]
+            
+            for value, width in row_data:
+                v_label = ctk.CTkLabel(
+                    row,
+                    text=value,
+                    font=ctk.CTkFont(size=10),
+                    width=width,
+                    anchor="w"
+                )
+                v_label.pack(side="left", padx=3, pady=2)
+                v_label.bind("<Button-1>", lambda e, p=new_prefix: self._select_and_highlight(p))
+            
+            row.bind("<Button-1>", lambda e, p=new_prefix: self._select_and_highlight(p))
+        
+        # Tip
+        tip = ctk.CTkLabel(
+            self.subnet_preview_frame,
+            text="💡 Click a row to select that prefix",
+            font=ctk.CTkFont(size=9),
+            text_color=COLORS['text_secondary']
+        )
+        tip.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+    
+    def _select_and_highlight(self, prefix):
+        """Select a prefix from the options table"""
+        self.split_prefix_var.set(str(prefix))
+        self.app.status_label.configure(text=f"Selected /{prefix} - Click 'Split Network' to see results")
     
     # get_network_class method removed - now handled by SubnetCalculator
     
