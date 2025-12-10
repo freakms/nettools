@@ -599,6 +599,428 @@ class CollapsibleSidebar(ctk.CTkFrame):
         for item in self.nav_items:
             item['button'].configure(text=f" {item['icon']}")
         
+
+
+class SearchBar(ctk.CTkFrame):
+    """
+    Search bar with filter functionality.
+    Usage: SearchBar(parent, placeholder="Search...", on_search=callback)
+    """
+    
+    def __init__(self, parent, placeholder="Search...", on_search=None, **kwargs):
+        kwargs.setdefault('fg_color', 'transparent')
+        super().__init__(parent, **kwargs)
+        
+        self.on_search = on_search
+        self.search_var = ctk.StringVar()
+        self.search_var.trace_add("write", self._on_text_change)
+        
+        # Search icon
+        self.search_icon = ctk.CTkLabel(
+            self,
+            text="🔍",
+            font=ctk.CTkFont(size=14),
+            width=30
+        )
+        self.search_icon.pack(side="left", padx=(5, 0))
+        
+        # Search entry
+        self.entry = ctk.CTkEntry(
+            self,
+            placeholder_text=placeholder,
+            textvariable=self.search_var,
+            height=36,
+            corner_radius=18,
+            border_width=1,
+            border_color=COLORS['electric_violet']
+        )
+        self.entry.pack(side="left", fill="x", expand=True, padx=5)
+        
+        # Clear button
+        self.clear_btn = ctk.CTkButton(
+            self,
+            text="✕",
+            width=30,
+            height=30,
+            corner_radius=15,
+            fg_color="transparent",
+            hover_color=COLORS['dashboard_card_hover'],
+            command=self.clear
+        )
+        self.clear_btn.pack(side="right", padx=(0, 5))
+        self.clear_btn.pack_forget()  # Hidden initially
+    
+    def _on_text_change(self, *args):
+        """Handle text changes"""
+        text = self.search_var.get()
+        
+        # Show/hide clear button
+        if text:
+            self.clear_btn.pack(side="right", padx=(0, 5))
+        else:
+            self.clear_btn.pack_forget()
+        
+        # Call search callback
+        if self.on_search:
+            self.on_search(text)
+    
+    def clear(self):
+        """Clear search text"""
+        self.search_var.set("")
+        self.entry.focus()
+    
+    def get(self):
+        """Get current search text"""
+        return self.search_var.get()
+
+
+class SortableTable(ctk.CTkFrame):
+    """
+    Sortable and filterable table component.
+    Usage:
+        table = SortableTable(parent, columns=[("IP", 150), ("Status", 100), ("RTT", 80)])
+        table.add_row(["192.168.1.1", "Online", "5ms"])
+        table.sort_by("IP")
+    """
+    
+    def __init__(self, parent, columns, **kwargs):
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        kwargs.setdefault('corner_radius', RADIUS['medium'])
+        super().__init__(parent, **kwargs)
+        
+        self.columns = columns  # List of (name, width) tuples
+        self.rows_data = []  # Raw data for sorting/filtering
+        self.filtered_data = []  # Filtered data
+        self.sort_column = None
+        self.sort_ascending = True
+        self.row_widgets = []
+        
+        self._create_header()
+        self._create_body()
+    
+    def _create_header(self):
+        """Create sortable header row"""
+        self.header_frame = ctk.CTkFrame(self, fg_color=COLORS['electric_violet'], corner_radius=0)
+        self.header_frame.pack(fill="x", padx=2, pady=(2, 0))
+        
+        self.header_buttons = []
+        for col_name, col_width in self.columns:
+            btn = ctk.CTkButton(
+                self.header_frame,
+                text=f"{col_name} ↕",
+                width=col_width,
+                height=35,
+                corner_radius=0,
+                fg_color="transparent",
+                hover_color=COLORS['neon_cyan'],
+                font=ctk.CTkFont(size=12, weight="bold"),
+                anchor="w",
+                command=lambda c=col_name: self.sort_by(c)
+            )
+            btn.pack(side="left", padx=1)
+            self.header_buttons.append((col_name, btn))
+    
+    def _create_body(self):
+        """Create scrollable body"""
+        self.body_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent",
+            corner_radius=0
+        )
+        self.body_frame.pack(fill="both", expand=True, padx=2, pady=2)
+    
+    def add_row(self, data, row_id=None):
+        """Add a row of data"""
+        if row_id is None:
+            row_id = len(self.rows_data)
+        
+        self.rows_data.append({
+            'id': row_id,
+            'data': data
+        })
+        self.filtered_data = self.rows_data.copy()
+        self._render_rows()
+    
+    def set_data(self, data_list):
+        """Set all data at once (more efficient for large datasets)"""
+        self.rows_data = [{'id': i, 'data': d} for i, d in enumerate(data_list)]
+        self.filtered_data = self.rows_data.copy()
+        self._render_rows()
+    
+    def clear(self):
+        """Clear all data"""
+        self.rows_data = []
+        self.filtered_data = []
+        self._render_rows()
+    
+    def sort_by(self, column_name):
+        """Sort table by column"""
+        col_index = None
+        for i, (name, _) in enumerate(self.columns):
+            if name == column_name:
+                col_index = i
+                break
+        
+        if col_index is None:
+            return
+        
+        # Toggle sort direction if same column
+        if self.sort_column == column_name:
+            self.sort_ascending = not self.sort_ascending
+        else:
+            self.sort_column = column_name
+            self.sort_ascending = True
+        
+        # Sort data
+        def sort_key(row):
+            value = row['data'][col_index] if col_index < len(row['data']) else ""
+            # Try numeric sort
+            try:
+                return (0, float(str(value).replace('ms', '').replace('%', '')))
+            except (ValueError, TypeError):
+                return (1, str(value).lower())
+        
+        self.filtered_data.sort(key=sort_key, reverse=not self.sort_ascending)
+        
+        # Update header arrows
+        for name, btn in self.header_buttons:
+            if name == column_name:
+                arrow = "↑" if self.sort_ascending else "↓"
+                btn.configure(text=f"{name} {arrow}")
+            else:
+                btn.configure(text=f"{name} ↕")
+        
+        self._render_rows()
+    
+    def filter(self, search_text):
+        """Filter rows by search text"""
+        if not search_text:
+            self.filtered_data = self.rows_data.copy()
+        else:
+            search_lower = search_text.lower()
+            self.filtered_data = [
+                row for row in self.rows_data
+                if any(search_lower in str(cell).lower() for cell in row['data'])
+            ]
+        self._render_rows()
+    
+    def _render_rows(self):
+        """Render visible rows"""
+        # Clear existing widgets
+        for widget in self.row_widgets:
+            widget.destroy()
+        self.row_widgets = []
+        
+        # Render rows (limit to prevent performance issues)
+        max_rows = 500
+        for i, row in enumerate(self.filtered_data[:max_rows]):
+            row_color = ("gray95", "gray17") if i % 2 == 0 else ("gray90", "gray20")
+            
+            row_frame = ctk.CTkFrame(self.body_frame, fg_color=row_color, corner_radius=0, height=32)
+            row_frame.pack(fill="x", pady=1)
+            row_frame.pack_propagate(False)
+            
+            for j, ((col_name, col_width), cell_data) in enumerate(zip(self.columns, row['data'])):
+                cell = ctk.CTkLabel(
+                    row_frame,
+                    text=str(cell_data),
+                    width=col_width,
+                    anchor="w",
+                    font=ctk.CTkFont(size=11)
+                )
+                cell.pack(side="left", padx=(5, 1), pady=2)
+            
+            self.row_widgets.append(row_frame)
+        
+        # Show count if limited
+        if len(self.filtered_data) > max_rows:
+            info_label = ctk.CTkLabel(
+                self.body_frame,
+                text=f"Showing {max_rows} of {len(self.filtered_data)} rows",
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS['text_secondary']
+            )
+            info_label.pack(pady=5)
+            self.row_widgets.append(info_label)
+    
+    def get_selected(self):
+        """Get selected row data (future: implement row selection)"""
+        return None
+
+
+class SimpleBarChart(ctk.CTkFrame):
+    """
+    Simple horizontal bar chart using canvas.
+    Usage:
+        chart = SimpleBarChart(parent, title="Scan Results")
+        chart.set_data([("Online", 45, "green"), ("Offline", 200, "red")])
+    """
+    
+    def __init__(self, parent, title="", height=150, **kwargs):
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        kwargs.setdefault('corner_radius', RADIUS['medium'])
+        super().__init__(parent, **kwargs)
+        
+        self.title_text = title
+        self.chart_height = height
+        self.data = []
+        
+        if title:
+            self.title_label = ctk.CTkLabel(
+                self,
+                text=title,
+                font=ctk.CTkFont(size=14, weight="bold")
+            )
+            self.title_label.pack(pady=(10, 5))
+        
+        self.canvas = ctk.CTkCanvas(
+            self,
+            height=height,
+            bg=COLORS['bg_dark'],
+            highlightthickness=0
+        )
+        self.canvas.pack(fill="x", padx=15, pady=(5, 15))
+        
+        self.bind("<Configure>", self._on_resize)
+    
+    def set_data(self, data):
+        """
+        Set chart data.
+        Args:
+            data: List of tuples (label, value, color)
+        """
+        self.data = data
+        self._draw_chart()
+    
+    def _on_resize(self, event=None):
+        """Handle resize"""
+        self._draw_chart()
+    
+    def _draw_chart(self):
+        """Draw the bar chart"""
+        self.canvas.delete("all")
+        
+        if not self.data:
+            return
+        
+        width = self.canvas.winfo_width()
+        height = self.chart_height
+        
+        if width < 50:
+            return
+        
+        # Calculate max value
+        max_value = max(d[1] for d in self.data) if self.data else 1
+        
+        # Bar settings
+        bar_height = min(30, (height - 20) // len(self.data))
+        bar_gap = 8
+        label_width = 100
+        value_width = 60
+        bar_area_width = width - label_width - value_width - 30
+        
+        y_offset = 10
+        
+        for label, value, color in self.data:
+            # Calculate bar width
+            bar_width = (value / max_value) * bar_area_width if max_value > 0 else 0
+            
+            # Draw label
+            self.canvas.create_text(
+                10, y_offset + bar_height // 2,
+                text=label,
+                anchor="w",
+                fill=COLORS['text_primary'],
+                font=("Segoe UI", 10)
+            )
+            
+            # Draw bar background
+            self.canvas.create_rectangle(
+                label_width, y_offset,
+                label_width + bar_area_width, y_offset + bar_height,
+                fill=COLORS['bg_card'],
+                outline=""
+            )
+            
+            # Draw bar
+            if bar_width > 0:
+                self.canvas.create_rectangle(
+                    label_width, y_offset,
+                    label_width + bar_width, y_offset + bar_height,
+                    fill=color,
+                    outline=""
+                )
+            
+            # Draw value
+            self.canvas.create_text(
+                label_width + bar_area_width + 10, y_offset + bar_height // 2,
+                text=str(value),
+                anchor="w",
+                fill=COLORS['text_primary'],
+                font=("Segoe UI", 10, "bold")
+            )
+            
+            y_offset += bar_height + bar_gap
+
+
+class StatCard(ctk.CTkFrame):
+    """
+    Statistics card showing a metric with icon.
+    Usage: StatCard(parent, icon="📡", title="Hosts", value="254", color="green")
+    """
+    
+    def __init__(self, parent, icon="📊", title="Metric", value="0", subtitle="", color=None, **kwargs):
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        kwargs.setdefault('corner_radius', RADIUS['medium'])
+        kwargs.setdefault('width', 150)
+        kwargs.setdefault('height', 100)
+        super().__init__(parent, **kwargs)
+        
+        self.pack_propagate(False)
+        
+        # Icon
+        icon_label = ctk.CTkLabel(
+            self,
+            text=icon,
+            font=ctk.CTkFont(size=28)
+        )
+        icon_label.pack(pady=(15, 5))
+        
+        # Value
+        value_color = color if color else COLORS['text_primary']
+        self.value_label = ctk.CTkLabel(
+            self,
+            text=str(value),
+            font=ctk.CTkFont(size=24, weight="bold"),
+            text_color=value_color
+        )
+        self.value_label.pack()
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            self,
+            text=title,
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_secondary']
+        )
+        title_label.pack()
+        
+        # Subtitle (optional)
+        if subtitle:
+            subtitle_label = ctk.CTkLabel(
+                self,
+                text=subtitle,
+                font=ctk.CTkFont(size=9),
+                text_color=COLORS['text_secondary']
+            )
+            subtitle_label.pack()
+    
+    def update_value(self, value, color=None):
+        """Update the displayed value"""
+        self.value_label.configure(text=str(value))
+        if color:
+            self.value_label.configure(text_color=color)
+
         # Hide category labels
         for label, icon, name in self.category_labels:
             label.configure(text=icon if icon else "•")
