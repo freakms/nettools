@@ -1020,6 +1020,7 @@ class NetToolsApp(ctk.CTk):
         try:
             scanner_ui = ScannerUI(self)
             scanner_ui.create_content(parent)
+            self.scanner_ui_instance = scanner_ui  # Store reference for global search
         except Exception as e:
             # Show error if scanner fails to load
             error_label = ctk.CTkLabel(
