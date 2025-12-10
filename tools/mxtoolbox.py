@@ -48,249 +48,284 @@ class MXToolbox:
     
     API_BASE = "https://mxtoolbox.com/api/v1/Lookup"
     
-    # Available lookup types
-    LOOKUP_TYPES = {
-        'dns': 'dns',           # Full DNS check
-        'mx': 'mx',             # MX records
-        'a': 'a',               # A records
-        'aaaa': 'aaaa',         # AAAA records (IPv6)
-        'ns': 'ns',             # Name servers
-        'soa': 'soa',           # SOA record
-        'txt': 'txt',           # TXT records
-        'cname': 'cname',       # CNAME records
-        'ptr': 'ptr',           # PTR (reverse DNS)
-        'spf': 'spf',           # SPF record check
-        'dmarc': 'dmarc',       # DMARC record check
-    }
-    
     @staticmethod
     def lookup(domain, lookup_type='dns'):
         """
-        Perform MXToolbox lookup for a domain
+        Perform single MXToolbox lookup
         
         Args:
-            domain (str): Domain name to lookup (e.g., example.com)
-            lookup_type (str): Type of lookup (dns, mx, a, ns, txt, etc.)
+            domain (str): Domain name to lookup
+            lookup_type (str): Type of lookup (dns, mx, a, ns, txt, soa, etc.)
             
         Returns:
             dict: MXToolbox results
         """
         try:
-            # Validate lookup type
-            if lookup_type not in MXToolbox.LOOKUP_TYPES:
-                lookup_type = 'dns'
-            
             headers = {
                 'Authorization': MXTOOLBOX_API_KEY,
                 'Accept': 'application/json',
                 'User-Agent': 'NetTools/1.0'
             }
             
-            # Build URL: /api/v1/Lookup/{type}/{domain}
             url = f"{MXToolbox.API_BASE}/{lookup_type}/{domain}"
-            
             response = requests.get(url, headers=headers, timeout=30)
             
             if response.status_code == 401:
-                return {
-                    "success": False,
-                    "error": "Invalid API key. Please check your MXToolbox API key.",
-                    "domain": domain
-                }
-            
+                return {"success": False, "error": "Invalid API key.", "domain": domain}
             if response.status_code == 403:
-                return {
-                    "success": False,
-                    "error": "API access forbidden. You may have exceeded your daily limit (63 queries).",
-                    "domain": domain
-                }
-            
-            if response.status_code == 404:
-                return {
-                    "success": False,
-                    "error": f"Lookup type '{lookup_type}' not found or domain invalid.",
-                    "domain": domain
-                }
-            
+                return {"success": False, "error": "API limit exceeded (63/day).", "domain": domain}
             if response.status_code == 429:
-                return {
-                    "success": False,
-                    "error": "Rate limit exceeded. Please wait before making more requests.",
-                    "domain": domain
-                }
-            
+                return {"success": False, "error": "Rate limit exceeded.", "domain": domain}
             if response.status_code != 200:
-                return {
-                    "success": False,
-                    "error": f"API returned HTTP {response.status_code}: {response.text[:200]}",
-                    "domain": domain
-                }
+                return {"success": False, "error": f"HTTP {response.status_code}", "domain": domain}
             
-            # Parse JSON response
-            data = response.json()
-            
-            # Transform API response to our format
-            results = MXToolbox._parse_response(data, domain, lookup_type)
-            results["success"] = True
-            results["domain"] = domain
-            results["lookup_type"] = lookup_type
-            
-            return results
+            return {"success": True, "data": response.json(), "domain": domain}
             
         except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "error": "Request timed out. MXToolbox API might be slow.",
-                "domain": domain
-            }
+            return {"success": False, "error": "Request timed out.", "domain": domain}
         except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "error": f"Network error: {str(e)}",
-                "domain": domain
-            }
-        except ValueError as e:
-            return {
-                "success": False,
-                "error": f"Invalid JSON response: {str(e)}",
-                "domain": domain
-            }
+            return {"success": False, "error": f"Network error: {str(e)}", "domain": domain}
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Unexpected error: {str(e)}",
-                "domain": domain
-            }
+            return {"success": False, "error": f"Error: {str(e)}", "domain": domain}
     
     @staticmethod
     def full_dns_check(domain):
         """
-        Perform comprehensive DNS check (uses 'dns' lookup type)
-        This is the main method for full domain reconnaissance.
+        Perform comprehensive DNS check by querying multiple record types.
+        Uses 4 API calls: dns (for NS+diagnostics), a, mx, txt
+        
+        Args:
+            domain (str): Domain name to lookup
+            
+        Returns:
+            dict: Combined DNS results with all record types
         """
-        return MXToolbox.lookup(domain, 'dns')
-    
-    @staticmethod
-    def _parse_response(data, domain, lookup_type):
-        """Parse MXToolbox API response"""
         results = {
+            "success": True,
+            "domain": domain,
             "dns_records": {
                 "a": [],
                 "aaaa": [],
                 "mx": [],
                 "ns": [],
                 "txt": [],
-                "soa": [],
-                "cname": []
+                "soa": []
             },
-            "information": [],
-            "passed": [],
-            "warnings": [],
-            "errors": [],
+            "diagnostics": {
+                "passed": [],
+                "warnings": [],
+                "errors": []
+            },
             "statistics": {},
-            "raw_data": data  # Keep raw data for debugging
+            "reporting_nameserver": "",
+            "api_calls_used": 0
         }
         
-        try:
-            # Parse Information section (contains DNS records)
-            info_list = data.get("Information", [])
-            for info in info_list:
-                if isinstance(info, dict):
-                    info_text = info.get("Info", "") or info.get("Information", "")
-                    info_type = info.get("Type", "").lower()
-                    
-                    # Parse the info text to extract records
-                    record = MXToolbox._parse_info_record(info, info_type, domain)
-                    if record:
-                        results["information"].append(record)
-                        
-                        # Categorize by record type
-                        if info_type in results["dns_records"]:
-                            results["dns_records"][info_type].append(record)
-                        elif 'mx' in info_type.lower():
-                            results["dns_records"]["mx"].append(record)
-                        elif 'ns' in info_type.lower() or 'nameserver' in info_type.lower():
-                            results["dns_records"]["ns"].append(record)
-                        elif 'txt' in info_type.lower() or 'spf' in info_type.lower():
-                            results["dns_records"]["txt"].append(record)
-                        elif 'a record' in info_text.lower() or info_type == 'a':
-                            results["dns_records"]["a"].append(record)
+        errors = []
+        
+        # 1. DNS check (gets NS records + diagnostics) - 1 API call
+        dns_result = MXToolbox.lookup(domain, 'dns')
+        results["api_calls_used"] += 1
+        
+        if dns_result.get("success"):
+            data = dns_result.get("data", {})
+            results["reporting_nameserver"] = data.get("ReportingNameServer", "")
             
-            # Parse Passed checks
-            passed_list = data.get("Passed", [])
-            for item in passed_list:
-                if isinstance(item, dict):
-                    results["passed"].append({
-                        "info": item.get("Info", ""),
-                        "name": item.get("Name", ""),
-                        "additional": item.get("AdditionalInfo", "")
-                    })
+            # Parse NS records from Information
+            for info in data.get("Information", []):
+                if info.get("Type") == "NS":
+                    ns_record = MXToolbox._parse_ns_record(info)
+                    if ns_record:
+                        results["dns_records"]["ns"].append(ns_record)
             
-            # Parse Warnings
-            warning_list = data.get("Warnings", [])
-            for item in warning_list:
-                if isinstance(item, dict):
-                    results["warnings"].append({
-                        "info": item.get("Info", ""),
-                        "name": item.get("Name", ""),
-                        "additional": item.get("AdditionalInfo", "")
-                    })
+            # Parse diagnostics
+            for item in data.get("Passed", []):
+                results["diagnostics"]["passed"].append({
+                    "name": item.get("Name", ""),
+                    "info": item.get("Info", "")
+                })
             
-            # Parse Failed/Errors
-            failed_list = data.get("Failed", [])
-            for item in failed_list:
-                if isinstance(item, dict):
-                    results["errors"].append({
-                        "info": item.get("Info", ""),
-                        "name": item.get("Name", ""),
-                        "additional": item.get("AdditionalInfo", "")
-                    })
+            for item in data.get("Warnings", []):
+                results["diagnostics"]["warnings"].append({
+                    "name": item.get("Name", ""),
+                    "info": item.get("Info", ""),
+                    "details": item.get("AdditionalInfo", [])
+                })
             
-            # Get command/query info
-            results["command"] = data.get("Command", "")
-            results["command_argument"] = data.get("CommandArgument", domain)
-            results["is_transitioned"] = data.get("IsTransitioned", False)
-            results["dns_service_provider"] = data.get("DnsServiceProvider", "")
-            results["mx_rep"] = data.get("MxRep", 0)
-            results["email_service_provider"] = data.get("EmailServiceProvider", "")
-            results["related_lookups"] = data.get("RelatedLookups", [])
-            
-            # Calculate statistics
-            results["statistics"] = {
-                "total_records": len(results["information"]),
-                "passed_checks": len(results["passed"]),
-                "warnings": len(results["warnings"]),
-                "errors": len(results["errors"]),
-                "a_records": len(results["dns_records"]["a"]),
-                "mx_records": len(results["dns_records"]["mx"]),
-                "ns_records": len(results["dns_records"]["ns"]),
-                "txt_records": len(results["dns_records"]["txt"])
-            }
-            
-        except Exception as e:
-            results["parse_error"] = str(e)
+            for item in data.get("Failed", []):
+                results["diagnostics"]["errors"].append({
+                    "name": item.get("Name", ""),
+                    "info": item.get("Info", ""),
+                    "details": item.get("AdditionalInfo", [])
+                })
+        else:
+            errors.append(f"DNS check: {dns_result.get('error', 'Unknown error')}")
+        
+        # 2. A record lookup - 1 API call
+        a_result = MXToolbox.lookup(domain, 'a')
+        results["api_calls_used"] += 1
+        
+        if a_result.get("success"):
+            for info in a_result.get("data", {}).get("Information", []):
+                a_record = MXToolbox._parse_a_record(info)
+                if a_record:
+                    if info.get("IsIpV6") == "True":
+                        results["dns_records"]["aaaa"].append(a_record)
+                    else:
+                        results["dns_records"]["a"].append(a_record)
+        else:
+            errors.append(f"A record: {a_result.get('error', 'Unknown error')}")
+        
+        # 3. MX record lookup - 1 API call
+        mx_result = MXToolbox.lookup(domain, 'mx')
+        results["api_calls_used"] += 1
+        
+        if mx_result.get("success"):
+            for info in mx_result.get("data", {}).get("Information", []):
+                mx_record = MXToolbox._parse_mx_record(info)
+                if mx_record:
+                    results["dns_records"]["mx"].append(mx_record)
+        else:
+            errors.append(f"MX record: {mx_result.get('error', 'Unknown error')}")
+        
+        # 4. TXT record lookup - 1 API call
+        txt_result = MXToolbox.lookup(domain, 'txt')
+        results["api_calls_used"] += 1
+        
+        if txt_result.get("success"):
+            for info in txt_result.get("data", {}).get("Information", []):
+                txt_record = MXToolbox._parse_txt_record(info)
+                if txt_record:
+                    results["dns_records"]["txt"].append(txt_record)
+        else:
+            errors.append(f"TXT record: {txt_result.get('error', 'Unknown error')}")
+        
+        # Calculate statistics
+        results["statistics"] = {
+            "a_records": len(results["dns_records"]["a"]),
+            "aaaa_records": len(results["dns_records"]["aaaa"]),
+            "mx_records": len(results["dns_records"]["mx"]),
+            "ns_records": len(results["dns_records"]["ns"]),
+            "txt_records": len(results["dns_records"]["txt"]),
+            "passed_checks": len(results["diagnostics"]["passed"]),
+            "warnings": len(results["diagnostics"]["warnings"]),
+            "errors": len(results["diagnostics"]["errors"])
+        }
+        
+        # Set overall success based on whether we got any data
+        total_records = sum([
+            results["statistics"]["a_records"],
+            results["statistics"]["mx_records"],
+            results["statistics"]["ns_records"]
+        ])
+        
+        if total_records == 0 and errors:
+            results["success"] = False
+            results["error"] = "; ".join(errors)
+        elif errors:
+            results["partial_errors"] = errors
         
         return results
     
     @staticmethod
-    def _parse_info_record(info, info_type, domain):
-        """Parse individual info record from MXToolbox response"""
-        record = {
-            "type": info_type.upper() if info_type else "INFO",
-            "info": info.get("Info", "") or info.get("Information", ""),
-            "domain": info.get("Domain", domain),
-            "ip_address": info.get("IPAddress", ""),
-            "name": info.get("Name", ""),
-            "additional_info": info.get("AdditionalInfo", ""),
-            "ttl": info.get("TTL", ""),
-            "status": info.get("Status", ""),
-            "priority": info.get("Priority", ""),
-        }
+    def _parse_ns_record(info):
+        """Parse NS record from API response"""
+        domain_name = info.get("Domain Name", "")
+        ip_address = info.get("IP Address", "")
+        ttl = info.get("TTL", "")
+        status = info.get("Status", "").replace("[", "").replace("]", "")
         
-        # Clean up empty values
-        record = {k: v for k, v in record.items() if v}
+        # Parse ASN info
+        asn_info = ""
+        asn_raw = info.get("Asn", "[]")
+        try:
+            asn_data = json.loads(asn_raw) if isinstance(asn_raw, str) else asn_raw
+            if asn_data and len(asn_data) > 0:
+                asn_info = f"{asn_data[0].get('asname', '')} (AS{asn_data[0].get('asn', '')})"
+        except (json.JSONDecodeError, TypeError, IndexError):
+            pass
         
-        return record if record.get("info") or record.get("ip_address") else None
+        if domain_name:
+            return {
+                "ns": domain_name,
+                "ip": ip_address,
+                "ttl": ttl,
+                "status": status,
+                "asn": asn_info
+            }
+        return None
+    
+    @staticmethod
+    def _parse_a_record(info):
+        """Parse A/AAAA record from API response"""
+        domain_name = info.get("Domain Name", "")
+        ip_address = info.get("IP Address", "")
+        ttl = info.get("TTL", "")
+        is_ipv6 = info.get("IsIpV6", "False") == "True"
+        
+        # Parse ASN info
+        asn_info = ""
+        asn_raw = info.get("Asn", "[]")
+        try:
+            asn_data = json.loads(asn_raw) if isinstance(asn_raw, str) else asn_raw
+            if asn_data and len(asn_data) > 0:
+                asn_info = f"{asn_data[0].get('asname', '')} (AS{asn_data[0].get('asn', '')})"
+        except (json.JSONDecodeError, TypeError, IndexError):
+            pass
+        
+        if ip_address:
+            return {
+                "host": domain_name,
+                "ip": ip_address,
+                "ttl": ttl,
+                "asn": asn_info,
+                "ipv6": is_ipv6
+            }
+        return None
+    
+    @staticmethod
+    def _parse_mx_record(info):
+        """Parse MX record from API response"""
+        hostname = info.get("Hostname", "")
+        ip_address = info.get("IP Address", "")
+        preference = info.get("Pref", "")
+        ttl = info.get("TTL", "")
+        is_ipv6 = info.get("IsIpV6", "False") == "True"
+        
+        # Parse ASN info
+        asn_info = ""
+        asn_raw = info.get("Asn", "[]")
+        try:
+            asn_data = json.loads(asn_raw) if isinstance(asn_raw, str) else asn_raw
+            if asn_data and len(asn_data) > 0:
+                asn_info = f"{asn_data[0].get('asname', '')} (AS{asn_data[0].get('asn', '')})"
+        except (json.JSONDecodeError, TypeError, IndexError):
+            pass
+        
+        if hostname:
+            return {
+                "mx": hostname,
+                "ip": ip_address,
+                "preference": preference,
+                "ttl": ttl,
+                "asn": asn_info,
+                "ipv6": is_ipv6
+            }
+        return None
+    
+    @staticmethod
+    def _parse_txt_record(info):
+        """Parse TXT record from API response"""
+        # TXT records might have different format
+        record_text = info.get("Record", "") or info.get("Info", "") or info.get("TXT", "")
+        ttl = info.get("TTL", "")
+        
+        if record_text:
+            return {
+                "txt": record_text,
+                "ttl": ttl
+            }
+        return None
     
     @staticmethod
     def is_available():
@@ -300,7 +335,6 @@ class MXToolbox:
                 'Authorization': MXTOOLBOX_API_KEY,
                 'Accept': 'application/json'
             }
-            # Test with example.com (free lookup)
             response = requests.get(
                 f"{MXToolbox.API_BASE}/dns/example.com",
                 headers=headers,
