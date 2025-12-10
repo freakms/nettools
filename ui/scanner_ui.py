@@ -715,15 +715,64 @@ gateway.home.lan
             scan_id = self.app.scan_manager.add_scan(cidr, results)
             
             online_count = sum(1 for r in results if r.get('status') == 'Online')
+            offline_count = len(results) - online_count
+            percentage = (online_count / len(results) * 100) if results else 0
+            
+            # Update statistics cards
+            self.app.stat_total.update_value(len(results))
+            self.app.stat_online.update_value(online_count, COLORS['success'])
+            self.app.stat_offline.update_value(offline_count, COLORS['danger'])
+            self.app.stat_percentage.update_value(f"{percentage:.1f}%", COLORS['neon_cyan'])
+            
             self.app.status_label.configure(
                 text=f"{message} - {len(results)} hosts scanned, {online_count} online (Saved as {scan_id})"
             )
         else:
             self.app.status_label.configure(text=message)
+            # Reset stats
+            self.app.stat_total.update_value(0)
+            self.app.stat_online.update_value(0)
+            self.app.stat_offline.update_value(0)
+            self.app.stat_percentage.update_value("0%")
+        
+        # Clear search bar
+        if hasattr(self.app, 'results_search'):
+            self.app.results_search.clear()
         
         # Now render results (all at once, much faster than during scan)
         self.app.scan_current_page = 1
         self.render_current_page()
+    
+    def filter_results(self, search_text):
+        """Filter results by search text"""
+        if not hasattr(self.app, 'all_results') or not self.app.all_results:
+            return
+        
+        search_lower = search_text.lower().strip()
+        
+        if not search_lower:
+            # Show all results
+            self.app.filtered_results = self.app.all_results
+        else:
+            # Filter results
+            self.app.filtered_results = [
+                r for r in self.app.all_results
+                if search_lower in r.get('ip', '').lower() or
+                   search_lower in r.get('hostname', '').lower() or
+                   search_lower in r.get('status', '').lower()
+            ]
+        
+        # Re-render with filtered data
+        self.app.scan_current_page = 1
+        self.render_current_page(use_filtered=True)
+        
+        # Update pagination label
+        total = len(self.app.all_results)
+        filtered = len(self.app.filtered_results)
+        if search_lower:
+            self.app.pagination_label.configure(text=f"Showing {filtered} of {total} results")
+        else:
+            self.app.pagination_label.configure(text=f"{total} results")
     def add_result_row(self, result):
         """Add a result row to the display with alternating colors"""
         # Determine if this should be an alternate row
