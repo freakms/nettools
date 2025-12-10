@@ -16,7 +16,10 @@ from datetime import datetime
 from uuid import uuid4
 
 from design_constants import COLORS, SPACING, RADIUS, FONTS
-from ui_components import StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle, ToastNotification
+from ui_components import (
+    StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle, ToastNotification,
+    SearchBar, SortableTable, SimpleBarChart, StatCard
+)
 
 
 class ScannerUI:
