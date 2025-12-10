@@ -618,9 +618,9 @@ class NetToolsApp(ctk.CTk):
             label = getattr(btn, '_nav_label', page_id)
             btn.configure(text=f" {icon}  {label}", anchor="w")
         
-        # Restore category labels
-        for label, icon, name in self.category_labels:
-            label.configure(text=f"{icon} {name}", font=ctk.CTkFont(size=11, weight="bold"))
+        # Restore category labels by re-packing them in the correct order
+        # Need to rebuild the navigation in the correct sequence
+        self._rebuild_navigation_labels()
     
     def show_toast(self, message, toast_type="info"):
         """Show a toast notification"""
