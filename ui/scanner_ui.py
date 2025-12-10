@@ -657,15 +657,20 @@ gateway.home.lan
         self.app.after(0, self._finalize_scan, results, message)
     
     def _finalize_scan(self, results, message):
-        """Finalize scan in main thread"""
+        """Finalize scan in main thread - render all results at once"""
+        # Re-enable buttons
         self.app.start_scan_btn.configure(state="normal")
+        self.app.import_list_btn.configure(state="normal")
         self.app.cancel_scan_btn.configure(state="disabled")
         
         # Clear imported list flags
-        if hasattr(self, 'current_scan_list'):
+        if hasattr(self.app, 'current_scan_list'):
             self.app.current_scan_list = None
-        if hasattr(self, 'ip_to_row_index'):
+        if hasattr(self.app, 'ip_to_row_index'):
             self.app.ip_to_row_index = None
+        
+        # Store all results
+        self.app.all_results = results
         
         if len(results) > 0:
             self.app.export_btn.configure(state="normal")
@@ -674,11 +679,15 @@ gateway.home.lan
             # Save scan for comparison
             cidr = self.app.cidr_entry.get().strip()
             scan_id = self.app.scan_manager.add_scan(cidr, results)
-            self.app.status_label.configure(text=f"{message} (Saved as {scan_id})")
+            
+            online_count = sum(1 for r in results if r.get('status') == 'Online')
+            self.app.status_label.configure(
+                text=f"{message} - {len(results)} hosts scanned, {online_count} online (Saved as {scan_id})"
+            )
         else:
             self.app.status_label.configure(text=message)
         
-        # Render first page to ensure results are visible
+        # Now render results (all at once, much faster than during scan)
         self.app.scan_current_page = 1
         self.render_current_page()
     def add_result_row(self, result):
