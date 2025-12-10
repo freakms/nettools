@@ -8,6 +8,67 @@ from bs4 import BeautifulSoup
 import re
 
 
+def get_proper_encoding(response):
+    """
+    Determine the proper encoding for a response.
+    Tries multiple methods to detect the correct encoding.
+    """
+    # Method 1: Check Content-Type header for charset
+    content_type = response.headers.get('Content-Type', '')
+    if 'charset=' in content_type:
+        charset = content_type.split('charset=')[-1].split(';')[0].strip()
+        if charset:
+            return charset
+    
+    # Method 2: Check for encoding in HTML meta tags
+    # Look at raw bytes for meta charset
+    raw_content = response.content[:2048]  # Check first 2KB
+    
+    # Look for <meta charset="...">
+    meta_charset = re.search(rb'<meta[^>]+charset=["\']?([^"\'\s>]+)', raw_content, re.IGNORECASE)
+    if meta_charset:
+        return meta_charset.group(1).decode('ascii', errors='ignore')
+    
+    # Look for <meta http-equiv="Content-Type" content="...charset=...">
+    meta_content_type = re.search(rb'<meta[^>]+content=["\'][^"\']*charset=([^"\'\s;]+)', raw_content, re.IGNORECASE)
+    if meta_content_type:
+        return meta_content_type.group(1).decode('ascii', errors='ignore')
+    
+    # Method 3: Use requests' apparent_encoding (uses chardet internally if available)
+    if response.apparent_encoding and response.apparent_encoding.lower() != 'ascii':
+        return response.apparent_encoding
+    
+    # Method 4: Default to utf-8 (most common for modern web)
+    return 'utf-8'
+
+
+def decode_response(response):
+    """
+    Safely decode response content with proper encoding detection.
+    Returns decoded text.
+    """
+    encoding = get_proper_encoding(response)
+    
+    # Try the detected encoding first
+    try:
+        return response.content.decode(encoding)
+    except (UnicodeDecodeError, LookupError):
+        pass
+    
+    # Fallback encodings to try
+    fallback_encodings = ['utf-8', 'iso-8859-1', 'windows-1252', 'latin-1']
+    
+    for enc in fallback_encodings:
+        if enc.lower() != encoding.lower():
+            try:
+                return response.content.decode(enc)
+            except (UnicodeDecodeError, LookupError):
+                continue
+    
+    # Last resort: decode with errors='ignore' to strip problematic chars
+    return response.content.decode('utf-8', errors='ignore')
+
+
 class DNSDumpster:
     """DNSDumpster API for domain reconnaissance"""
     
@@ -48,11 +109,11 @@ class DNSDumpster:
                     "domain": domain
                 }
             
-            # Set encoding to handle special characters
-            response.encoding = response.apparent_encoding or 'utf-8'
+            # Decode response with proper encoding detection
+            html_text = decode_response(response)
             
-            # Parse with error handling for encoding issues
-            soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+            # Parse HTML
+            soup = BeautifulSoup(html_text, 'html.parser')
             
             # Try multiple methods to find CSRF token
             csrf_token = None
