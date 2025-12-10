@@ -1296,3 +1296,53 @@ class TabView(ctk.CTkFrame):
     def get_tab_content(self, tab_id):
         """Get the content frame for a tab"""
         return self.tabs.get(tab_id)
+
+
+
+class ContextMenu:
+    """
+    Right-click context menu for various UI elements
+    Usage:
+        menu = ContextMenu(parent_widget, items=[
+            ("Copy", lambda: print("Copied")),
+            ("Export", lambda: print("Exported")),
+            None,  # Separator
+            ("Delete", lambda: print("Deleted"))
+        ])
+        widget.bind("<Button-3>", menu.show)
+    """
+    
+    def __init__(self, widget, items):
+        """
+        Initialize context menu
+        
+        Args:
+            widget: The widget to attach the menu to
+            items: List of tuples (label, command) or None for separator
+        """
+        self.widget = widget
+        self.items = items
+        self.menu = None
+    
+    def show(self, event):
+        """Show context menu at cursor position"""
+        import tkinter as tk
+        
+        # Create menu if it doesn't exist
+        if self.menu is None:
+            self.menu = tk.Menu(self.widget, tearoff=0, bg=COLORS['bg_card'], fg=COLORS['text_primary'])
+            
+            for item in self.items:
+                if item is None:
+                    # Separator
+                    self.menu.add_separator()
+                else:
+                    label, command = item
+                    self.menu.add_command(label=label, command=command)
+        
+        # Show menu at cursor
+        try:
+            self.menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.menu.grab_release()
+
