@@ -77,52 +77,105 @@ class DNSLookupUI:
         # DNS server selection
         dns_server_label = ctk.CTkLabel(
             input_frame,
-            text="DNS Server (Optional):",
+            text="DNS Server:",
             font=ctk.CTkFont(size=FONTS['body'], weight="bold")
         )
         dns_server_label.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         dns_server_info = SubTitle(
             input_frame,
-            text="Leave empty to use system default, or specify custom DNS server"
+            text="Select a preset or enter custom DNS server IP"
         )
         dns_server_info.pack(pady=(0, SPACING['xs']), padx=SPACING['lg'], anchor="w")
         
         dns_server_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        dns_server_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        dns_server_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['sm']))
         
         self.dns_server_var = ctk.StringVar(value="system")
         
+        # Row 1: System, Google, Cloudflare
+        dns_row1 = ctk.CTkFrame(dns_server_frame, fg_color="transparent")
+        dns_row1.pack(fill="x", pady=2)
+        
         system_dns = ctk.CTkRadioButton(
-            dns_server_frame,
+            dns_row1,
             text="System Default",
             variable=self.dns_server_var,
             value="system",
-            font=ctk.CTkFont(size=FONTS['small'])
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_dns_preset_selected
         )
-        system_dns.pack(anchor="w", pady=2)
+        system_dns.pack(side="left", padx=(0, SPACING['md']))
         
         google_dns = ctk.CTkRadioButton(
-            dns_server_frame,
-            text="Google DNS (8.8.8.8)",
+            dns_row1,
+            text="Google (8.8.8.8)",
             variable=self.dns_server_var,
             value="8.8.8.8",
-            font=ctk.CTkFont(size=FONTS['small'])
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_dns_preset_selected
         )
-        google_dns.pack(anchor="w", pady=2)
+        google_dns.pack(side="left", padx=(0, SPACING['md']))
         
         cloudflare_dns = ctk.CTkRadioButton(
-            dns_server_frame,
-            text="Cloudflare DNS (1.1.1.1)",
+            dns_row1,
+            text="Cloudflare (1.1.1.1)",
             variable=self.dns_server_var,
             value="1.1.1.1",
-            font=ctk.CTkFont(size=FONTS['small'])
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_dns_preset_selected
         )
-        cloudflare_dns.pack(anchor="w", pady=2)
+        cloudflare_dns.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Row 2: Quad9, OpenDNS
+        dns_row2 = ctk.CTkFrame(dns_server_frame, fg_color="transparent")
+        dns_row2.pack(fill="x", pady=2)
+        
+        quad9_dns = ctk.CTkRadioButton(
+            dns_row2,
+            text="Quad9 (9.9.9.9)",
+            variable=self.dns_server_var,
+            value="9.9.9.9",
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_dns_preset_selected
+        )
+        quad9_dns.pack(side="left", padx=(0, SPACING['md']))
+        
+        opendns_dns = ctk.CTkRadioButton(
+            dns_row2,
+            text="OpenDNS (208.67.222.222)",
+            variable=self.dns_server_var,
+            value="208.67.222.222",
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_dns_preset_selected
+        )
+        opendns_dns.pack(side="left", padx=(0, SPACING['md']))
+        
+        # Row 3: Custom DNS input
+        dns_row3 = ctk.CTkFrame(dns_server_frame, fg_color="transparent")
+        dns_row3.pack(fill="x", pady=(SPACING['sm'], 0))
+        
+        custom_dns = ctk.CTkRadioButton(
+            dns_row3,
+            text="Custom:",
+            variable=self.dns_server_var,
+            value="custom",
+            font=ctk.CTkFont(size=FONTS['small']),
+            command=self._on_custom_dns_selected
+        )
+        custom_dns.pack(side="left", padx=(0, SPACING['sm']))
+        
+        self.custom_dns_entry = StyledEntry(
+            dns_row3,
+            placeholder_text="Enter DNS server IP (e.g., 192.168.1.1)",
+            width=280
+        )
+        self.custom_dns_entry.pack(side="left")
+        self.custom_dns_entry.bind('<FocusIn>', lambda e: self._on_custom_dns_focus())
         
         # Lookup buttons
         button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
-        button_frame.pack(pady=(0, SPACING['lg']))
+        button_frame.pack(pady=(SPACING['sm'], SPACING['lg']))
         
         lookup_btn = StyledButton(
             button_frame,
