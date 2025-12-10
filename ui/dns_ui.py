@@ -118,15 +118,27 @@ class DNSLookupUI:
         )
         cloudflare_dns.pack(anchor="w", pady=2)
         
-        # Lookup button
+        # Lookup buttons
+        button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        button_frame.pack(pady=(0, SPACING['lg']))
+        
         lookup_btn = StyledButton(
-            scrollable,
-            text="🔍 Lookup",
+            button_frame,
+            text="🔍 DNS Lookup",
             command=self.perform_dns_lookup,
             size="large",
             variant="success"
         )
-        lookup_btn.pack(pady=(0, SPACING['lg']))
+        lookup_btn.pack(side="left", padx=(0, SPACING['sm']))
+        
+        dnsdumpster_btn = StyledButton(
+            button_frame,
+            text="🌐 DNSDumpster (Full Recon)",
+            command=self.perform_dnsdumpster_lookup,
+            size="large",
+            variant="primary"
+        )
+        dnsdumpster_btn.pack(side="left")
         
         # Results section
         results_title = SectionTitle(
