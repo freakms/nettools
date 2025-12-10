@@ -713,6 +713,15 @@ gateway.home.lan
             self.app.stat_offline.update_value(offline_count, COLORS['danger'])
             self.app.stat_percentage.update_value(f"{percentage:.1f}%", COLORS['neon_cyan'])
             
+            # Add to history
+            if hasattr(self.app, 'add_to_history'):
+                self.app.add_to_history(
+                    "scan",
+                    f"Scan: {cidr}",
+                    f"{online_count} online / {len(results)} total",
+                    data={'cidr': cidr, 'results': results}
+                )
+            
             self.app.status_label.configure(
                 text=f"{message} - {len(results)} hosts scanned, {online_count} online (Saved as {scan_id})"
             )
