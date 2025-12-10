@@ -1038,33 +1038,111 @@ class NetToolsApp(ctk.CTk):
     
     
     def create_comparison_content(self, parent):
-        """Create Scan Comparison page content"""
+        """Create unified Scan Comparison page content for all tools"""
+        # Scrollable content area
+        scrollable = ctk.CTkScrollableFrame(parent, fg_color="transparent")
+        scrollable.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
         # Title
         title_label = ctk.CTkLabel(
-            parent,
-            text="Network Scan Comparison",
-            font=ctk.CTkFont(size=20, weight="bold")
+            scrollable,
+            text="⚖️ Scan Comparison Tool",
+            font=ctk.CTkFont(size=FONTS['title'], weight="bold"),
+            text_color=COLORS['electric_violet']
         )
-        title_label.pack(padx=20, pady=(20, 10))
+        title_label.pack(pady=(0, SPACING['xs']))
         
         # Description
-        desc_label = ctk.CTkLabel(
-            parent,
-            text="Compare two network scans to see what devices have appeared, disappeared, or changed status.",
-            font=ctk.CTkFont(size=12)
+        desc_label = SubTitle(
+            scrollable,
+            text="Compare results from different scans to identify changes, additions, and removals"
         )
-        desc_label.pack(padx=20, pady=(0, 20))
+        desc_label.pack(pady=(0, SPACING['lg']))
         
-        # Comparison button
-        compare_btn = ctk.CTkButton(
-            parent,
-            text="Open Scan Comparison Tool",
-            command=self.show_scan_comparison,
-            width=250,
-            height=40,
-            font=ctk.CTkFont(size=14, weight="bold")
+        # Tool selector cards
+        tools_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        tools_frame.pack(fill="x", pady=SPACING['md'])
+        
+        # Define comparison tools with their properties
+        comparison_tools = [
+            {
+                "name": "IPv4 Scanner",
+                "icon": "📡",
+                "description": "Compare network scans to see devices that appeared, disappeared, or changed status",
+                "command": self.show_scan_comparison
+            },
+            {
+                "name": "Port Scanner",
+                "icon": "🔌",
+                "description": "Compare port scan results to detect newly opened or closed ports",
+                "command": self.show_portscan_comparison
+            },
+            {
+                "name": "DNS Lookup",
+                "icon": "🌐",
+                "description": "Compare DNS resolution results to track changes in domain records",
+                "command": self.show_dns_comparison
+            },
+            {
+                "name": "Traceroute",
+                "icon": "🛤️",
+                "description": "Compare network paths to identify routing changes and latency differences",
+                "command": self.show_traceroute_comparison
+            }
+        ]
+        
+        # Create cards for each tool
+        for idx, tool in enumerate(comparison_tools):
+            card = StyledCard(tools_frame)
+            card.pack(fill="x", pady=SPACING['sm'])
+            
+            # Card header with icon and name
+            header_frame = ctk.CTkFrame(card, fg_color="transparent")
+            header_frame.pack(fill="x", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            icon_label = ctk.CTkLabel(
+                header_frame,
+                text=tool["icon"],
+                font=ctk.CTkFont(size=24)
+            )
+            icon_label.pack(side="left", padx=(0, SPACING['sm']))
+            
+            name_label = ctk.CTkLabel(
+                header_frame,
+                text=tool["name"],
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color=COLORS['text_primary']
+            )
+            name_label.pack(side="left")
+            
+            # Description
+            desc = ctk.CTkLabel(
+                card,
+                text=tool["description"],
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS['text_secondary'],
+                wraplength=650,
+                justify="left"
+            )
+            desc.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
+            
+            # Compare button
+            compare_btn = StyledButton(
+                card,
+                text="Compare Results",
+                command=tool["command"],
+                size="small",
+                variant="primary"
+            )
+            compare_btn.pack(padx=SPACING['md'], pady=(0, SPACING['md']), anchor="w")
+        
+        # Info box about comparison
+        info_box = InfoBox(
+            scrollable,
+            message="💡 Tip: Run multiple scans using each tool to build comparison history. Comparisons help you monitor changes over time.",
+            box_type="info"
         )
-        compare_btn.pack(pady=20)
+        info_box.pack(fill="x", pady=(SPACING['lg'], 0))
     
     def create_profiles_content(self, parent):
         """Create Network Profiles page content"""
