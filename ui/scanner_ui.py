@@ -188,6 +188,33 @@ class ScannerUI:
         )
         self.app.compare_btn.pack(side="right", padx=(0, SPACING['sm']), pady=SPACING['md'])
         
+        # Statistics cards row
+        stats_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['sm']))
+        
+        self.app.stat_total = StatCard(stats_frame, icon="📡", title="Total Scanned", value="0")
+        self.app.stat_total.pack(side="left", padx=(0, SPACING['sm']))
+        
+        self.app.stat_online = StatCard(stats_frame, icon="✅", title="Online", value="0", color=COLORS['success'])
+        self.app.stat_online.pack(side="left", padx=SPACING['sm'])
+        
+        self.app.stat_offline = StatCard(stats_frame, icon="❌", title="No Response", value="0", color=COLORS['danger'])
+        self.app.stat_offline.pack(side="left", padx=SPACING['sm'])
+        
+        self.app.stat_percentage = StatCard(stats_frame, icon="📈", title="Online %", value="0%", color=COLORS['neon_cyan'])
+        self.app.stat_percentage.pack(side="left", padx=SPACING['sm'])
+        
+        # Search and filter bar
+        search_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        search_frame.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['sm']))
+        
+        self.app.results_search = SearchBar(
+            search_frame,
+            placeholder="🔍 Filter results by IP, hostname, or status...",
+            on_search=self.filter_results
+        )
+        self.app.results_search.pack(side="left", fill="x", expand=True)
+        
         # Results section with StyledCard
         results_card = StyledCard(parent)
         results_card.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
