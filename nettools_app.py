@@ -639,7 +639,7 @@ class NetToolsApp(ctk.CTk):
         ToastNotification(self, message, toast_type)
     
     def switch_page(self, page_id):
-        """Switch between pages with lazy loading"""
+        """Switch between pages with lazy loading and smooth transitions"""
         if page_id == self.current_page:
             return
         
@@ -657,46 +657,56 @@ class NetToolsApp(ctk.CTk):
                     border_width=0
                 )
         
-        # Hide all pages
-        for page in self.pages.values():
-            page.pack_forget()
+        # Animate fade-out of current page
+        old_page = self.pages.get(self.current_page)
+        if old_page:
+            self._fade_out_page(old_page)
         
-        # Lazy load page content if not already loaded
-        if page_id not in self.pages_loaded:
-            if page_id not in self.pages:
-                self.pages[page_id] = ctk.CTkFrame(self.main_content, corner_radius=0)
+        # Hide all pages after fade out
+        def _complete_transition():
+            for page in self.pages.values():
+                page.pack_forget()
             
-            # Load page content based on page_id
-            if page_id == "dashboard":
-                self.create_dashboard_content(self.pages[page_id])
-            elif page_id == "scanner":
-                self.create_scanner_content(self.pages[page_id])
-            elif page_id == "mac":
-                self.create_mac_content(self.pages[page_id])
-            elif page_id == "compare":
-                self.create_comparison_content(self.pages[page_id])
-            elif page_id == "profiles":
-                self.create_profiles_content(self.pages[page_id])
-            elif page_id == "portscan":
-                self.create_portscan_content(self.pages[page_id])
-            elif page_id == "traceroute":
-                TracerouteUI(self, self.pages[page_id])
-            elif page_id == "dns":
-                self.create_dns_content(self.pages[page_id])
-            elif page_id == "panos":
-                PANOSUI(self, self.pages[page_id])
-            elif page_id == "subnet":
-                self.create_subnet_content(self.pages[page_id])
-            elif page_id == "phpipam":
-                PhpipamUI(self, self.pages[page_id])
-            elif page_id == "bandwidth":
-                BandwidthUI(self, self.pages[page_id])
+            # Lazy load page content if not already loaded
+            if page_id not in self.pages_loaded:
+                if page_id not in self.pages:
+                    self.pages[page_id] = ctk.CTkFrame(self.main_content, corner_radius=0)
+                
+                # Load page content based on page_id
+                if page_id == "dashboard":
+                    self.create_dashboard_content(self.pages[page_id])
+                elif page_id == "scanner":
+                    self.create_scanner_content(self.pages[page_id])
+                elif page_id == "mac":
+                    self.create_mac_content(self.pages[page_id])
+                elif page_id == "compare":
+                    self.create_comparison_content(self.pages[page_id])
+                elif page_id == "profiles":
+                    self.create_profiles_content(self.pages[page_id])
+                elif page_id == "portscan":
+                    self.create_portscan_content(self.pages[page_id])
+                elif page_id == "traceroute":
+                    TracerouteUI(self, self.pages[page_id])
+                elif page_id == "dns":
+                    self.create_dns_content(self.pages[page_id])
+                elif page_id == "panos":
+                    PANOSUI(self, self.pages[page_id])
+                elif page_id == "subnet":
+                    self.create_subnet_content(self.pages[page_id])
+                elif page_id == "phpipam":
+                    PhpipamUI(self, self.pages[page_id])
+                elif page_id == "bandwidth":
+                    BandwidthUI(self, self.pages[page_id])
+                
+                self.pages_loaded[page_id] = True
             
-            self.pages_loaded[page_id] = True
+            # Show selected page with fade-in animation
+            self.pages[page_id].pack(fill="both", expand=True, padx=0, pady=0)
+            self._fade_in_page(self.pages[page_id])
+            self.current_page = page_id
         
-        # Show selected page
-        self.pages[page_id].pack(fill="both", expand=True, padx=0, pady=0)
-        self.current_page = page_id
+        # Complete transition after fade-out animation
+        self.after(150, _complete_transition)
         
         # Update status bar based on page
         if page_id == "dashboard":
