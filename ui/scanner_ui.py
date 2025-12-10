@@ -854,43 +854,30 @@ gateway.home.lan
     def _add_row_context_menu(self, row_frame, result):
         """Add right-click context menu to a result row"""
         from ui_components import ContextMenu
-        import pyperclip
         
         def copy_ip():
-            try:
-                import pyperclip
-                pyperclip.copy(result['ip'])
-                self.app.show_toast(f"Copied IP: {result['ip']}", "success")
-            except:
-                # Fallback to tkinter clipboard
-                self.app.clipboard_clear()
-                self.app.clipboard_append(result['ip'])
-                self.app.show_toast(f"Copied IP: {result['ip']}", "success")
+            # Use tkinter clipboard directly (no external dependencies)
+            self.app.clipboard_clear()
+            self.app.clipboard_append(result['ip'])
+            self.app.update()  # Required for clipboard to work
+            self.app.show_toast(f"Copied IP: {result['ip']}", "success")
         
         def copy_hostname():
             hostname = result.get('hostname', '')
             if hostname:
-                try:
-                    import pyperclip
-                    pyperclip.copy(hostname)
-                    self.app.show_toast(f"Copied hostname: {hostname}", "success")
-                except:
-                    self.app.clipboard_clear()
-                    self.app.clipboard_append(hostname)
-                    self.app.show_toast(f"Copied hostname: {hostname}", "success")
+                self.app.clipboard_clear()
+                self.app.clipboard_append(hostname)
+                self.app.update()  # Required for clipboard to work
+                self.app.show_toast(f"Copied hostname: {hostname}", "success")
             else:
                 self.app.show_toast("No hostname to copy", "warning")
         
         def copy_full_info():
             info = f"IP: {result['ip']}\nHostname: {result.get('hostname', '-')}\nStatus: {result['status']}\nRTT: {result.get('rtt', '-')}"
-            try:
-                import pyperclip
-                pyperclip.copy(info)
-                self.app.show_toast("Copied full info", "success")
-            except:
-                self.app.clipboard_clear()
-                self.app.clipboard_append(info)
-                self.app.show_toast("Copied full info", "success")
+            self.app.clipboard_clear()
+            self.app.clipboard_append(info)
+            self.app.update()  # Required for clipboard to work
+            self.app.show_toast("Copied full info", "success")
         
         def ping_host():
             # Could trigger a detailed ping test
