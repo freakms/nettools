@@ -72,14 +72,63 @@ class SubnetCalculatorUI:
         self.subnet_cidr_entry.bind('<Return>', lambda e: self.calculate_subnet())
         
         # Calculate button
+        button_frame = ctk.CTkFrame(scrollable, fg_color="transparent")
+        button_frame.pack(pady=(0, SPACING['lg']))
+        
         calc_btn = StyledButton(
-            scrollable,
+            button_frame,
             text="🔢 Calculate",
             command=self.calculate_subnet,
             size="large",
             variant="warning"
         )
-        calc_btn.pack(pady=(0, SPACING['lg']))
+        calc_btn.pack(side="left", padx=(0, SPACING['sm']))
+        
+        # Subnet Splitter section
+        split_frame = StyledCard(scrollable)
+        split_frame.pack(fill="x", pady=(0, SPACING['lg']))
+        
+        split_title = ctk.CTkLabel(
+            split_frame,
+            text="🔀 Subnet Splitter",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        split_title.pack(pady=(SPACING['md'], SPACING['xs']), padx=SPACING['lg'], anchor="w")
+        
+        split_info = SubTitle(
+            split_frame,
+            text="Split a network into smaller subnets of equal size"
+        )
+        split_info.pack(pady=(0, SPACING['sm']), padx=SPACING['lg'], anchor="w")
+        
+        # Split controls row
+        split_controls = ctk.CTkFrame(split_frame, fg_color="transparent")
+        split_controls.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['md']))
+        
+        split_label = ctk.CTkLabel(
+            split_controls,
+            text="Split into subnets with prefix:",
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        split_label.pack(side="left", padx=(0, SPACING['sm']))
+        
+        self.split_prefix_var = ctk.StringVar(value="25")
+        self.split_prefix_entry = ctk.CTkComboBox(
+            split_controls,
+            values=[str(i) for i in range(8, 31)],
+            variable=self.split_prefix_var,
+            width=80
+        )
+        self.split_prefix_entry.pack(side="left", padx=(0, SPACING['sm']))
+        
+        split_btn = StyledButton(
+            split_controls,
+            text="Split Network",
+            command=self.split_subnet,
+            size="small",
+            variant="primary"
+        )
+        split_btn.pack(side="left")
         
         # Results section
         results_title = SectionTitle(
