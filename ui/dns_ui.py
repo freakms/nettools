@@ -614,3 +614,333 @@ class DNSLookupUI:
         )
         success_label.pack(pady=(SPACING['md'], 0))
 
+    # ==================== MXToolbox Methods ====================
+    
+    def perform_mxtoolbox_lookup(self):
+        """Perform MXToolbox DNS check"""
+        query = self.app.dns_query_entry.get().strip()
+        
+        if not query:
+            messagebox.showwarning("Empty Query", "Please enter a domain name")
+            return
+        
+        # Extract domain from query
+        domain = query.lower()
+        domain = domain.replace('http://', '').replace('https://', '')
+        domain = domain.replace('www.', '')
+        domain = domain.split('/')[0]
+        
+        if '.' not in domain:
+            messagebox.showwarning("Invalid Domain", "Please enter a valid domain name (e.g., example.com)")
+            return
+        
+        # Clear previous results
+        for widget in self.dns_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show loading
+        loading_label = ctk.CTkLabel(
+            self.dns_results_frame,
+            text=f"🔧 Performing MXToolbox DNS check on {domain}...\nThis uses 4 API calls (A, MX, NS, TXT)...",
+            font=ctk.CTkFont(size=12),
+            justify="center"
+        )
+        loading_label.pack(pady=50)
+        
+        # Perform lookup in background
+        lookup_thread = threading.Thread(
+            target=self.run_mxtoolbox_lookup,
+            args=(domain,),
+            daemon=True
+        )
+        lookup_thread.start()
+    
+    def run_mxtoolbox_lookup(self, domain):
+        """Run MXToolbox lookup in background"""
+        results = MXToolbox.full_dns_check(domain)
+        self.app.after(0, self.display_mxtoolbox_results, results)
+    
+    def display_mxtoolbox_results(self, results):
+        """Display MXToolbox results"""
+        # Clear frame
+        for widget in self.dns_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Container
+        container = ctk.CTkFrame(self.dns_results_frame, fg_color="transparent")
+        container.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Header
+        header_frame = ctk.CTkFrame(container, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, SPACING['md']))
+        
+        title = ctk.CTkLabel(
+            header_frame,
+            text=f"🔧 MXToolbox DNS Report: {results.get('domain', 'Unknown')}",
+            font=ctk.CTkFont(size=FONTS['heading'], weight="bold")
+        )
+        title.pack(anchor="w")
+        
+        # API calls used info
+        api_info = ctk.CTkLabel(
+            header_frame,
+            text=f"API calls used: {results.get('api_calls_used', 0)}/63 daily",
+            font=ctk.CTkFont(size=FONTS['small']),
+            text_color=COLORS['text_secondary']
+        )
+        api_info.pack(anchor="w")
+        
+        if not results.get("success"):
+            error_label = ctk.CTkLabel(
+                container,
+                text=f"❌ Error: {results.get('error', 'Unknown error')}",
+                font=ctk.CTkFont(size=FONTS['body']),
+                text_color=COLORS['danger']
+            )
+            error_label.pack(pady=SPACING['xl'])
+            return
+        
+        dns_records = results.get("dns_records", {})
+        diagnostics = results.get("diagnostics", {})
+        statistics = results.get("statistics", {})
+        
+        # Statistics Card
+        stats_card = StyledCard(container)
+        stats_card.pack(fill="x", pady=(0, SPACING['md']))
+        
+        stats_title = ctk.CTkLabel(
+            stats_card,
+            text="📊 Summary",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+        )
+        stats_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+        
+        stats_frame = ctk.CTkFrame(stats_card, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+        
+        stats_text = f"A Records: {statistics.get('a_records', 0)} | "
+        stats_text += f"MX Records: {statistics.get('mx_records', 0)} | "
+        stats_text += f"NS Records: {statistics.get('ns_records', 0)} | "
+        stats_text += f"TXT Records: {statistics.get('txt_records', 0)}"
+        
+        stats_label = ctk.CTkLabel(
+            stats_frame,
+            text=stats_text,
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        stats_label.pack(anchor="w", pady=2)
+        
+        if results.get("reporting_nameserver"):
+            ns_label = ctk.CTkLabel(
+                stats_frame,
+                text=f"Reporting NS: {results['reporting_nameserver']}",
+                font=ctk.CTkFont(size=FONTS['small']),
+                text_color=COLORS['text_secondary']
+            )
+            ns_label.pack(anchor="w", pady=2)
+        
+        # Diagnostics summary
+        diag_text = f"✅ Passed: {statistics.get('passed_checks', 0)} | "
+        diag_text += f"⚠️ Warnings: {statistics.get('warnings', 0)} | "
+        diag_text += f"❌ Errors: {statistics.get('errors', 0)}"
+        
+        diag_label = ctk.CTkLabel(
+            stats_frame,
+            text=diag_text,
+            font=ctk.CTkFont(size=FONTS['small'])
+        )
+        diag_label.pack(anchor="w", pady=2)
+        
+        # A Records
+        a_records = dns_records.get("a", [])
+        if a_records:
+            a_card = StyledCard(container)
+            a_card.pack(fill="x", pady=(0, SPACING['md']))
+            
+            a_title = ctk.CTkLabel(
+                a_card,
+                text=f"🖥️ A Records (IPv4) - {len(a_records)}",
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+            )
+            a_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            for record in a_records:
+                a_frame = ctk.CTkFrame(a_card, fg_color=COLORS['bg_card'])
+                a_frame.pack(fill="x", padx=SPACING['md'], pady=2)
+                
+                a_label = ctk.CTkLabel(
+                    a_frame,
+                    text=f"{record.get('host', '')} → {record.get('ip', '')}",
+                    font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
+                    anchor="w"
+                )
+                a_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                extra_info = []
+                if record.get('ttl'):
+                    extra_info.append(f"TTL: {record['ttl']}")
+                if record.get('asn'):
+                    extra_info.append(record['asn'])
+                
+                if extra_info:
+                    extra_label = ctk.CTkLabel(
+                        a_frame,
+                        text="   " + " | ".join(extra_info),
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    extra_label.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+        
+        # MX Records
+        mx_records = dns_records.get("mx", [])
+        if mx_records:
+            mx_card = StyledCard(container)
+            mx_card.pack(fill="x", pady=(0, SPACING['md']))
+            
+            mx_title = ctk.CTkLabel(
+                mx_card,
+                text=f"📧 MX Records (Mail Servers) - {len(mx_records)}",
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+            )
+            mx_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            for record in mx_records:
+                mx_frame = ctk.CTkFrame(mx_card, fg_color=COLORS['bg_card'])
+                mx_frame.pack(fill="x", padx=SPACING['md'], pady=2)
+                
+                pref = record.get('preference', '')
+                mx_text = f"[{pref}] " if pref else ""
+                mx_text += f"{record.get('mx', '')} → {record.get('ip', '')}"
+                if record.get('ipv6'):
+                    mx_text += " (IPv6)"
+                
+                mx_label = ctk.CTkLabel(
+                    mx_frame,
+                    text=mx_text,
+                    font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
+                    anchor="w"
+                )
+                mx_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                if record.get('asn'):
+                    asn_label = ctk.CTkLabel(
+                        mx_frame,
+                        text=f"   {record['asn']}",
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    asn_label.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+        
+        # NS Records
+        ns_records = dns_records.get("ns", [])
+        if ns_records:
+            ns_card = StyledCard(container)
+            ns_card.pack(fill="x", pady=(0, SPACING['md']))
+            
+            ns_title = ctk.CTkLabel(
+                ns_card,
+                text=f"🌍 NS Records (Name Servers) - {len(ns_records)}",
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+            )
+            ns_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            for record in ns_records:
+                ns_frame = ctk.CTkFrame(ns_card, fg_color=COLORS['bg_card'])
+                ns_frame.pack(fill="x", padx=SPACING['md'], pady=2)
+                
+                status = record.get('status', '')
+                status_icon = "🟢" if status == "GREEN" else "🟡" if status == "YELLOW" else "🔴" if status == "RED" else ""
+                
+                ns_label = ctk.CTkLabel(
+                    ns_frame,
+                    text=f"{status_icon} {record.get('ns', '')} → {record.get('ip', '')}",
+                    font=ctk.CTkFont(size=FONTS['small'], family="Courier New"),
+                    anchor="w"
+                )
+                ns_label.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                
+                if record.get('asn'):
+                    asn_label = ctk.CTkLabel(
+                        ns_frame,
+                        text=f"   {record['asn']}",
+                        font=ctk.CTkFont(size=FONTS['small']),
+                        text_color=COLORS['text_secondary'],
+                        anchor="w"
+                    )
+                    asn_label.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+        
+        # TXT Records
+        txt_records = dns_records.get("txt", [])
+        if txt_records:
+            txt_card = StyledCard(container)
+            txt_card.pack(fill="x", pady=(0, SPACING['md']))
+            
+            txt_title = ctk.CTkLabel(
+                txt_card,
+                text=f"📝 TXT Records - {len(txt_records)}",
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold")
+            )
+            txt_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            for record in txt_records[:10]:
+                txt_text = record.get('txt', '') if isinstance(record, dict) else str(record)
+                txt_label = ctk.CTkLabel(
+                    txt_card,
+                    text=txt_text,
+                    font=ctk.CTkFont(size=FONTS['small']),
+                    anchor="w",
+                    wraplength=600
+                )
+                txt_label.pack(anchor="w", padx=SPACING['md'], pady=2)
+        
+        # Warnings Section
+        warnings = diagnostics.get("warnings", [])
+        if warnings:
+            warn_card = StyledCard(container)
+            warn_card.pack(fill="x", pady=(0, SPACING['md']))
+            
+            warn_title = ctk.CTkLabel(
+                warn_card,
+                text=f"⚠️ Warnings - {len(warnings)}",
+                font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
+                text_color=COLORS['warning']
+            )
+            warn_title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['xs']))
+            
+            for warning in warnings[:5]:
+                warn_frame = ctk.CTkFrame(warn_card, fg_color=COLORS['bg_card'])
+                warn_frame.pack(fill="x", padx=SPACING['md'], pady=2)
+                
+                warn_label = ctk.CTkLabel(
+                    warn_frame,
+                    text=f"• {warning.get('info', '')}",
+                    font=ctk.CTkFont(size=FONTS['small']),
+                    anchor="w",
+                    wraplength=550
+                )
+                warn_label.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
+                
+                details = warning.get('details', [])
+                if details:
+                    for detail in details[:2]:
+                        detail_label = ctk.CTkLabel(
+                            warn_frame,
+                            text=f"  → {detail}",
+                            font=ctk.CTkFont(size=FONTS['small']),
+                            text_color=COLORS['text_secondary'],
+                            anchor="w",
+                            wraplength=530
+                        )
+                        detail_label.pack(anchor="w", padx=SPACING['sm'], pady=(0, 2))
+        
+        # Success message
+        success_label = ctk.CTkLabel(
+            container,
+            text="✅ MXToolbox DNS check complete!",
+            font=ctk.CTkFont(size=FONTS['body'], weight="bold"),
+            text_color=COLORS['success']
+        )
+        success_label.pack(pady=(SPACING['md'], 0))
+
