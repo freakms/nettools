@@ -989,9 +989,9 @@ gateway.home.lan
             )
             radio.pack(anchor="w", pady=SPACING['xs'])
         
-        # Buttons
-        button_frame = ctk.CTkFrame(content, fg_color="transparent")
-        button_frame.pack(fill="x", pady=SPACING['lg'], side="bottom")
+        # Buttons (outside scrollable area, at bottom)
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['md'])
         
         cancel_btn = StyledButton(
             button_frame,
