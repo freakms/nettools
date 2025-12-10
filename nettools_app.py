@@ -1442,15 +1442,10 @@ class NetToolsApp(ctk.CTk):
             elif format_type == "xml":
                 self._export_as_xml(filepath, results_to_export)
             
-            messagebox.showinfo(
-                "Export Successful",
-                f"{len(results_to_export)} results exported to:\n{filepath}"
-            )
+            self.show_toast(f"✓ Exported {len(results_to_export)} results", "success")
+            self.status_label.configure(text=f"Exported to: {filepath}")
         except Exception as e:
-            messagebox.showerror(
-                "Export Error",
-                f"Error exporting scan results: {str(e)}"
-            )
+            self.show_toast(f"Export failed: {str(e)}", "error")
     
     def _export_as_csv(self, filepath, results):
         """Export results as CSV"""
