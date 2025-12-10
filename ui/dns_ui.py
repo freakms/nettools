@@ -133,12 +133,21 @@ class DNSLookupUI:
         )
         lookup_btn.pack(side="left", padx=(0, SPACING['sm']))
         
-        dnsdumpster_btn = StyledButton(
+        mxtoolbox_btn = StyledButton(
             button_frame,
-            text="🌐 DNSDumpster (Full Recon)",
-            command=self.perform_dnsdumpster_lookup,
+            text="🔧 MXToolbox (DNS Check)",
+            command=self.perform_mxtoolbox_lookup,
             size="large",
             variant="primary"
+        )
+        mxtoolbox_btn.pack(side="left", padx=(0, SPACING['sm']))
+        
+        dnsdumpster_btn = StyledButton(
+            button_frame,
+            text="🌐 DNSDumpster",
+            command=self.perform_dnsdumpster_lookup,
+            size="large",
+            variant="secondary"
         )
         dnsdumpster_btn.pack(side="left")
         
