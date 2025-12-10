@@ -29,6 +29,7 @@ from ui.subnet_ui import SubnetCalculatorUI
 from ui.mac_ui import MACFormatterUI
 from ui.traceroute_ui import TracerouteUI
 from ui.panos_ui import PANOSUI
+from ui.bandwidth_ui import BandwidthUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
