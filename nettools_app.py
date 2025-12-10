@@ -1565,8 +1565,8 @@ class NetToolsApp(ctk.CTk):
         if text:
             self.clipboard_clear()
             self.clipboard_append(text)
+            self.show_toast("Copied to clipboard!", "success")
             self.status_label.configure(text="Copied to clipboard!")
-            self.after(2000, lambda: self.status_label.configure(text="Ready."))
     
     def on_window_resize(self, event):
         """Handle window resize for auto-scaling"""
