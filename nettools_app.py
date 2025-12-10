@@ -4598,27 +4598,55 @@ class LivePingMonitorWindow(ctk.CTkToplevel):
                 widgets['min_label'].configure(text=f"{int(min_latency)}")
                 widgets['cur_label'].configure(text=f"{int(current_latency)}")
                 
-                # Update graph
-                x_data = list(range(1, len(recent_pings) + 1))
-                y_data = []
+                # Update graph using Canvas
+                canvas = widgets['canvas']
+                canvas.delete("all")  # Clear previous drawing
                 
+                if not recent_pings:
+                    continue
+                
+                # Canvas dimensions
+                width = 260
+                height = 28
+                padding = 2
+                
+                # Prepare data
+                y_data = []
                 for success, rtt in recent_pings:
                     if success:
                         y_data.append(rtt)
                     else:
-                        y_data.append(None)  # Show gaps for timeouts
-                
-                # Update line data
-                widgets['line'].set_data(x_data, y_data)
+                        y_data.append(None)
                 
                 # Auto-scale y-axis
                 valid_y = [y for y in y_data if y is not None]
-                if valid_y:
-                    max_y = max(valid_y)
-                    widgets['axis'].set_ylim(0, max(500, max_y * 1.1))
+                if not valid_y:
+                    continue
                 
-                # Redraw canvas
-                widgets['canvas'].draw_idle()
+                max_y = max(valid_y)
+                widgets['max_y'] = max(500, max_y * 1.1)
+                
+                # Draw graph
+                points = []
+                x_step = (width - 2 * padding) / max(len(y_data) - 1, 1)
+                
+                for i, y in enumerate(y_data):
+                    if y is not None:
+                        x = padding + i * x_step
+                        # Invert y (canvas y=0 is top)
+                        y_scaled = height - padding - (y / widgets['max_y']) * (height - 2 * padding)
+                        points.append((x, y_scaled))
+                
+                # Draw line connecting points
+                if len(points) > 1:
+                    for i in range(len(points) - 1):
+                        x1, y1 = points[i]
+                        x2, y2 = points[i + 1]
+                        canvas.create_line(x1, y1, x2, y2, fill='#0066cc', width=1.5, smooth=True)
+                
+                # Draw points
+                for x, y in points:
+                    canvas.create_oval(x-2, y-2, x+2, y+2, fill='#0066cc', outline='#0066cc')
             
             # Schedule next update
             self.after(self.update_interval, self.update_ui)
