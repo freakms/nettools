@@ -1368,51 +1368,6 @@ class NetToolsApp(ctk.CTk):
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
     
-    def _export_as_excel(self, filepath, results):
-        """Export results as Excel (requires openpyxl)"""
-        try:
-            import openpyxl
-            from openpyxl.styles import Font, PatternFill, Alignment
-            
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Scan Results"
-            
-            # Header
-            headers = ['IP Address', 'Hostname', 'Status', 'Response Time']
-            ws.append(headers)
-            
-            # Style header
-            for cell in ws[1]:
-                cell.font = Font(bold=True, color="FFFFFF")
-                cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-                cell.alignment = Alignment(horizontal="center")
-            
-            # Data
-            for result in results:
-                ws.append([
-                    result.get('ip', ''),
-                    result.get('hostname', ''),
-                    result.get('status', ''),
-                    result.get('rtt', '')
-                ])
-            
-            # Auto-adjust column widths
-            for column in ws.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    if cell.value:
-                        max_length = max(max_length, len(str(cell.value)))
-                ws.column_dimensions[column_letter].width = max_length + 2
-            
-            wb.save(filepath)
-        except ImportError:
-            messagebox.showerror(
-                "Module Not Found",
-                "Excel export requires 'openpyxl' module.\n\nInstall with: pip install openpyxl"
-            )
-    
     def _export_as_html(self, filepath, results):
         """Export results as HTML report"""
         html_content = f"""
