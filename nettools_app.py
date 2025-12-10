@@ -63,7 +63,7 @@ from design_constants import COLORS, SPACING, RADIUS, FONTS, BUTTON_SIZES
 from ui_components import (
     StyledCard, StyledButton, StyledEntry, SectionTitle, SubTitle,
     ResultRow, StatusBadge, SectionSeparator, LoadingSpinner, InfoBox, DataGrid,
-    Tooltip, ToastNotification, NAV_ICONS
+    Tooltip, ToastNotification, NAV_ICONS, HistoryPanel
 )
 
 # Tool modules
