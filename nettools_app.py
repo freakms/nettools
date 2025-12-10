@@ -592,14 +592,7 @@ class NetToolsApp(ctk.CTk):
             btn.configure(text=icon, anchor="center")
         
         # Hide category labels completely
-        for label, icon, name in self.category_labels:
-            # Store the pack info before forgetting
-            if not hasattr(label, '_pack_info'):
-                label._pack_info = {
-                    'fill': 'x',
-                    'padx': 15,
-                    'pady': (12, 5)
-                }
+        for label, icon, name, buttons in self.category_labels:
             label.pack_forget()
     
     def _expand_sidebar(self):
