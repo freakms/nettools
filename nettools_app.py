@@ -434,7 +434,7 @@ class NetToolsApp(ctk.CTk):
         return "Unknown"
         
     def create_sidebar(self):
-        """Create modern sidebar navigation with electric violet theme"""
+        """Create modern sidebar navigation with icons and collapse feature"""
         # Sidebar frame with dark violet background
         self.sidebar = ctk.CTkFrame(
             self, 
@@ -445,31 +445,56 @@ class NetToolsApp(ctk.CTk):
         self.sidebar.pack(side="left", fill="y", padx=0, pady=0)
         self.sidebar.pack_propagate(False)
         
-        # Logo/Title section
-        logo_frame = ctk.CTkFrame(
-            self.sidebar, 
-            height=100, 
-            corner_radius=0, 
-            fg_color="transparent"
-        )
-        logo_frame.pack(fill="x", padx=0, pady=0)
-        logo_frame.pack_propagate(False)
+        self.sidebar_collapsed = False
+        self.sidebar_expanded_width = 250
+        self.sidebar_collapsed_width = 60
         
-        title_label = ctk.CTkLabel(
-            logo_frame,
-            text="⚡ NetTools",
-            font=ctk.CTkFont(size=28, weight="bold"),
+        # Header with logo and collapse button
+        header_frame = ctk.CTkFrame(self.sidebar, height=90, corner_radius=0, fg_color="transparent")
+        header_frame.pack(fill="x", padx=0, pady=0)
+        header_frame.pack_propagate(False)
+        
+        # Logo row
+        logo_row = ctk.CTkFrame(header_frame, fg_color="transparent")
+        logo_row.pack(fill="x", padx=10, pady=(15, 5))
+        
+        self.logo_icon = ctk.CTkLabel(
+            logo_row,
+            text="⚡",
+            font=ctk.CTkFont(size=28)
+        )
+        self.logo_icon.pack(side="left")
+        
+        self.logo_text = ctk.CTkLabel(
+            logo_row,
+            text=" NetTools",
+            font=ctk.CTkFont(size=22, weight="bold"),
             text_color=COLORS['electric_violet']
         )
-        title_label.pack(padx=20, pady=(25, 5))
+        self.logo_text.pack(side="left")
         
-        subtitle_label = ctk.CTkLabel(
-            logo_frame,
+        # Collapse button
+        self.collapse_btn = ctk.CTkButton(
+            logo_row,
+            text="◀",
+            width=28,
+            height=28,
+            corner_radius=14,
+            fg_color="transparent",
+            hover_color=COLORS['dashboard_card_hover'],
+            command=self.toggle_sidebar,
+            font=ctk.CTkFont(size=12)
+        )
+        self.collapse_btn.pack(side="right")
+        Tooltip(self.collapse_btn, "Collapse/Expand Sidebar")
+        
+        self.subtitle_label = ctk.CTkLabel(
+            header_frame,
             text="Professional Suite",
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=12),
             text_color=COLORS['neon_cyan']
         )
-        subtitle_label.pack(padx=20, pady=(0, 10))
+        self.subtitle_label.pack(padx=20, pady=(0, 5))
         
         # Separator with electric violet glow
         separator = ctk.CTkFrame(
@@ -478,24 +503,25 @@ class NetToolsApp(ctk.CTk):
             corner_radius=0,
             fg_color=COLORS['electric_violet']
         )
-        separator.pack(fill="x", padx=10, pady=10)
+        separator.pack(fill="x", padx=10, pady=5)
         
         # Scrollable navigation container
-        nav_scroll = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
-        nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
+        self.nav_scroll = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
+        self.nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
         
         # Quick Access - Live Monitor (prominent button)
         self.live_monitor_btn = StyledButton(
-            nav_scroll,
-            text="📊 Live Ping Monitor",
+            self.nav_scroll,
+            text="📊 Live Monitor",
             command=self.open_live_ping_monitor,
             size="large",
             variant="success"
         )
         self.live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
+        Tooltip(self.live_monitor_btn, "Open Live Ping Monitor")
         
         # Favorites section - create but don't pack yet (will pack when populated)
-        self.favorites_frame = ctk.CTkFrame(nav_scroll, fg_color="transparent")
+        self.favorites_frame = ctk.CTkFrame(self.nav_scroll, fg_color="transparent")
         self.favorites_label = ctk.CTkLabel(
             self.favorites_frame,
             text="⭐ FAVORITES",
@@ -505,32 +531,33 @@ class NetToolsApp(ctk.CTk):
         )
         self.favorites_buttons_frame = ctk.CTkFrame(self.favorites_frame, fg_color="transparent")
         
-        # Navigation organized by categories
+        # Navigation organized by categories with icons
         self.nav_buttons = {}
+        self.category_labels = []
         
-        # Category structure: (category_name, [(page_id, label, tooltip), ...])
+        # Category structure with icons: (category_name, icon, [(page_id, icon, label, tooltip), ...])
         nav_categories = [
-            ("🏠 HOME", [
-                ("dashboard", "   Dashboard", "Overview and quick actions"),
+            ("HOME", "🏠", [
+                ("dashboard", "🏠", "Dashboard", "Overview and system info"),
             ]),
-            ("🔍 NETWORK SCANNING", [
-                ("scanner", "   IPv4 Scanner", "Scan network for active hosts"),
-                ("portscan", "   Port Scanner", "Scan for open ports on hosts"),
-                ("traceroute", "   Traceroute", "Trace network path to host"),
-                ("bandwidth", "   Bandwidth Test", "Test network speed with iperf3"),
+            ("NETWORK SCANNING", "🔍", [
+                ("scanner", "📡", "IPv4 Scanner", "Scan network for active hosts"),
+                ("portscan", "🔌", "Port Scanner", "Scan for open ports"),
+                ("traceroute", "🛤️", "Traceroute", "Trace network path"),
+                ("bandwidth", "📶", "Bandwidth Test", "Test speed with iperf3"),
             ]),
-            ("🛠 NETWORK TOOLS", [
-                ("dns", "   DNS Lookup", "Resolve hostnames and IP addresses"),
-                ("subnet", "   Subnet Calculator", "Calculate subnet information"),
-                ("mac", "   MAC Formatter", "Format and analyze MAC addresses"),
+            ("NETWORK TOOLS", "🛠", [
+                ("dns", "🌐", "DNS Lookup", "Resolve hostnames and IPs"),
+                ("subnet", "🔢", "Subnet Calculator", "Calculate subnet info"),
+                ("mac", "🔗", "MAC Formatter", "Format MAC addresses"),
             ]),
-            ("📊 MANAGEMENT", [
-                ("compare", "   Scan Comparison", "Compare network scan results"),
-                ("profiles", "   Network Profiles", "Manage network profiles"),
+            ("MANAGEMENT", "📊", [
+                ("compare", "⚖️", "Scan Comparison", "Compare scan results"),
+                ("profiles", "📁", "Network Profiles", "Manage profiles"),
             ]),
-            ("🛡 ADVANCED", [
-                ("panos", "   PAN-OS Generator", "Generate PAN-OS CLI commands"),
-                ("phpipam", "   phpIPAM", "Manage IP addresses with phpIPAM"),
+            ("ADVANCED", "🛡", [
+                ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
+                ("phpipam", "📊", "phpIPAM", "IP address management"),
             ]),
         ]
         
@@ -540,37 +567,45 @@ class NetToolsApp(ctk.CTk):
         self.first_category_label = None
         
         # Render navigation with categories
-        for idx, (category_name, items) in enumerate(nav_categories):
-            # Category header with electric violet theme
+        for idx, (category_name, cat_icon, items) in enumerate(nav_categories):
+            # Category header
             category_label = ctk.CTkLabel(
-                nav_scroll,
-                text=category_name,
+                self.nav_scroll,
+                text=f"{cat_icon} {category_name}",
                 font=ctk.CTkFont(size=11, weight="bold"),
                 text_color=COLORS['neon_cyan'],
                 anchor="w"
             )
-            category_label.pack(fill="x", padx=15, pady=(15, 5))
+            category_label.pack(fill="x", padx=15, pady=(12, 5))
+            self.category_labels.append((category_label, cat_icon, category_name))
             
             # Store reference to first category
             if idx == 0:
                 self.first_category_label = category_label
             
-            # Category items with violet theme
-            for page_id, label, tooltip in items:
+            # Category items with icons
+            for page_id, icon, label, tooltip in items:
                 btn = ctk.CTkButton(
-                    nav_scroll,
-                    text=label,
+                    self.nav_scroll,
+                    text=f" {icon}  {label}",
                     command=lambda p=page_id: self.switch_tool(p),
-                    height=40,
+                    height=38,
                     corner_radius=6,
                     anchor="w",
-                    font=ctk.CTkFont(size=13, family="Segoe UI"),
+                    font=ctk.CTkFont(size=13),
                     fg_color="transparent",
-                    text_color=("gray10", "gray90"),
+                    text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
                 btn.pack(fill="x", padx=12, pady=2)
+                
+                # Store icon and label for collapse/expand
+                btn._nav_icon = icon
+                btn._nav_label = label
+                
+                # Add tooltip
+                Tooltip(btn, tooltip)
                 
                 # Add right-click context menu for favorites
                 btn.bind("<Button-3>", lambda e, tid=page_id: self.show_tool_context_menu(e, tid))
@@ -581,20 +616,20 @@ class NetToolsApp(ctk.CTk):
         self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
         
         # Add some bottom padding to scroll area
-        bottom_padding = ctk.CTkFrame(nav_scroll, fg_color="transparent", height=20)
+        bottom_padding = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=20)
         bottom_padding.pack(fill="x")
         
         # Theme selector at bottom (fixed position outside scroll)
         theme_frame = ctk.CTkFrame(self.sidebar, corner_radius=0, fg_color="transparent")
         theme_frame.pack(side="bottom", fill="x", padx=10, pady=10)
         
-        theme_label = ctk.CTkLabel(
+        self.theme_label = ctk.CTkLabel(
             theme_frame, 
             text="Theme", 
             font=ctk.CTkFont(size=12),
             text_color=COLORS['neon_cyan']
         )
-        theme_label.pack(pady=(0, 5))
+        self.theme_label.pack(pady=(0, 5))
         
         self.theme_selector = ctk.CTkOptionMenu(
             theme_frame,
@@ -614,6 +649,72 @@ class NetToolsApp(ctk.CTk):
         # Initialize favorites UI
         self.update_favorites_ui()
         self.update_nav_button_stars()
+    
+    def toggle_sidebar(self):
+        """Toggle sidebar between collapsed and expanded state"""
+        if self.sidebar_collapsed:
+            self._expand_sidebar()
+        else:
+            self._collapse_sidebar()
+    
+    def _collapse_sidebar(self):
+        """Collapse sidebar to show only icons"""
+        self.sidebar_collapsed = True
+        self.sidebar.configure(width=self.sidebar_collapsed_width)
+        
+        # Hide text elements
+        self.logo_text.pack_forget()
+        self.subtitle_label.pack_forget()
+        self.theme_label.pack_forget()
+        self.theme_selector.pack_forget()
+        self.collapse_btn.configure(text="▶")
+        
+        # Update live monitor button
+        self.live_monitor_btn.configure(text="📊", width=40)
+        
+        # Update nav buttons to show only icons
+        for page_id, btn in self.nav_buttons.items():
+            icon = getattr(btn, '_nav_icon', '•')
+            btn.configure(text=f" {icon}")
+        
+        # Update category labels
+        for label, icon, name in self.category_labels:
+            label.configure(text=icon)
+        
+        # Show toast notification
+        self.show_toast("Sidebar collapsed", "info")
+    
+    def _expand_sidebar(self):
+        """Expand sidebar to full width"""
+        self.sidebar_collapsed = False
+        self.sidebar.configure(width=self.sidebar_expanded_width)
+        
+        # Show text elements
+        self.logo_text.pack(side="left")
+        self.subtitle_label.pack(padx=20, pady=(0, 5))
+        self.theme_label.pack(pady=(0, 5))
+        self.theme_selector.pack()
+        self.collapse_btn.configure(text="◀")
+        
+        # Update live monitor button
+        self.live_monitor_btn.configure(text="📊 Live Monitor", width=180)
+        
+        # Update nav buttons to show icons + text
+        for page_id, btn in self.nav_buttons.items():
+            icon = getattr(btn, '_nav_icon', '•')
+            label = getattr(btn, '_nav_label', page_id)
+            btn.configure(text=f" {icon}  {label}")
+        
+        # Update category labels
+        for label, icon, name in self.category_labels:
+            label.configure(text=f"{icon} {name}")
+        
+        # Show toast notification
+        self.show_toast("Sidebar expanded", "info")
+    
+    def show_toast(self, message, toast_type="info"):
+        """Show a toast notification"""
+        ToastNotification(self, message, toast_type)
     
     def switch_page(self, page_id):
         """Switch between pages with lazy loading"""
