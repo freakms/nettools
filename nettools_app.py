@@ -810,10 +810,100 @@ class NetToolsApp(ctk.CTk):
         self.switch_page(page_id)
 
     def create_main_content(self):
-        """Create main content area with pages (lazy loading for faster startup)"""
-        # Main content frame
-        self.main_content = ctk.CTkFrame(self, corner_radius=0)
-        self.main_content.pack(side="right", fill="both", expand=True, padx=0, pady=0)
+        """Create main content area with global search and pages"""
+        # Main container (holds search bar + content)
+        self.main_container = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.main_container.pack(side="right", fill="both", expand=True, padx=0, pady=0)
+        
+        # Global search bar at top
+        self.global_search_frame = ctk.CTkFrame(
+            self.main_container, 
+            height=50, 
+            corner_radius=0,
+            fg_color=COLORS['dashboard_card']
+        )
+        self.global_search_frame.pack(fill="x", padx=0, pady=0)
+        self.global_search_frame.pack_propagate(False)
+        
+        # Search bar content
+        search_inner = ctk.CTkFrame(self.global_search_frame, fg_color="transparent")
+        search_inner.pack(fill="both", expand=True, padx=15, pady=8)
+        
+        # Search icon and label
+        search_label = ctk.CTkLabel(
+            search_inner,
+            text="🔍",
+            font=ctk.CTkFont(size=16)
+        )
+        search_label.pack(side="left", padx=(0, 5))
+        
+        # Global search entry
+        self.global_search_var = ctk.StringVar()
+        self.global_search_entry = ctk.CTkEntry(
+            search_inner,
+            placeholder_text="Search tools, results, or type a command... (Ctrl+K)",
+            textvariable=self.global_search_var,
+            height=34,
+            corner_radius=17,
+            border_width=1,
+            border_color=COLORS['electric_violet'],
+            fg_color=COLORS['bg_card']
+        )
+        self.global_search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.global_search_entry.bind('<Return>', self.perform_global_search)
+        self.global_search_entry.bind('<KeyRelease>', self.on_global_search_typing)
+        
+        # Quick filter buttons
+        filter_frame = ctk.CTkFrame(search_inner, fg_color="transparent")
+        filter_frame.pack(side="right")
+        
+        # Filter buttons for current page context
+        self.filter_online_btn = ctk.CTkButton(
+            filter_frame,
+            text="✅ Online",
+            width=70,
+            height=28,
+            corner_radius=14,
+            fg_color="transparent",
+            border_width=1,
+            border_color=COLORS['success'],
+            hover_color=COLORS['success'],
+            font=ctk.CTkFont(size=11),
+            command=lambda: self.quick_filter("online")
+        )
+        self.filter_online_btn.pack(side="left", padx=2)
+        
+        self.filter_offline_btn = ctk.CTkButton(
+            filter_frame,
+            text="❌ Offline",
+            width=70,
+            height=28,
+            corner_radius=14,
+            fg_color="transparent",
+            border_width=1,
+            border_color=COLORS['danger'],
+            hover_color=COLORS['danger'],
+            font=ctk.CTkFont(size=11),
+            command=lambda: self.quick_filter("offline")
+        )
+        self.filter_offline_btn.pack(side="left", padx=2)
+        
+        self.filter_clear_btn = ctk.CTkButton(
+            filter_frame,
+            text="✕ Clear",
+            width=60,
+            height=28,
+            corner_radius=14,
+            fg_color="transparent",
+            hover_color=COLORS['dashboard_card_hover'],
+            font=ctk.CTkFont(size=11),
+            command=self.clear_global_search
+        )
+        self.filter_clear_btn.pack(side="left", padx=2)
+        
+        # Main content frame (below search)
+        self.main_content = ctk.CTkFrame(self.main_container, corner_radius=0)
+        self.main_content.pack(fill="both", expand=True, padx=0, pady=0)
         
         # Create pages dictionary (empty frames, content loaded on demand)
         self.pages = {}
@@ -826,6 +916,99 @@ class NetToolsApp(ctk.CTk):
         
         # Show the initial page (dashboard)
         self.pages["dashboard"].pack(fill="both", expand=True, padx=0, pady=0)
+    
+    def on_global_search_typing(self, event=None):
+        """Handle typing in global search - filter current page results"""
+        search_text = self.global_search_var.get().strip().lower()
+        
+        # If on scanner page, filter results
+        if self.current_page == "scanner" and hasattr(self, 'all_results') and self.all_results:
+            self.filter_scanner_results(search_text)
+    
+    def perform_global_search(self, event=None):
+        """Handle global search on Enter key"""
+        search_text = self.global_search_var.get().strip().lower()
+        
+        if not search_text:
+            return
+        
+        # Check for tool navigation commands
+        tool_shortcuts = {
+            "scan": "scanner",
+            "scanner": "scanner",
+            "ipv4": "scanner",
+            "port": "portscan",
+            "dns": "dns",
+            "subnet": "subnet",
+            "mac": "mac",
+            "trace": "traceroute",
+            "traceroute": "traceroute",
+            "bandwidth": "bandwidth",
+            "speed": "bandwidth",
+            "dashboard": "dashboard",
+            "home": "dashboard",
+            "compare": "compare",
+            "panos": "panos",
+            "phpipam": "phpipam",
+        }
+        
+        for keyword, page_id in tool_shortcuts.items():
+            if keyword in search_text:
+                self.switch_tool(page_id)
+                self.global_search_var.set("")
+                self.show_toast(f"Switched to {page_id.replace('_', ' ').title()}", "info")
+                return
+        
+        # Otherwise filter current page
+        if self.current_page == "scanner" and hasattr(self, 'all_results'):
+            self.filter_scanner_results(search_text)
+    
+    def filter_scanner_results(self, search_text):
+        """Filter scanner results by search text"""
+        if not hasattr(self, 'all_results') or not self.all_results:
+            return
+        
+        if not search_text:
+            self.filtered_results = self.all_results
+        else:
+            self.filtered_results = [
+                r for r in self.all_results
+                if search_text in r.get('ip', '').lower() or
+                   search_text in r.get('hostname', '').lower() or
+                   search_text in r.get('status', '').lower()
+            ]
+        
+        # Re-render with filtered data
+        self.scan_current_page = 1
+        
+        # Find scanner UI and render
+        if hasattr(self, 'scanner_ui_instance'):
+            self.scanner_ui_instance.render_current_page(use_filtered=True)
+            
+            # Update pagination label
+            total = len(self.all_results)
+            filtered = len(self.filtered_results)
+            if search_text:
+                self.pagination_label.configure(text=f"Showing {filtered} of {total} results")
+    
+    def quick_filter(self, filter_type):
+        """Quick filter buttons for Online/Offline"""
+        if filter_type == "online":
+            self.global_search_var.set("Online")
+        elif filter_type == "offline":
+            self.global_search_var.set("No Response")
+        
+        self.perform_global_search()
+    
+    def clear_global_search(self):
+        """Clear global search and reset filters"""
+        self.global_search_var.set("")
+        
+        if self.current_page == "scanner" and hasattr(self, 'all_results'):
+            self.filtered_results = self.all_results
+            if hasattr(self, 'scanner_ui_instance'):
+                self.scan_current_page = 1
+                self.scanner_ui_instance.render_current_page(use_filtered=False)
     
 
     def create_dashboard_content(self, parent):
