@@ -224,6 +224,34 @@ class DNSLookupUI:
         )
         no_results_label.pack(pady=50)
     
+    def _on_dns_preset_selected(self):
+        """Called when a DNS preset radio button is selected"""
+        # Clear custom DNS entry when selecting a preset
+        if hasattr(self, 'custom_dns_entry'):
+            self.custom_dns_entry.delete(0, 'end')
+    
+    def _on_custom_dns_selected(self):
+        """Called when custom DNS radio button is selected"""
+        # Focus the custom DNS entry
+        if hasattr(self, 'custom_dns_entry'):
+            self.custom_dns_entry.focus()
+    
+    def _on_custom_dns_focus(self):
+        """Called when custom DNS entry receives focus"""
+        # Auto-select the custom radio button
+        self.dns_server_var.set("custom")
+    
+    def _get_selected_dns_server(self):
+        """Get the selected DNS server (preset or custom)"""
+        selected = self.dns_server_var.get()
+        if selected == "custom":
+            custom = self.custom_dns_entry.get().strip()
+            if custom:
+                return custom
+            else:
+                return "system"  # Fallback if no custom entered
+        return selected
+    
     def perform_dns_lookup(self):
         """Perform DNS lookup"""
         query = self.app.dns_query_entry.get().strip()
@@ -231,7 +259,13 @@ class DNSLookupUI:
             messagebox.showwarning("Invalid Input", "Please enter a hostname or IP address")
             return
         
-        dns_server = self.dns_server_var.get()
+        dns_server = self._get_selected_dns_server()
+        
+        # Validate custom DNS server if provided
+        if dns_server not in ["system", "8.8.8.8", "1.1.1.1", "9.9.9.9", "208.67.222.222"]:
+            if not DNSLookup.validate_dns_server(dns_server):
+                messagebox.showwarning("Invalid DNS Server", f"'{dns_server}' is not a valid IP address")
+                return
         
         # Clear previous results
         for widget in self.dns_results_frame.winfo_children():
