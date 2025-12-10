@@ -1037,7 +1037,6 @@ gateway.home.lan
         ext_map = {
             "csv": ".csv",
             "json": ".json",
-            "xlsx": ".xlsx",
             "html": ".html",
             "txt": ".txt",
             "xml": ".xml"
@@ -1059,8 +1058,6 @@ gateway.home.lan
                 self._export_as_csv(filepath, results_to_export)
             elif format_type == "json":
                 self._export_as_json(filepath, results_to_export)
-            elif format_type == "xlsx":
-                self._export_as_excel(filepath, results_to_export)
             elif format_type == "html":
                 self._export_as_html(filepath, results_to_export)
             elif format_type == "txt":
