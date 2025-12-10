@@ -799,9 +799,29 @@ class NetToolsApp(ctk.CTk):
         )
         self.filter_clear_btn.pack(side="left", padx=2)
         
+        # History toggle button
+        self.history_btn = ctk.CTkButton(
+            filter_frame,
+            text="📜",
+            width=36,
+            height=28,
+            corner_radius=14,
+            fg_color="transparent",
+            border_width=1,
+            border_color=COLORS['neon_cyan'],
+            hover_color=COLORS['neon_cyan'],
+            font=ctk.CTkFont(size=14),
+            command=self.toggle_history_panel
+        )
+        self.history_btn.pack(side="left", padx=(10, 2))
+        Tooltip(self.history_btn, "Toggle History Panel (Ctrl+H)")
+        
         # Main content frame (below search)
         self.main_content = ctk.CTkFrame(self.main_container, corner_radius=0)
         self.main_content.pack(fill="both", expand=True, padx=0, pady=0)
+        
+        # History panel (initially hidden, on the right)
+        self.history_panel = HistoryPanel(self.main_content)
         
         # Create pages dictionary (empty frames, content loaded on demand)
         self.pages = {}
