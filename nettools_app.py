@@ -1245,7 +1245,6 @@ class NetToolsApp(ctk.CTk):
         formats = [
             ("csv", "CSV - Comma Separated Values"),
             ("json", "JSON - JavaScript Object Notation"),
-            ("xlsx", "Excel - Microsoft Excel (requires openpyxl)"),
             ("html", "HTML - Web Page Report"),
             ("txt", "TXT - Plain Text"),
             ("xml", "XML - Extensible Markup Language"),
