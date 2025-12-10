@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox
 import threading
 import socket
 import platform
+from pathlib import Path
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
