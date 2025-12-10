@@ -3065,6 +3065,46 @@ class NetToolsApp(ctk.CTk):
         )
         close_btn.pack(side="right")
     
+    def show_portscan_comparison(self):
+        """Show port scan comparison"""
+        # TODO: Implement port scan comparison
+        # This would compare different port scan results
+        messagebox.showinfo(
+            "Port Scanner Comparison",
+            "Port scan comparison feature is coming soon!\n\n"
+            "This will allow you to:\n"
+            "• Compare port scan results from different times\n"
+            "• Detect newly opened or closed ports\n"
+            "• Track service changes over time\n\n"
+            "Run multiple port scans to build comparison history."
+        )
+    
+    def show_dns_comparison(self):
+        """Show DNS lookup comparison"""
+        # TODO: Implement DNS comparison
+        messagebox.showinfo(
+            "DNS Lookup Comparison",
+            "DNS lookup comparison feature is coming soon!\n\n"
+            "This will allow you to:\n"
+            "• Compare DNS records from different queries\n"
+            "• Track changes in A, AAAA, MX, TXT records\n"
+            "• Monitor DNS propagation and changes\n\n"
+            "Perform multiple DNS lookups to build comparison history."
+        )
+    
+    def show_traceroute_comparison(self):
+        """Show traceroute comparison"""
+        # TODO: Implement traceroute comparison
+        messagebox.showinfo(
+            "Traceroute Comparison",
+            "Traceroute comparison feature is coming soon!\n\n"
+            "This will allow you to:\n"
+            "• Compare network paths from different times\n"
+            "• Identify routing changes\n"
+            "• Monitor latency differences\n\n"
+            "Run multiple traceroutes to build comparison history."
+        )
+    
     def open_live_ping_monitor(self):
         """Open the live ping monitor window"""
         # Now works without matplotlib!
