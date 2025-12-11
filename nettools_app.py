@@ -1794,13 +1794,34 @@ Actions:
         config = self.get_interface_config(interface["name"])
         
         if config:
+            # Configuration mode badge (DHCP or Static)
+            mode_frame = ctk.CTkFrame(card, fg_color="transparent")
+            mode_frame.pack(fill="x", padx=15, pady=(5, 0))
+            
+            mode_badge_color = COLORS['electric_violet'] if config["dhcp"] else COLORS['neon_cyan']
+            mode_badge = ctk.CTkLabel(
+                mode_frame,
+                text="📡 DHCP" if config["dhcp"] else "📌 Static IP",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                fg_color=mode_badge_color,
+                corner_radius=6,
+                padx=10,
+                pady=5
+            )
+            mode_badge.pack(side="left")
+            
             # IP info
             if config["dhcp"]:
-                ip_text = "DHCP Enabled"
                 if config["ip"]:
-                    ip_text += f" (Current IP: {config['ip']})"
+                    ip_text = f"Current IP: {config['ip']}"
+                else:
+                    ip_text = "Waiting for DHCP assignment..."
             else:
-                ip_text = f"Static IP: {config['ip'] or 'Not configured'}"
+                ip_text = f"IP: {config['ip'] or 'Not configured'}"
+                if config['subnet']:
+                    ip_text += f" / {config['subnet']}"
+                if config['gateway']:
+                    ip_text += f" (GW: {config['gateway']})"
             
             ip_label = ctk.CTkLabel(
                 card,
