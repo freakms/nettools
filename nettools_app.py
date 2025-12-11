@@ -2613,11 +2613,11 @@ Actions:
             return
         
         try:
-            # Build command
+            # Build command - use 'name=' format for interface names with spaces
             if gateway:
-                cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet, gateway]
+                cmd = ["netsh", "interface", "ipv4", "set", "address", f"name={interface_name}", "static", ip, subnet, gateway]
             else:
-                cmd = ["netsh", "interface", "ipv4", "set", "address", interface_name, "static", ip, subnet]
+                cmd = ["netsh", "interface", "ipv4", "set", "address", f"name={interface_name}", "static", ip, subnet]
             
             result = self.run_subprocess(cmd, capture_output=True, text=True, timeout=10)
             
