@@ -1638,8 +1638,24 @@ Actions:
                     parts = line.split()
                     if len(parts) >= 4:
                         idx = parts[0]
+                        # Met column is parts[1] (MTU)
+                        # Status column is parts[2]
+                        # But sometimes status is "disconnected" which shows as separate word
+                        # Format: Idx  Met  MTU  State  Name
+                        # Example: "5  25  1500  disconnected  WLAN"
+                        # Or:      "5  25  1500  connected  Ethernet"
+                        
                         status = parts[2]
-                        name = ' '.join(parts[3:])
+                        
+                        # If status is a number (MTU), adjust parsing
+                        if parts[2].isdigit():
+                            # Format: Idx Met MTU State Name
+                            status = parts[3] if len(parts) > 3 else "unknown"
+                            name = ' '.join(parts[4:]) if len(parts) > 4 else "Unknown"
+                        else:
+                            # Standard format
+                            name = ' '.join(parts[3:])
+                        
                         interfaces.append({
                             "index": idx,
                             "name": name,
