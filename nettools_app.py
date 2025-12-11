@@ -1659,6 +1659,9 @@ Actions:
                             # Standard format
                             name = ' '.join(parts[3:])
                         
+                        # Debug output
+                        print(f"DEBUG: Parsed interface - idx={idx}, status={status}, name={name}")
+                        
                         interfaces.append({
                             "index": idx,
                             "name": name,
