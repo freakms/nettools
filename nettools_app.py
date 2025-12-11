@@ -1655,7 +1655,7 @@ Actions:
         """Get current IP configuration for an interface"""
         try:
             result = self.run_subprocess(
-                ["netsh", "interface", "ipv4", "show", "config", interface_name],
+                ["netsh", "interface", "ipv4", "show", "config", f"name={interface_name}"],
                 capture_output=True,
                 text=True,
                 timeout=5
