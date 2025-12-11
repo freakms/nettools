@@ -2497,6 +2497,17 @@ Actions:
     
     def show_static_ip_dialog(self, interface_name):
         """Show dialog to configure static IP"""
+        # Check admin privileges first
+        if not self.is_admin():
+            result = messagebox.askyesno(
+                "Administrator Required",
+                "Administrator privileges are required to change network settings.\n\n"
+                "Do you want to restart the application with administrator privileges?"
+            )
+            if result:
+                self.restart_as_admin()
+            return
+        
         # Get current config
         current_config = self.get_interface_config(interface_name)
         
