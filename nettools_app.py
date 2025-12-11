@@ -3063,10 +3063,10 @@ Actions:
                                 subnet_mask = config.get("subnet_mask", config.get("subnet", "255.255.255.0"))
                                 gateway = config.get("gateway", "none")
                                 
-                                # Build netsh command for static IP
+                                # Build netsh command for static IP - use proper name format with quotes
                                 cmd = [
                                     "netsh", "interface", "ipv4", "set", "address",
-                                    "name=" + interface_name,
+                                    f'name="{interface_name}"',
                                     "source=static",
                                     "address=" + config["ip"],
                                     "mask=" + subnet_mask,
@@ -3090,7 +3090,7 @@ Actions:
                                                     # Primary DNS
                                                     dns_cmd = [
                                                         "netsh", "interface", "ipv4", "set", "dns",
-                                                        "name=" + interface_name,
+                                                        f'name="{interface_name}"',
                                                         "source=static",
                                                         "address=" + dns,
                                                         "register=primary"
@@ -3099,7 +3099,7 @@ Actions:
                                                     # Additional DNS servers
                                                     dns_cmd = [
                                                         "netsh", "interface", "ipv4", "add", "dns",
-                                                        "name=" + interface_name,
+                                                        f'name="{interface_name}"',
                                                         "address=" + dns,
                                                         "index=" + str(i + 1)
                                                     ]
