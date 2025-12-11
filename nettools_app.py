@@ -3030,10 +3030,10 @@ Actions:
                         
                         # Apply configuration
                         if config["dhcp"]:
-                            # Set to DHCP
+                            # Set to DHCP - use proper name format with quotes
                             result = self.run_subprocess(
                                 ["netsh", "interface", "ipv4", "set", "address", 
-                                 interface_name, "dhcp"],
+                                 f'name="{interface_name}"', "dhcp"],
                                 capture_output=True,
                                 text=True,
                                 timeout=10
@@ -3043,14 +3043,18 @@ Actions:
                                 # Set DNS to DHCP
                                 self.run_subprocess(
                                     ["netsh", "interface", "ipv4", "set", "dnsservers",
-                                     interface_name, "dhcp"],
+                                     f'name="{interface_name}"', "dhcp"],
                                     capture_output=True,
                                     text=True,
                                     timeout=10
                                 )
                                 success_count += 1
                             else:
-                                errors.append(f"{interface_name}: Failed to set DHCP")
+                                error_msg = result.stderr or result.stdout
+                                if "disconnected" in error_msg.lower():
+                                    errors.append(f"{interface_name}: Interface is disconnected")
+                                else:
+                                    errors.append(f"{interface_name}: Failed to set DHCP")
                                 error_count += 1
                         else:
                             # Set static IP
