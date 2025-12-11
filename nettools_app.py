@@ -1633,6 +1633,9 @@ Actions:
             interfaces = []
             lines = result.stdout.split('\n')[3:]  # Skip header lines
             
+            # Debug: print raw output
+            print(f"DEBUG: netsh output:\n{result.stdout}")
+            
             for line in lines:
                 if line.strip():
                     parts = line.split()
