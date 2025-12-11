@@ -2439,9 +2439,9 @@ Actions:
             return
         
         try:
-            # Set DHCP for IP
+            # Set DHCP for IP - use 'name=' format for interface names with spaces
             result = self.run_subprocess(
-                ["netsh", "interface", "ipv4", "set", "address", interface_name, "dhcp"],
+                ["netsh", "interface", "ipv4", "set", "address", f"name={interface_name}", "dhcp"],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -2461,7 +2461,7 @@ Actions:
             
             # Set DHCP for DNS
             self.run_subprocess(
-                ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "dhcp"],
+                ["netsh", "interface", "ipv4", "set", "dnsservers", f"name={interface_name}", "dhcp"],
                 timeout=10
             )
             
