@@ -2619,6 +2619,9 @@ Actions:
             else:
                 cmd = ["netsh", "interface", "ipv4", "set", "address", f'name="{interface_name}"', "static", ip, subnet]
             
+            # Debug: print command
+            print(f"DEBUG: Running command: {' '.join(cmd)}")
+            
             result = self.run_subprocess(cmd, capture_output=True, text=True, timeout=10)
             
             if result.returncode != 0:
