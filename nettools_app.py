@@ -1599,25 +1599,47 @@ Actions:
                 
                 # Get the path to the executable or script
                 if getattr(sys, 'frozen', False):
-                    # Running as exe
-                    script = sys.executable
+                    # Running as compiled exe
+                    executable = sys.executable
+                    params = ""
                 else:
-                    # Running as script
+                    # Running as Python script
+                    executable = sys.executable  # python.exe
                     script = os.path.abspath(sys.argv[0])
+                    # Quote the script path in case it has spaces
+                    params = f'"{script}"'
+                
+                # Get current working directory
+                cwd = os.getcwd()
+                
+                # Debug output
+                print(f"DEBUG: Restarting as admin")
+                print(f"DEBUG: executable={executable}")
+                print(f"DEBUG: params={params}")
+                print(f"DEBUG: cwd={cwd}")
                 
                 # Trigger UAC elevation
-                ctypes.windll.shell32.ShellExecuteW(
-                    None,
-                    "runas",
-                    sys.executable if getattr(sys, 'frozen', False) else "python",
-                    script if not getattr(sys, 'frozen', False) else "",
-                    None,
-                    1  # SW_SHOWNORMAL
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,           # hwnd
+                    "runas",        # operation
+                    executable,     # file (python.exe or app.exe)
+                    params,         # parameters (script path for python)
+                    cwd,            # directory
+                    1               # SW_SHOWNORMAL
                 )
                 
-                # Close current instance
-                self.quit()
+                # ShellExecuteW returns > 32 on success
+                if result > 32:
+                    # Close current instance after a short delay
+                    self.after(500, self.quit)
+                else:
+                    messagebox.showwarning(
+                        "Restart Cancelled",
+                        "Administrator elevation was cancelled or failed.\n\n"
+                        "Please manually run the application as administrator."
+                    )
         except Exception as e:
+            print(f"DEBUG: Exception in restart_as_admin: {e}")
             messagebox.showerror("Error", f"Could not restart with admin privileges:\n{str(e)}")
     
     def get_network_interfaces(self):
