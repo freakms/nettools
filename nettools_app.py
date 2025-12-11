@@ -2645,7 +2645,7 @@ Actions:
             # Set DNS if provided
             if dns:
                 self.run_subprocess(
-                    ["netsh", "interface", "ipv4", "set", "dnsservers", interface_name, "static", dns, "primary"],
+                    ["netsh", "interface", "ipv4", "set", "dnsservers", f"name={interface_name}", "static", dns, "primary"],
                     timeout=10
                 )
             
