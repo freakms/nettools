@@ -856,8 +856,6 @@ gateway.home.lan
     
     def _add_row_context_menu(self, row_frame, result):
         """Add right-click context menu to a result row"""
-        from ui_components import ContextMenu
-        
         def copy_ip():
             # Use tkinter clipboard directly (no external dependencies)
             self.app.clipboard_clear()
