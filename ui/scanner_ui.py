@@ -848,8 +848,11 @@ gateway.home.lan
         row_frame.rtt_label = rtt_label
         self.app.result_rows.append(row_frame)
         
-        # Add right-click context menu
-        self._add_row_context_menu(row_frame, result)
+        # Add right-click context menu (with error handling)
+        try:
+            self._add_row_context_menu(row_frame, result)
+        except Exception as e:
+            print(f"Warning: Could not add context menu to row: {e}")
     
     def _add_row_context_menu(self, row_frame, result):
         """Add right-click context menu to a result row"""
