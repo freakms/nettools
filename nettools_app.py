@@ -2626,23 +2626,29 @@ Actions:
             
             if result.returncode != 0:
                 error_msg = result.stderr or result.stdout
+                # Debug output
+                print(f"DEBUG: Error occurred. Return code: {result.returncode}")
+                print(f"DEBUG: stdout: {result.stdout}")
+                print(f"DEBUG: stderr: {result.stderr}")
+                
                 if "disconnected" in error_msg.lower():
                     messagebox.showwarning(
                         "Interface Disconnected",
                         f"Cannot configure '{interface_name}' because it is currently disconnected.\n\n"
                         "Please connect the network cable or enable Wi-Fi, then try again."
                     )
-                elif "not valid" in error_msg.lower() or "incorrect" in error_msg.lower():
+                elif "not valid" in error_msg.lower() or "incorrect" in error_msg.lower() or "syntax" in error_msg.lower():
                     messagebox.showerror(
                         "Invalid Configuration",
                         f"The IP configuration is invalid:\n\n{error_msg}\n\n"
+                        "Command run:\n{' '.join(cmd)}\n\n"
                         "Please check:\n"
                         "• IP address format (e.g., 192.168.1.100)\n"
                         "• Subnet mask format (e.g., 255.255.255.0)\n"
                         "• Gateway is in the same subnet"
                     )
                 else:
-                    messagebox.showerror("Error", f"Failed to set static IP:\n{error_msg}")
+                    messagebox.showerror("Error", f"Failed to set static IP:\n{error_msg}\n\nCommand: {' '.join(cmd)}")
                 return
             
             # Set DNS if provided
