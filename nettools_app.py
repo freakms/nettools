@@ -3107,8 +3107,11 @@ Actions:
                                     
                                     success_count += 1
                                 else:
-                                    error_msg = result.stderr if result.stderr else "Unknown error"
-                                    errors.append(f"{interface_name}: {error_msg[:100]}")
+                                    error_msg = result.stderr or result.stdout or "Unknown error"
+                                    if "disconnected" in error_msg.lower():
+                                        errors.append(f"{interface_name}: Interface is disconnected")
+                                    else:
+                                        errors.append(f"{interface_name}: {error_msg[:100]}")
                                     error_count += 1
                             else:
                                 errors.append(f"{interface_name}: Missing IP or subnet mask")
