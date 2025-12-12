@@ -1943,6 +1943,29 @@ Actions:
                     height=36
                 )
                 edit_btn.pack(side="left", padx=(0, 5))
+        else:
+            # Config could not be retrieved
+            error_label = ctk.CTkLabel(
+                card,
+                text="⚠️ Could not retrieve configuration. Check console for details.",
+                font=ctk.CTkFont(size=11),
+                text_color=("orange", "orange"),
+                anchor="w"
+            )
+            error_label.pack(fill="x", padx=15, pady=(5, 10))
+            
+            # Still show config buttons
+            button_frame = ctk.CTkFrame(card, fg_color="transparent")
+            button_frame.pack(fill="x", padx=15, pady=(0, 10))
+            
+            config_btn = ctk.CTkButton(
+                button_frame,
+                text="Configure",
+                command=lambda i=interface["name"]: self.show_static_ip_dialog(i),
+                width=140,
+                height=36
+            )
+            config_btn.pack(side="left", padx=(0, 5))
     
     def change_theme(self, theme):
         """Change application theme"""
