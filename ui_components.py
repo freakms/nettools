@@ -1328,6 +1328,9 @@ class ContextMenu:
         """Show context menu at cursor position using custom Toplevel"""
         import customtkinter as ctk
         
+        # Debug marker
+        print("DEBUG: ContextMenu.show() called - NEW VERSION with CTkToplevel")
+        
         # Close any existing menu
         if self.menu_window is not None:
             try:
