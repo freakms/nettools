@@ -349,6 +349,9 @@ class SubnetCalculatorUI:
                 anchor="w"
             )
             value_widget.pack(side="left", fill="x", expand=True)
+            
+            # Add context menu to row
+            self._add_subnet_row_context_menu(row_frame, label, value)
     
     def split_subnet(self):
         """Split a subnet into smaller subnets"""
