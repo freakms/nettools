@@ -1817,6 +1817,8 @@ Actions:
             return
         
         for interface in interfaces:
+            # Debug: print interface name to check encoding
+            print(f"DEBUG: Creating card for interface: {interface['name']} (repr: {repr(interface['name'])})")
             self.create_interface_card(interface)
     
     def create_interface_card(self, interface):
