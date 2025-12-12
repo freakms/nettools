@@ -1649,6 +1649,7 @@ Actions:
                 ["netsh", "interface", "ipv4", "show", "interfaces"],
                 capture_output=True,
                 text=True,
+                encoding='cp850',  # Windows German codepage for proper ä, ü, ö display
                 timeout=5
             )
             
