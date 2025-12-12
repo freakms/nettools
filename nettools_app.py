@@ -1846,7 +1846,7 @@ Actions:
         # Get current config
         config = self.get_interface_config(interface["name"])
         
-        if config:
+        if config and (config.get("ip") or config.get("dhcp")):
             # Configuration mode badge (DHCP or Static)
             mode_frame = ctk.CTkFrame(card, fg_color="transparent")
             mode_frame.pack(fill="x", padx=15, pady=(5, 0))
