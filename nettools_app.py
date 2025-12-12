@@ -1649,7 +1649,8 @@ Actions:
                 ["netsh", "interface", "ipv4", "show", "interfaces"],
                 capture_output=True,
                 text=True,
-                encoding='cp850',  # Windows German codepage for proper ä, ü, ö display
+                encoding='cp1252',  # Windows-1252 for proper German characters
+                errors='replace',
                 timeout=5
             )
             
