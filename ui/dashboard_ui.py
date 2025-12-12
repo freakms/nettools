@@ -137,8 +137,8 @@ class DashboardUI:
                     ['ipconfig', '/all'], 
                     capture_output=True, 
                     text=True,
-                    encoding='cp850',  # Windows codepage for German characters (ä, ü, ö)
-                    errors='ignore',  # Ignore encoding errors
+                    encoding='cp1252',  # Windows-1252 for proper German characters
+                    errors='replace',  # Replace errors instead of failing
                     timeout=5
                 )
                 output = result.stdout
