@@ -1705,6 +1705,12 @@ Actions:
                 timeout=5
             )
             
+            # Debug: print the raw output
+            print(f"\nDEBUG: get_interface_config for '{interface_name}'")
+            print(f"DEBUG: Return code: {result.returncode}")
+            print(f"DEBUG: Raw output:\n{result.stdout}")
+            print(f"DEBUG: Stderr: {result.stderr}")
+            
             config = {
                 "dhcp": False,
                 "ip": None,
@@ -1713,35 +1719,82 @@ Actions:
                 "dns": []
             }
             
+            # Check if command failed
+            if result.returncode != 0:
+                print(f"DEBUG: Command failed for interface '{interface_name}'")
+                return config
+            
             lines = result.stdout.split('\n')
+            
+            # Try to detect language and use appropriate keywords
+            # English: "DHCP enabled", "IP Address", etc.
+            # German: "DHCP aktiviert", "IP-Adresse", etc.
+            
             for i, line in enumerate(lines):
-                if "DHCP enabled" in line and "Yes" in line:
-                    config["dhcp"] = True
-                elif "IP Address:" in line and i + 1 < len(lines):
-                    config["ip"] = lines[i + 1].strip()
-                elif "Subnet Prefix:" in line and i + 1 < len(lines):
-                    subnet_line = lines[i + 1].strip()
-                    config["subnet"] = subnet_line.split('/')[0] if '/' in subnet_line else subnet_line
-                elif "Default Gateway:" in line and i + 1 < len(lines):
-                    config["gateway"] = lines[i + 1].strip()
-                elif "DNS servers configured through DHCP:" in line:
+                line_lower = line.lower()
+                
+                # DHCP detection (English: "dhcp enabled: yes", German: "dhcp aktiviert: ja")
+                if ("dhcp" in line_lower and "aktiviert" in line_lower) or ("dhcp" in line_lower and "enabled" in line_lower):
+                    if "yes" in line_lower or "ja" in line_lower:
+                        config["dhcp"] = True
+                        print(f"DEBUG: Detected DHCP enabled")
+                    elif "no" in line_lower or "nein" in line_lower:
+                        config["dhcp"] = False
+                        print(f"DEBUG: Detected DHCP disabled (Static IP)")
+                
+                # IP Address (English: "IP Address:", German: "IP-Adresse:")
+                elif ("ip address" in line_lower or "ip-adresse" in line_lower) and ":" in line:
+                    # IP might be on same line or next line
+                    if i + 1 < len(lines):
+                        next_line = lines[i + 1].strip()
+                        if next_line and not next_line.startswith(('Configuration', 'Konfiguration')):
+                            config["ip"] = next_line
+                            print(f"DEBUG: Found IP: {config['ip']}")
+                
+                # Subnet (English: "Subnet Prefix:", German: "Subnetzpräfix:")
+                elif ("subnet" in line_lower or "subnetz" in line_lower) and ":" in line:
+                    if i + 1 < len(lines):
+                        next_line = lines[i + 1].strip()
+                        # Format might be "192.168.1.100/24" or just mask
+                        if next_line:
+                            if '/' in next_line:
+                                # Extract subnet from CIDR
+                                ip_part, prefix = next_line.split('/', 1)
+                                # Convert prefix to subnet mask
+                                prefix = int(prefix)
+                                mask = (0xffffffff >> (32 - prefix)) << (32 - prefix)
+                                config["subnet"] = f"{(mask >> 24) & 0xff}.{(mask >> 16) & 0xff}.{(mask >> 8) & 0xff}.{mask & 0xff}"
+                            else:
+                                config["subnet"] = next_line
+                            print(f"DEBUG: Found Subnet: {config['subnet']}")
+                
+                # Gateway (English: "Default Gateway:", German: "Standardgateway:")
+                elif ("gateway" in line_lower or "standardgateway" in line_lower) and ":" in line:
+                    if i + 1 < len(lines):
+                        next_line = lines[i + 1].strip()
+                        if next_line and next_line != "None" and next_line != "Keine":
+                            config["gateway"] = next_line
+                            print(f"DEBUG: Found Gateway: {config['gateway']}")
+                
+                # DNS Servers
+                elif "dns" in line_lower and ("server" in line_lower or "configured" in line_lower or "konfiguriert" in line_lower):
                     j = i + 1
-                    while j < len(lines) and lines[j].strip() and not lines[j].startswith('Configuration'):
-                        dns = lines[j].strip()
-                        if dns:
-                            config["dns"].append(dns)
-                        j += 1
-                elif "Statically Configured DNS Servers:" in line:
-                    j = i + 1
-                    while j < len(lines) and lines[j].strip() and not lines[j].startswith('Configuration'):
-                        dns = lines[j].strip()
-                        if dns:
-                            config["dns"].append(dns)
+                    while j < len(lines):
+                        dns_line = lines[j].strip()
+                        if not dns_line or dns_line.startswith(('Configuration', 'Konfiguration')):
+                            break
+                        # Check if it looks like an IP address
+                        if dns_line and '.' in dns_line:
+                            config["dns"].append(dns_line)
+                            print(f"DEBUG: Found DNS: {dns_line}")
                         j += 1
             
+            print(f"DEBUG: Final config: {config}")
             return config
         except Exception as e:
-            print(f"Error getting interface config: {e}")
+            print(f"Error getting interface config for '{interface_name}': {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def refresh_interfaces(self):
