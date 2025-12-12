@@ -480,6 +480,9 @@ class PortScannerUI:
                 anchor="w"
             )
             service_label.pack(side="left", padx=10, pady=8)
+            
+            # Add context menu to row
+            self._add_port_row_context_menu(row_frame, result, target)
     
     def export_port_scan(self):
         """Export port scan results in multiple formats"""
