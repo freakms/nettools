@@ -132,12 +132,12 @@ class DashboardUI:
             system = platform.system()
             
             if system == "Windows":
-                # Use ipconfig on Windows
+                # Use ipconfig on Windows with proper encoding for German characters
                 result = subprocess.run(
                     ['ipconfig', '/all'], 
                     capture_output=True, 
                     text=True,
-                    encoding='utf-8',
+                    encoding='cp850',  # Windows codepage for German characters (ä, ü, ö)
                     errors='ignore',  # Ignore encoding errors
                     timeout=5
                 )
