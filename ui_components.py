@@ -1301,7 +1301,7 @@ class TabView(ctk.CTkFrame):
 
 class ContextMenu:
     """
-    Right-click context menu for various UI elements
+    Right-click context menu for various UI elements using custom Toplevel window
     Usage:
         menu = ContextMenu(parent_widget, items=[
             ("Copy", lambda: print("Copied")),
@@ -1322,49 +1322,82 @@ class ContextMenu:
         """
         self.widget = widget
         self.items = items
-        self.menu = None
+        self.menu_window = None
     
     def show(self, event):
-        """Show context menu at cursor position"""
-        import tkinter as tk
+        """Show context menu at cursor position using custom Toplevel"""
+        import customtkinter as ctk
         
-        # Destroy old menu and create fresh one each time (ensures it's on top)
-        if self.menu is not None:
+        # Close any existing menu
+        if self.menu_window is not None:
             try:
-                self.menu.destroy()
+                self.menu_window.destroy()
             except:
                 pass
         
-        # Create menu with better styling
-        self.menu = tk.Menu(
-            self.widget, 
-            tearoff=0,
-            bg='#2b2b2b',  # Dark background
-            fg='#ffffff',  # White text
-            activebackground='#a78bfa',  # Electric violet hover
-            activeforeground='#ffffff',
-            bd=1,
-            relief=tk.FLAT,
-            font=('Segoe UI', 10)
-        )
+        # Create toplevel window for menu
+        self.menu_window = ctk.CTkToplevel(self.widget)
+        self.menu_window.withdraw()  # Hide initially
         
+        # Remove window decorations
+        self.menu_window.overrideredirect(True)
+        
+        # Make it stay on top
+        self.menu_window.attributes('-topmost', True)
+        
+        # Set position
+        self.menu_window.geometry(f"+{event.x_root}+{event.y_root}")
+        
+        # Menu container frame
+        menu_frame = ctk.CTkFrame(
+            self.menu_window,
+            fg_color=COLORS['bg_card'],
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['electric_violet']
+        )
+        menu_frame.pack(fill="both", expand=True, padx=2, pady=2)
+        
+        # Add menu items
         for item in self.items:
             if item is None:
                 # Separator
-                self.menu.add_separator()
+                sep = ctk.CTkFrame(menu_frame, height=1, fg_color=COLORS['text_secondary'])
+                sep.pack(fill="x", padx=10, pady=5)
             else:
                 label, command = item
-                self.menu.add_command(
-                    label=label, 
-                    command=command,
-                    compound=tk.LEFT
+                
+                def make_command(cmd):
+                    def wrapped():
+                        self.menu_window.destroy()
+                        cmd()
+                    return wrapped
+                
+                btn = ctk.CTkButton(
+                    menu_frame,
+                    text=label,
+                    command=make_command(command),
+                    fg_color="transparent",
+                    hover_color=COLORS['electric_violet'],
+                    anchor="w",
+                    height=32,
+                    corner_radius=6,
+                    font=ctk.CTkFont(size=12)
                 )
+                btn.pack(fill="x", padx=5, pady=2)
         
-        # Show menu at cursor with proper grab
-        try:
-            # Lift menu to top
-            self.menu.tk_popup(event.x_root, event.y_root, 0)
-        finally:
-            # Release grab after menu is dismissed
-            self.menu.grab_release()
+        # Show menu
+        self.menu_window.deiconify()
+        self.menu_window.focus_set()
+        
+        # Bind click outside to close
+        def close_menu(e=None):
+            try:
+                self.menu_window.destroy()
+            except:
+                pass
+        
+        # Close when clicking outside
+        self.menu_window.bind("<FocusOut>", close_menu)
+        self.menu_window.bind("<Escape>", close_menu)
 
