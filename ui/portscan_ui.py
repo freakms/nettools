@@ -484,6 +484,65 @@ class PortScannerUI:
             # Add context menu to row
             self._add_port_row_context_menu(row_frame, result, target)
     
+    def _add_port_row_context_menu(self, row_frame, result, target):
+        """Add right-click context menu to port scan result row"""
+        def copy_port():
+            self.app.clipboard_clear()
+            self.app.clipboard_append(str(result['port']))
+            self.app.update()
+            self.app.show_toast(f"Copied port: {result['port']}", "success")
+        
+        def copy_service():
+            self.app.clipboard_clear()
+            self.app.clipboard_append(result['service'])
+            self.app.update()
+            self.app.show_toast(f"Copied service: {result['service']}", "success")
+        
+        def copy_full_info():
+            info = f"Target: {target}\nPort: {result['port']}\nState: {result['state']}\nService: {result['service']}"
+            self.app.clipboard_clear()
+            self.app.clipboard_append(info)
+            self.app.update()
+            self.app.show_toast("Copied port scan info", "success")
+        
+        def copy_connect_string():
+            # Generate connection string based on service
+            service = result['service'].lower()
+            port = result['port']
+            if 'http' in service:
+                conn_str = f"http://{target}:{port}"
+            elif 'https' in service or 'ssl' in service:
+                conn_str = f"https://{target}:{port}"
+            elif 'ftp' in service:
+                conn_str = f"ftp://{target}:{port}"
+            elif 'ssh' in service:
+                conn_str = f"ssh://{target}:{port}"
+            elif 'mysql' in service:
+                conn_str = f"mysql://{target}:{port}"
+            else:
+                conn_str = f"{target}:{port}"
+            
+            self.app.clipboard_clear()
+            self.app.clipboard_append(conn_str)
+            self.app.update()
+            self.app.show_toast(f"Copied: {conn_str}", "success")
+        
+        # Create context menu
+        menu_items = [
+            (f"📋 Copy Port ({result['port']})", copy_port),
+            (f"🏷️ Copy Service ({result['service']})", copy_service),
+            ("📄 Copy Full Info", copy_full_info),
+            None,  # Separator
+            ("🔗 Copy Connection String", copy_connect_string),
+        ]
+        
+        menu = ContextMenu(row_frame, menu_items)
+        
+        # Bind right-click to all widgets in the row
+        row_frame.bind("<Button-3>", menu.show)
+        for child in row_frame.winfo_children():
+            child.bind("<Button-3>", menu.show)
+    
     def export_port_scan(self):
         """Export port scan results in multiple formats"""
         if not self.port_scan_results:
