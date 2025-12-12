@@ -353,6 +353,34 @@ class SubnetCalculatorUI:
             # Add context menu to row
             self._add_subnet_row_context_menu(row_frame, label, value)
     
+    def _add_subnet_row_context_menu(self, row_frame, label, value):
+        """Add right-click context menu to subnet result row"""
+        def copy_value():
+            self.app.clipboard_clear()
+            self.app.clipboard_append(str(value))
+            self.app.update()
+            self.app.show_toast(f"Copied: {value}", "success")
+        
+        def copy_with_label():
+            text = f"{label}: {value}"
+            self.app.clipboard_clear()
+            self.app.clipboard_append(text)
+            self.app.update()
+            self.app.show_toast(f"Copied: {label}", "success")
+        
+        # Create context menu
+        menu_items = [
+            (f"📋 Copy Value ({value})", copy_value),
+            (f"🏷️ Copy with Label", copy_with_label),
+        ]
+        
+        menu = ContextMenu(row_frame, menu_items)
+        
+        # Bind right-click to all widgets in the row
+        row_frame.bind("<Button-3>", menu.show)
+        for child in row_frame.winfo_children():
+            child.bind("<Button-3>", menu.show)
+    
     def split_subnet(self):
         """Split a subnet into smaller subnets"""
         cidr = self.subnet_cidr_entry.get().strip()
