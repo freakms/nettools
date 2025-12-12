@@ -406,7 +406,32 @@ class DNSLookupUI:
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color=result_color
         )
-        status_label.pack(pady=(20, 20), padx=20, anchor="w")
+        status_label.pack(pady=(10, 10), padx=20, anchor="w")
+        
+        # Copy All button
+        def copy_all_results():
+            all_text = f"DNS Lookup Results\n"
+            all_text += f"{'='*50}\n"
+            all_text += f"Type: {results['type']}\n"
+            all_text += f"Query: {results['query']}\n"
+            if "dns_server" in results:
+                all_text += f"DNS Server: {results['dns_server']}\n"
+            all_text += f"Result: {result_text}\n"
+            all_text += f"Status: {status_text}\n"
+            
+            self.app.clipboard_clear()
+            self.app.clipboard_append(all_text)
+            self.app.update()
+            self.app.show_toast("All results copied to clipboard", "success")
+        
+        copy_all_btn = StyledButton(
+            self.dns_results_frame,
+            text="📄 Copy All Results",
+            command=copy_all_results,
+            size="medium",
+            variant="primary"
+        )
+        copy_all_btn.pack(pady=(10, 20), padx=20, anchor="w")
     
 
     def perform_dnsdumpster_lookup(self):
