@@ -382,6 +382,22 @@ class DNSLookupUI:
         )
         result_value.pack(side="left", fill="x", expand=True)
         
+        # Copy button
+        def copy_result():
+            self.app.clipboard_clear()
+            self.app.clipboard_append(result_text)
+            self.app.update()
+            self.app.show_toast(f"Copied: {result_text[:50]}{'...' if len(result_text) > 50 else ''}", "success")
+        
+        copy_btn = StyledButton(
+            result_frame,
+            text="📋 Copy",
+            command=copy_result,
+            size="small",
+            variant="neutral"
+        )
+        copy_btn.pack(side="left", padx=(10, 0))
+        
         # Status icon
         status_text = "✅ Success" if results["success"] else "❌ Failed"
         status_label = ctk.CTkLabel(
