@@ -1823,13 +1823,40 @@ Actions:
                 if config['gateway']:
                     ip_text += f" (GW: {config['gateway']})"
             
+            # IP info frame with copy button
+            ip_info_frame = ctk.CTkFrame(card, fg_color="transparent")
+            ip_info_frame.pack(fill="x", padx=15, pady=(5, 10))
+            
             ip_label = ctk.CTkLabel(
-                card,
+                ip_info_frame,
                 text=ip_text,
                 font=ctk.CTkFont(size=12),
                 anchor="w"
             )
-            ip_label.pack(fill="x", padx=15, pady=(0, 10))
+            ip_label.pack(side="left", fill="x", expand=True)
+            
+            # Copy IP button
+            if config.get("ip"):
+                def copy_ip_info(ip=config["ip"], subnet=config.get("subnet"), gw=config.get("gateway")):
+                    copy_text = f"IP: {ip}"
+                    if subnet:
+                        copy_text += f"\nSubnet: {subnet}"
+                    if gw:
+                        copy_text += f"\nGateway: {gw}"
+                    self.clipboard_clear()
+                    self.clipboard_append(copy_text)
+                    self.update()
+                    self.show_toast("IP configuration copied", "success")
+                
+                copy_ip_btn = ctk.CTkButton(
+                    ip_info_frame,
+                    text="📋",
+                    command=copy_ip_info,
+                    width=35,
+                    height=28,
+                    font=ctk.CTkFont(size=14)
+                )
+                copy_ip_btn.pack(side="left", padx=(10, 0))
             
             # Action buttons
             button_frame = ctk.CTkFrame(card, fg_color="transparent")
