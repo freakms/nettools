@@ -1328,21 +1328,43 @@ class ContextMenu:
         """Show context menu at cursor position"""
         import tkinter as tk
         
-        # Create menu if it doesn't exist
-        if self.menu is None:
-            self.menu = tk.Menu(self.widget, tearoff=0, bg=COLORS['bg_card'], fg=COLORS['text_primary'])
-            
-            for item in self.items:
-                if item is None:
-                    # Separator
-                    self.menu.add_separator()
-                else:
-                    label, command = item
-                    self.menu.add_command(label=label, command=command)
+        # Destroy old menu and create fresh one each time (ensures it's on top)
+        if self.menu is not None:
+            try:
+                self.menu.destroy()
+            except:
+                pass
         
-        # Show menu at cursor
+        # Create menu with better styling
+        self.menu = tk.Menu(
+            self.widget, 
+            tearoff=0,
+            bg='#2b2b2b',  # Dark background
+            fg='#ffffff',  # White text
+            activebackground='#a78bfa',  # Electric violet hover
+            activeforeground='#ffffff',
+            bd=1,
+            relief=tk.FLAT,
+            font=('Segoe UI', 10)
+        )
+        
+        for item in self.items:
+            if item is None:
+                # Separator
+                self.menu.add_separator()
+            else:
+                label, command = item
+                self.menu.add_command(
+                    label=label, 
+                    command=command,
+                    compound=tk.LEFT
+                )
+        
+        # Show menu at cursor with proper grab
         try:
-            self.menu.tk_popup(event.x_root, event.y_root)
+            # Lift menu to top
+            self.menu.tk_popup(event.x_root, event.y_root, 0)
         finally:
+            # Release grab after menu is dismissed
             self.menu.grab_release()
 
