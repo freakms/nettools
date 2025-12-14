@@ -1262,9 +1262,74 @@ class DNSLookupUI:
                     ctk.CTkLabel(unchanged_card, text=f"... and {len(comparison['unchanged']) - 10} more", 
                                 anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
         
+        # Button frame
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(pady=10)
+        
         # Compare button
-        compare_btn = StyledButton(main_frame, text="Compare Selected Lookups", command=compare_selected, variant="primary")
-        compare_btn.pack(pady=10)
+        compare_btn = StyledButton(button_frame, text="Compare Selected Lookups", command=compare_selected, variant="primary")
+        compare_btn.pack(side="left", padx=5)
+        
+        # Export button
+        def export_comparison():
+            """Export DNS comparison results"""
+            idx1 = int(lookup1_var.get().split(":")[0])
+            idx2 = int(lookup2_var.get().split(":")[0])
+            
+            if idx1 >= idx2:
+                self.app.show_toast("Select valid lookups to export", "warning")
+                return
+            
+            comparison = self.comparison_history.compare_dns_lookups(history[idx1], history[idx2])
+            
+            # Create export dialog
+            from tkinter import filedialog
+            filepath = filedialog.asksaveasfilename(
+                title="Export DNS Comparison",
+                defaultextension=".txt",
+                filetypes=[("Text Files", "*.txt"), ("CSV Files", "*.csv"), ("All Files", "*.*")]
+            )
+            
+            if filepath:
+                try:
+                    with open(filepath, 'w') as f:
+                        f.write(f"DNS Lookup Comparison Report\n")
+                        f.write(f"{'='*50}\n\n")
+                        f.write(f"Query: {comparison['query']}\n")
+                        f.write(f"Record Type: {comparison['record_type']}\n")
+                        f.write(f"Earlier Lookup: {comparison['lookup1_time']}\n")
+                        f.write(f"Later Lookup: {comparison['lookup2_time']}\n")
+                        f.write(f"Has Changes: {'Yes' if comparison['has_changes'] else 'No'}\n\n")
+                        
+                        if comparison['added']:
+                            f.write(f"Added Records ({len(comparison['added'])}):\n")
+                            for record in comparison['added']:
+                                if record:
+                                    f.write(f"  + {record}\n")
+                            f.write("\n")
+                        
+                        if comparison['removed']:
+                            f.write(f"Removed Records ({len(comparison['removed'])}):\n")
+                            for record in comparison['removed']:
+                                if record:
+                                    f.write(f"  - {record}\n")
+                            f.write("\n")
+                        
+                        if comparison['unchanged']:
+                            f.write(f"Unchanged Records ({len(comparison['unchanged'])}):\n")
+                            for record in list(comparison['unchanged'])[:20]:
+                                if record:
+                                    f.write(f"    {record}\n")
+                            if len(comparison['unchanged']) > 20:
+                                f.write(f"  ... and {len(comparison['unchanged']) - 20} more\n")
+                    
+                    self.app.show_toast(f"Comparison exported to {filepath}", "success")
+                except Exception as e:
+                    self.app.show_toast(f"Export failed: {e}", "error")
+        
+        export_btn = StyledButton(button_frame, text="📄 Export Comparison", command=export_comparison, variant="neutral")
+        export_btn.pack(side="left", padx=5)
+        add_tooltip_to_widget(export_btn, "Export comparison results to file")
         
         # Auto-compare latest lookups
         compare_selected()
