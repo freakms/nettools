@@ -828,14 +828,14 @@ Actions:
             if idx == 0:
                 self.first_category_label = category_label
             
-            # Category items with icons
+            # Category items with icons - professional styling
             for page_id, icon, label, tooltip in items:
                 btn = ctk.CTkButton(
                     self.nav_scroll,
                     text=f" {icon}  {label}",
                     command=lambda p=page_id: self.switch_tool(p),
-                    height=38,
-                    corner_radius=6,
+                    height=40,
+                    corner_radius=8,
                     anchor="w",
                     font=ctk.CTkFont(size=13),
                     fg_color="transparent",
@@ -843,7 +843,7 @@ Actions:
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
-                btn.pack(fill="x", padx=12, pady=2)
+                btn.pack(fill="x", padx=10, pady=2)
                 
                 # Store icon and label for collapse/expand
                 btn._nav_icon = icon
@@ -861,11 +861,14 @@ Actions:
             # Append category with its associated buttons
             self.category_labels.append((category_label, cat_icon, category_name, category_buttons))
         
-        # Update initial button state
-        self.nav_buttons["scanner"].configure(fg_color=("gray75", "gray25"))
+        # Update initial button state - highlight dashboard
+        self.nav_buttons["dashboard"].configure(
+            fg_color=COLORS['electric_violet'],
+            text_color="white"
+        )
         
         # Add some bottom padding to scroll area
-        bottom_padding = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=20)
+        bottom_padding = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=30)
         bottom_padding.pack(fill="x")
         
         # Theme selector at bottom (fixed position outside scroll)
