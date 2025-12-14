@@ -216,9 +216,11 @@ class SSLCheckerUI:
             self.app.after(0, lambda: self._show_results(status_text, status_color, f"Expires: {not_after.strftime('%Y-%m-%d')}", details))
             
         except ssl.SSLCertVerificationError as e:
-            self.app.after(0, lambda: self._show_results("❌ Certificate Verification Failed", COLORS['danger'], str(e), f"SSL Error: {str(e)}"))
+            err_msg = str(e)
+            self.app.after(0, lambda msg=err_msg: self._show_results("❌ Certificate Verification Failed", COLORS['danger'], msg, f"SSL Error: {msg}"))
         except Exception as e:
-            self.app.after(0, lambda: self._show_results("❌ Connection Failed", COLORS['danger'], "", f"Error: {str(e)}"))
+            err_msg = str(e)
+            self.app.after(0, lambda msg=err_msg: self._show_results("❌ Connection Failed", COLORS['danger'], "", f"Error: {msg}"))
         
         finally:
             self.app.after(0, lambda: self.check_btn.configure(state="normal", text="🔍 Check"))
