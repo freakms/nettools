@@ -796,9 +796,73 @@ class PortScannerUI:
                     ctk.CTkLabel(unchanged_card, text=f"... and {len(comparison['unchanged']) - 10} more", 
                                 anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
         
+        # Button frame
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(pady=10)
+        
         # Compare button
-        compare_btn = StyledButton(main_frame, text="Compare Selected Scans", command=compare_selected, variant="primary")
-        compare_btn.pack(pady=10)
+        compare_btn = StyledButton(button_frame, text="Compare Selected Scans", command=compare_selected, variant="primary")
+        compare_btn.pack(side="left", padx=5)
+        
+        # Export button
+        def export_comparison():
+            """Export comparison results"""
+            idx1 = int(scan1_var.get().split(":")[0])
+            idx2 = int(scan2_var.get().split(":")[0])
+            
+            if idx1 >= idx2:
+                self.app.show_toast("Select valid scans to export", "warning")
+                return
+            
+            comparison = self.comparison_history.compare_port_scans(history[idx1], history[idx2])
+            
+            # Create export dialog
+            from tkinter import filedialog
+            filepath = filedialog.asksaveasfilename(
+                title="Export Comparison",
+                defaultextension=".txt",
+                filetypes=[("Text Files", "*.txt"), ("CSV Files", "*.csv"), ("All Files", "*.*")]
+            )
+            
+            if filepath:
+                try:
+                    with open(filepath, 'w') as f:
+                        f.write(f"Port Scan Comparison Report\n")
+                        f.write(f"{'='*50}\n\n")
+                        f.write(f"Target: {comparison['target']}\n")
+                        f.write(f"Earlier Scan: {comparison['scan1_time']}\n")
+                        f.write(f"Later Scan: {comparison['scan2_time']}\n")
+                        f.write(f"Total Changes: {comparison['total_changes']}\n\n")
+                        
+                        if comparison['newly_opened']:
+                            f.write(f"Newly Opened Ports ({len(comparison['newly_opened'])}):\n")
+                            for port in sorted(comparison['newly_opened']):
+                                details = comparison['newly_opened_details'].get(port, {})
+                                f.write(f"  - Port {port}: {details.get('service', 'Unknown')}\n")
+                            f.write("\n")
+                        
+                        if comparison['newly_closed']:
+                            f.write(f"Newly Closed Ports ({len(comparison['newly_closed'])}):\n")
+                            for port in sorted(comparison['newly_closed']):
+                                details = comparison['newly_closed_details'].get(port, {})
+                                f.write(f"  - Port {port}: {details.get('service', 'Unknown')}\n")
+                            f.write("\n")
+                        
+                        if comparison['unchanged']:
+                            f.write(f"Unchanged Ports ({len(comparison['unchanged'])}):\n")
+                            for port in sorted(list(comparison['unchanged'])[:20]):
+                                details = comparison['unchanged_details'].get(port, {})
+                                f.write(f"  - Port {port}: {details.get('service', 'Unknown')}\n")
+                            if len(comparison['unchanged']) > 20:
+                                f.write(f"  ... and {len(comparison['unchanged']) - 20} more\n")
+                    
+                    self.app.show_toast(f"Comparison exported to {filepath}", "success")
+                except Exception as e:
+                    self.app.show_toast(f"Export failed: {e}", "error")
+        
+        export_btn = StyledButton(button_frame, text="📄 Export Comparison", command=export_comparison, variant="neutral")
+        export_btn.pack(side="left", padx=5)
+        add_tooltip_to_widget(export_btn, "Export comparison results to file")
         
         # Auto-compare latest scans
         compare_selected()
