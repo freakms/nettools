@@ -166,8 +166,8 @@ class SectionSeparator(ctk.CTkFrame):
         super().__init__(parent, **kwargs)
 
 
-class LoadingSpinner(ctk.CTkLabel):
-    """A simple loading indicator with electric violet"""
+class SimpleLoadingIndicator(ctk.CTkLabel):
+    """A simple loading indicator with electric violet - static text only"""
     
     def __init__(self, parent, text="Loading...", **kwargs):
         kwargs.setdefault('text', f"⏳ {text}")
