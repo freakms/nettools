@@ -1607,48 +1607,57 @@ Actions:
     
     def create_status_bar(self):
         """Create status bar with electric violet theme"""
+        # Professional status bar with subtle top border
         status_frame = ctk.CTkFrame(
             self, 
-            height=35, 
+            height=32, 
             corner_radius=0,
-            fg_color=COLORS['dashboard_card']
+            fg_color=COLORS['dashboard_card'],
+            border_width=0
         )
         status_frame.pack(fill="x", side="bottom")
         status_frame.pack_propagate(False)
         
+        # Top border accent
+        status_border = ctk.CTkFrame(status_frame, height=1, fg_color=COLORS.get('border', ("#E5E7EB", "#374151")))
+        status_border.pack(fill="x", side="top")
+        
+        # Status indicator dot
+        self.status_dot = ctk.CTkLabel(
+            status_frame,
+            text="●",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['success']
+        )
+        self.status_dot.pack(side="left", padx=(16, 4), pady=5)
+        
         self.status_label = ctk.CTkLabel(
             status_frame,
-            text="Ready.",
+            text="Ready",
             font=ctk.CTkFont(size=11),
-            text_color=COLORS['neon_cyan']
+            text_color=COLORS['text_secondary']
         )
-        self.status_label.pack(side="left", padx=15, pady=5)
+        self.status_label.pack(side="left", pady=5)
         
         self.progress_bar = ctk.CTkProgressBar(
             status_frame, 
-            width=200,
-            progress_color=COLORS['electric_violet']
+            width=150,
+            height=4,
+            progress_color=COLORS['electric_violet'],
+            corner_radius=2
         )
-        self.progress_bar.pack(side="left", padx=15, pady=5)
+        self.progress_bar.pack(side="left", padx=16, pady=5)
         self.progress_bar.set(0)
         self.progress_bar.pack_forget()  # Hide initially
         
-        # Keyboard shortcuts hint (Phase 5)
+        # Keyboard shortcuts hint - minimal style
         shortcuts_hint = ctk.CTkLabel(
             status_frame,
-            text="⌨️ Ctrl+K: Search  |  Ctrl+H: History  |  Ctrl+,: Settings  |  Right-click: Context menu",
-            font=ctk.CTkFont(size=10),
+            text="⌨ Ctrl+K Search  •  Ctrl+H History  •  Ctrl+, Settings",
+            font=ctk.CTkFont(size=9),
             text_color=COLORS['text_secondary']
         )
-        shortcuts_hint.pack(side="right", padx=(0, 20), pady=5)
-        
-        copyright_label = ctk.CTkLabel(
-            status_frame,
-            text=f"© {APP_COMPANY}",
-            font=ctk.CTkFont(size=10),
-            text_color=COLORS['text_secondary']
-        )
-        copyright_label.pack(side="right", padx=15, pady=5)
+        shortcuts_hint.pack(side="right", padx=16, pady=5)
     
     def is_admin(self):
         """Check if running with administrator privileges"""
