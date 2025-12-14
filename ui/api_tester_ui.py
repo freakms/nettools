@@ -301,9 +301,11 @@ class APITesterUI:
             self.app.after(0, lambda: self._show_response(status_code, status_reason, color, elapsed))
             
         except urllib.error.HTTPError as e:
-            self.response_headers_data = f"HTTP Error: {e.code}"
+            err_code = e.code
+            err_reason = str(e.reason)
+            self.response_headers_data = f"HTTP Error: {err_code}"
             self.response_body_data = e.read().decode('utf-8', errors='ignore') if e.fp else str(e)
-            self.app.after(0, lambda: self._show_response(e.code, str(e.reason), COLORS['danger'], 0))
+            self.app.after(0, lambda c=err_code, r=err_reason: self._show_response(c, r, COLORS['danger'], 0))
             
         except Exception as e:
             self.response_body_data = f"Error: {str(e)}"
