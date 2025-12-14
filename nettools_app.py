@@ -359,11 +359,35 @@ class NetToolsApp(ctk.CTk):
         self.destroy()
     
     def open_quick_switcher(self, event=None):
-        """Focus the global search bar (Ctrl+K)"""
-        if hasattr(self, 'global_search_entry'):
-            self.global_search_entry.focus()
-            self.global_search_entry.select_range(0, 'end')
+        """Focus the command palette in sidebar (Ctrl+K)"""
+        # Focus the command palette in sidebar
+        if hasattr(self, 'command_palette'):
+            # Expand sidebar if collapsed
+            if self.sidebar_collapsed:
+                self._expand_sidebar()
+            self.command_palette.focus()
         return "break"  # Prevent default behavior
+    
+    def _handle_content_search(self, search_text):
+        """Handle content search from command palette"""
+        if not search_text:
+            return
+        
+        # Perform search based on current page
+        if self.current_page == "scanner" and hasattr(self, 'all_results'):
+            self.global_search_var.set(search_text)
+            self.filter_scanner_results(search_text)
+            self.show_toast(f"Searching for \"{search_text}\" in scanner results", "info")
+        elif self.current_page == "portscan":
+            self.show_toast(f"Searching for \"{search_text}\" in port scan results", "info")
+            # TODO: Implement port scan content search
+        elif self.current_page == "dns":
+            self.show_toast(f"Searching for \"{search_text}\" in DNS results", "info")
+            # TODO: Implement DNS content search
+        else:
+            # Fall back to global search bar
+            self.global_search_var.set(search_text)
+            self.show_toast(f"Searching for \"{search_text}\"", "info")
     
     def quick_export(self, event=None):
         """Context-aware quick export (Ctrl+E)"""
