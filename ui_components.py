@@ -174,79 +174,110 @@ class SectionTitle(ctk.CTkLabel):
 
 
 class SubTitle(ctk.CTkLabel):
-    """A styled subtitle with neon cyan accent"""
+    """A styled subtitle with muted secondary color"""
     
     def __init__(self, parent, text, **kwargs):
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['body']))
-        kwargs.setdefault('text_color', COLORS['neon_cyan'])
+        kwargs.setdefault('text_color', COLORS['text_secondary'])
         kwargs.setdefault('text', text)
         
         super().__init__(parent, **kwargs)
 
 
 class ResultRow(ctk.CTkFrame):
-    """A styled result row with electric violet hover effect"""
+    """
+    Professional styled result row with smooth hover transitions.
+    Used for displaying scan results, list items, etc.
+    """
     
-    def __init__(self, parent, **kwargs):
-        # Apply electric violet row styling
+    def __init__(self, parent, striped=False, interactive=True, **kwargs):
+        """
+        Args:
+            striped: Alternate background for zebra striping
+            interactive: Enable hover effects
+        """
+        # Apply row styling
         kwargs.setdefault('height', ROW_STYLE['height'])
-        kwargs.setdefault('corner_radius', ROW_STYLE['radius'])
-        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        kwargs.setdefault('corner_radius', 6)
+        
+        # Determine background color
+        if striped:
+            kwargs.setdefault('fg_color', ("gray96", "gray18"))
+        else:
+            kwargs.setdefault('fg_color', COLORS['dashboard_card'])
         
         super().__init__(parent, **kwargs)
         
         # Prevent height collapse
         self.pack_propagate(False)
         
-        # Add hover effect
-        self.bind('<Enter>', self._on_enter)
-        self.bind('<Leave>', self._on_leave)
-        
         # Store original color
-        self._original_color = kwargs.get('fg_color', COLORS['dashboard_card'])
+        self._original_color = self.cget('fg_color')
+        self._interactive = interactive
+        
+        # Add hover effect
+        if self._interactive:
+            self.bind('<Enter>', self._on_enter)
+            self.bind('<Leave>', self._on_leave)
     
     def _on_enter(self, event):
-        """Handle mouse enter with violet glow"""
-        try:
-            self.configure(fg_color=COLORS['dashboard_card_hover'])
-        except (AttributeError, RuntimeError):
-            # Child widgets may not be fully initialized yet
-            pass
+        """Handle mouse enter with subtle highlight"""
+        if self._interactive:
+            try:
+                self.configure(fg_color=COLORS['dashboard_card_hover'])
+            except (AttributeError, RuntimeError):
+                pass
     
     def _on_leave(self, event):
         """Handle mouse leave"""
-        try:
-            self.configure(fg_color=self._original_color)
-        except (AttributeError, RuntimeError):
-            # Child widgets may not be fully initialized yet
-            pass
+        if self._interactive:
+            try:
+                self.configure(fg_color=self._original_color)
+            except (AttributeError, RuntimeError):
+                pass
 
 
 class StatusBadge(ctk.CTkFrame):
-    """A styled status badge/chip"""
+    """
+    Professional status badge/chip with multiple styles.
+    Used for showing status indicators, tags, labels.
+    """
     
-    def __init__(self, parent, text, status="neutral", **kwargs):
-        # Determine color based on status
-        if status == "online" or status == "success":
-            bg_color = COLORS['success']
-        elif status == "offline" or status == "error":
-            bg_color = COLORS['neutral']
-        elif status == "warning":
-            bg_color = COLORS['warning']
-        else:
-            bg_color = COLORS['neutral']
+    def __init__(self, parent, text, status="neutral", size="small", **kwargs):
+        """
+        Args:
+            status: "online", "success", "offline", "error", "warning", "info", "neutral"
+            size: "small", "medium"
+        """
+        # Determine colors based on status
+        status_colors = {
+            "online": (COLORS['success'], "white"),
+            "success": (COLORS['success'], "white"),
+            "offline": (COLORS['neutral'], "white"),
+            "error": (COLORS['danger'], "white"),
+            "warning": (COLORS['warning'], "white"),
+            "info": (COLORS['electric_violet'], "white"),
+            "neutral": (COLORS['neutral'], "white"),
+        }
+        
+        bg_color, text_color = status_colors.get(status, status_colors["neutral"])
         
         kwargs.setdefault('fg_color', bg_color)
         kwargs.setdefault('corner_radius', 12)
         
         super().__init__(parent, **kwargs)
         
+        # Font size based on badge size
+        font_size = 10 if size == "small" else 12
+        pad_x = 8 if size == "small" else 12
+        pad_y = 3 if size == "small" else 5
+        
         # Add label
         label = ctk.CTkLabel(
             self,
             text=text,
-            font=ctk.CTkFont(size=FONTS['small'], weight="bold"),
-            text_color="white"
+            font=ctk.CTkFont(size=font_size, weight="bold"),
+            text_color=text_color
         )
         label.pack(padx=10, pady=4)
 
