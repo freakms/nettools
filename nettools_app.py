@@ -718,6 +718,7 @@ Actions:
             ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor"]),
             ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history"]),
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface"]),
+            ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "bandwidth"]),
             ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli"]),
             ("phpipam", "📊", "phpIPAM", ["ipam", "ip", "management"]),
         ]
