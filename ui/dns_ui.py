@@ -304,6 +304,17 @@ class DNSLookupUI:
             except:
                 pass
         
+        # Save to comparison history
+        if results.get("success"):
+            try:
+                self.comparison_history.save_dns_lookup(
+                    results["query"],
+                    results["type"],
+                    results
+                )
+            except Exception as e:
+                print(f"Error saving DNS lookup history: {e}")
+        
         # Clear frame
         for widget in self.dns_results_frame.winfo_children():
             widget.destroy()
