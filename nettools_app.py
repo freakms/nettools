@@ -801,6 +801,7 @@ Actions:
             ]),
             ("ADVANCED", "⚙️", [
                 ("profiles", "📁", "Network Profiles", "Manage network configs"),
+                ("speedtest", "🚀", "Speedtest", "Ookla internet speed test"),
                 ("remote", "🖥️", "Remote Tools", "PSExec & iPerf"),
                 ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
                 ("phpipam", "📦", "phpIPAM", "IP address management"),
