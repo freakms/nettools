@@ -687,6 +687,14 @@ gateway.home.lan
     
     def _finalize_scan(self, results, message):
         """Finalize scan in main thread - render all results at once"""
+        # Remove loading spinner
+        if hasattr(self.app, 'loading_spinner'):
+            try:
+                self.app.loading_spinner.stop()
+                self.app.loading_spinner.destroy()
+            except:
+                pass
+        
         # Re-enable buttons
         self.app.start_scan_btn.configure(state="normal")
         self.app.import_list_btn.configure(state="normal")
