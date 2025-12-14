@@ -364,6 +364,11 @@ class ScannerUI:
         self.app.result_rows = []
         self.app.all_results = []  # Clear stored results too
         
+        # Show loading spinner
+        self.app.loading_spinner = LoadingSpinner(self.app.results_scrollable, text="Scanning network...")
+        self.app.loading_spinner.pack(pady=50)
+        self.app.loading_spinner.start()
+        
         # Update UI for scan start
         self.app.start_scan_btn.configure(state="disabled")
         self.app.import_list_btn.configure(state="disabled")
