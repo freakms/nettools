@@ -1147,114 +1147,14 @@ Actions:
 
     def create_main_content(self):
         """Create main content area with global search and pages"""
-        # Main container (holds search bar + content)
+        # Main container (holds content)
         self.main_container = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.main_container.pack(side="right", fill="both", expand=True, padx=0, pady=0)
         
-        # Global search bar at top
-        self.global_search_frame = ctk.CTkFrame(
-            self.main_container, 
-            height=50, 
-            corner_radius=0,
-            fg_color=COLORS['dashboard_card']
-        )
-        self.global_search_frame.pack(fill="x", padx=0, pady=0)
-        self.global_search_frame.pack_propagate(False)
-        
-        # Search bar content
-        search_inner = ctk.CTkFrame(self.global_search_frame, fg_color="transparent")
-        search_inner.pack(fill="both", expand=True, padx=15, pady=8)
-        
-        # Search icon and label
-        search_label = ctk.CTkLabel(
-            search_inner,
-            text="🔍",
-            font=ctk.CTkFont(size=16)
-        )
-        search_label.pack(side="left", padx=(0, 5))
-        
-        # Global search entry
+        # Initialize global_search_var for backward compatibility (used by some methods)
         self.global_search_var = ctk.StringVar()
-        self.global_search_entry = ctk.CTkEntry(
-            search_inner,
-            placeholder_text="Search tools, results, or type a command... (Ctrl+K)",
-            textvariable=self.global_search_var,
-            height=34,
-            corner_radius=17,
-            border_width=1,
-            border_color=COLORS['electric_violet'],
-            fg_color=COLORS['bg_card']
-        )
-        self.global_search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
-        self.global_search_entry.bind('<Return>', self.perform_global_search)
-        self.global_search_entry.bind('<KeyRelease>', self.on_global_search_typing)
         
-        # Quick filter buttons
-        filter_frame = ctk.CTkFrame(search_inner, fg_color="transparent")
-        filter_frame.pack(side="right")
-        
-        # Filter buttons for current page context
-        self.filter_online_btn = ctk.CTkButton(
-            filter_frame,
-            text="✅ Online",
-            width=70,
-            height=28,
-            corner_radius=14,
-            fg_color="transparent",
-            border_width=1,
-            border_color=COLORS['success'],
-            hover_color=COLORS['success'],
-            font=ctk.CTkFont(size=11),
-            command=lambda: self.quick_filter("online")
-        )
-        self.filter_online_btn.pack(side="left", padx=2)
-        
-        self.filter_offline_btn = ctk.CTkButton(
-            filter_frame,
-            text="❌ Offline",
-            width=70,
-            height=28,
-            corner_radius=14,
-            fg_color="transparent",
-            border_width=1,
-            border_color=COLORS['danger'],
-            hover_color=COLORS['danger'],
-            font=ctk.CTkFont(size=11),
-            command=lambda: self.quick_filter("offline")
-        )
-        self.filter_offline_btn.pack(side="left", padx=2)
-        
-        self.filter_clear_btn = ctk.CTkButton(
-            filter_frame,
-            text="✕ Clear",
-            width=60,
-            height=28,
-            corner_radius=14,
-            fg_color="transparent",
-            hover_color=COLORS['dashboard_card_hover'],
-            font=ctk.CTkFont(size=11),
-            command=self.clear_global_search
-        )
-        self.filter_clear_btn.pack(side="left", padx=2)
-        
-        # History toggle button
-        self.history_btn = ctk.CTkButton(
-            filter_frame,
-            text="📜",
-            width=36,
-            height=28,
-            corner_radius=14,
-            fg_color="transparent",
-            border_width=1,
-            border_color=COLORS['neon_cyan'],
-            hover_color=COLORS['neon_cyan'],
-            font=ctk.CTkFont(size=14),
-            command=self.toggle_history_panel
-        )
-        self.history_btn.pack(side="left", padx=(10, 2))
-        Tooltip(self.history_btn, "Toggle History Panel (Ctrl+H)")
-        
-        # Main content frame (below search)
+        # Main content frame (full area now, no search bar)
         self.main_content = ctk.CTkFrame(self.main_container, corner_radius=0)
         self.main_content.pack(fill="both", expand=True, padx=0, pady=0)
         
