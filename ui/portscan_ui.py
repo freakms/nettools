@@ -302,6 +302,11 @@ class PortScannerUI:
         for widget in self.app.port_results_frame.winfo_children():
             widget.destroy()
         
+        # Show loading spinner
+        self.loading_spinner = LoadingSpinner(self.app.port_results_frame, text=f"Initializing scan of {len(ports)} ports...")
+        self.loading_spinner.pack(pady=50)
+        self.loading_spinner.start()
+        
         # Start scan in background thread
         scan_thread = threading.Thread(
             target=self.run_port_scan,
