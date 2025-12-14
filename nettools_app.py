@@ -782,6 +782,7 @@ Actions:
                 ("profiles", "📁", "Network Profiles", "Manage profiles"),
             ]),
             ("ADVANCED", "🛡", [
+                ("remote", "🖥️", "Remote Tools", "PSExec & iPerf integration"),
                 ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
                 ("phpipam", "📊", "phpIPAM", "IP address management"),
             ]),
