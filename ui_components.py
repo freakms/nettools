@@ -674,6 +674,296 @@ class SearchBar(ctk.CTkFrame):
         return self.search_var.get()
 
 
+class SmartCommandPalette(ctk.CTkFrame):
+    """
+    Smart command palette / search bar for the sidebar.
+    Features:
+    - Tool suggestions when typing (e.g., "trace" suggests Traceroute)
+    - Ability to search within current tool's content
+    - Compact design for sidebar placement
+    
+    Usage:
+        palette = SmartCommandPalette(
+            parent, 
+            tools=[(id, icon, name), ...],
+            on_tool_select=callback,
+            on_content_search=callback
+        )
+    """
+    
+    def __init__(self, parent, tools=None, on_tool_select=None, on_content_search=None, **kwargs):
+        kwargs.setdefault('fg_color', 'transparent')
+        super().__init__(parent, **kwargs)
+        
+        self.tools = tools or []  # List of (tool_id, icon, name, keywords)
+        self.on_tool_select = on_tool_select
+        self.on_content_search = on_content_search
+        self.suggestions_window = None
+        self.selected_index = -1
+        self.suggestion_buttons = []
+        
+        self._create_ui()
+    
+    def _create_ui(self):
+        """Create the command palette UI"""
+        # Search container
+        self.search_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.search_container.pack(fill="x", padx=5, pady=5)
+        
+        # Search entry with icon
+        self.search_var = ctk.StringVar()
+        self.search_var.trace_add("write", self._on_text_change)
+        
+        self.entry = ctk.CTkEntry(
+            self.search_container,
+            placeholder_text="🔍 Search tools...",
+            textvariable=self.search_var,
+            height=32,
+            corner_radius=16,
+            border_width=1,
+            border_color=COLORS['electric_violet'],
+            fg_color=COLORS['bg_card'],
+            font=ctk.CTkFont(size=11)
+        )
+        self.entry.pack(fill="x")
+        
+        # Bind keyboard events
+        self.entry.bind('<Return>', self._on_enter)
+        self.entry.bind('<Up>', self._on_arrow_up)
+        self.entry.bind('<Down>', self._on_arrow_down)
+        self.entry.bind('<Escape>', self._close_suggestions)
+        self.entry.bind('<FocusOut>', self._on_focus_out)
+    
+    def _on_text_change(self, *args):
+        """Handle text input changes - show suggestions"""
+        text = self.search_var.get().strip().lower()
+        
+        if not text:
+            self._close_suggestions()
+            return
+        
+        # Find matching tools
+        matches = self._find_matches(text)
+        
+        if matches:
+            self._show_suggestions(matches)
+        else:
+            self._close_suggestions()
+    
+    def _find_matches(self, text):
+        """Find tools matching the search text"""
+        matches = []
+        
+        for tool in self.tools:
+            tool_id, icon, name = tool[:3]
+            keywords = tool[3] if len(tool) > 3 else []
+            
+            # Check if text matches name or keywords
+            name_lower = name.lower()
+            if text in name_lower or text in tool_id.lower():
+                matches.append(tool)
+            elif any(text in kw.lower() for kw in keywords):
+                matches.append(tool)
+        
+        return matches[:6]  # Limit to 6 suggestions
+    
+    def _show_suggestions(self, matches):
+        """Show suggestions dropdown"""
+        self._close_suggestions()
+        
+        if not matches:
+            return
+        
+        # Get position relative to entry
+        root = self.winfo_toplevel()
+        
+        # Create suggestions window
+        self.suggestions_window = ctk.CTkToplevel(root)
+        self.suggestions_window.withdraw()
+        self.suggestions_window.overrideredirect(True)
+        self.suggestions_window.attributes('-topmost', True)
+        
+        try:
+            self.suggestions_window.attributes('-toolwindow', True)
+        except:
+            pass
+        
+        # Suggestions frame
+        suggestions_frame = ctk.CTkFrame(
+            self.suggestions_window,
+            fg_color=("#2D2D2D", "#1E1B2E"),
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['electric_violet']
+        )
+        suggestions_frame.pack(fill="both", expand=True, padx=1, pady=1)
+        
+        # Header
+        header = ctk.CTkLabel(
+            suggestions_frame,
+            text="🔍 Tools",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            text_color=COLORS['neon_cyan'],
+            anchor="w"
+        )
+        header.pack(fill="x", padx=10, pady=(8, 4))
+        
+        # Suggestion items
+        self.suggestion_buttons = []
+        self.selected_index = -1
+        
+        for idx, tool in enumerate(matches):
+            tool_id, icon, name = tool[:3]
+            
+            def make_select(tid=tool_id):
+                def select():
+                    self._select_tool(tid)
+                return select
+            
+            btn = ctk.CTkButton(
+                suggestions_frame,
+                text=f" {icon}  {name}",
+                command=make_select(),
+                fg_color="transparent",
+                hover_color=COLORS['electric_violet'],
+                text_color="white",
+                anchor="w",
+                height=32,
+                corner_radius=6,
+                font=ctk.CTkFont(size=12)
+            )
+            btn.pack(fill="x", padx=5, pady=2)
+            btn.tool_id = tool_id
+            self.suggestion_buttons.append(btn)
+        
+        # Separator
+        sep = ctk.CTkFrame(suggestions_frame, height=1, fg_color=COLORS['text_secondary'])
+        sep.pack(fill="x", padx=10, pady=6)
+        
+        # Content search option
+        search_text = self.search_var.get().strip()
+        search_content_btn = ctk.CTkButton(
+            suggestions_frame,
+            text=f"🔎 Search \"{search_text}\" in current view",
+            command=self._search_content,
+            fg_color="transparent",
+            hover_color=COLORS['neon_cyan'],
+            text_color=COLORS['text_secondary'],
+            anchor="w",
+            height=30,
+            corner_radius=6,
+            font=ctk.CTkFont(size=11)
+        )
+        search_content_btn.pack(fill="x", padx=5, pady=(0, 5))
+        
+        # Position the suggestions window below the entry
+        self.suggestions_window.update_idletasks()
+        
+        entry_x = self.entry.winfo_rootx()
+        entry_y = self.entry.winfo_rooty() + self.entry.winfo_height() + 2
+        entry_width = self.entry.winfo_width()
+        
+        # Ensure minimum width
+        width = max(entry_width, 200)
+        
+        self.suggestions_window.geometry(f"{width}x{self.suggestions_window.winfo_reqheight()}+{entry_x}+{entry_y}")
+        self.suggestions_window.deiconify()
+        self.suggestions_window.lift()
+    
+    def _close_suggestions(self, event=None):
+        """Close suggestions dropdown"""
+        if self.suggestions_window is not None:
+            try:
+                self.suggestions_window.destroy()
+            except:
+                pass
+            self.suggestions_window = None
+            self.suggestion_buttons = []
+            self.selected_index = -1
+    
+    def _on_focus_out(self, event=None):
+        """Handle focus out - close suggestions after a delay"""
+        self.after(200, self._close_suggestions)
+    
+    def _on_enter(self, event=None):
+        """Handle Enter key - select highlighted suggestion or search content"""
+        if self.selected_index >= 0 and self.selected_index < len(self.suggestion_buttons):
+            tool_id = self.suggestion_buttons[self.selected_index].tool_id
+            self._select_tool(tool_id)
+        elif self.suggestion_buttons:
+            # Select first suggestion if nothing highlighted
+            tool_id = self.suggestion_buttons[0].tool_id
+            self._select_tool(tool_id)
+        else:
+            # No suggestions - do content search
+            self._search_content()
+        return "break"
+    
+    def _on_arrow_up(self, event=None):
+        """Navigate up in suggestions"""
+        if not self.suggestion_buttons:
+            return "break"
+        
+        self._update_selection(self.selected_index - 1)
+        return "break"
+    
+    def _on_arrow_down(self, event=None):
+        """Navigate down in suggestions"""
+        if not self.suggestion_buttons:
+            return "break"
+        
+        self._update_selection(self.selected_index + 1)
+        return "break"
+    
+    def _update_selection(self, new_index):
+        """Update visual selection in suggestions"""
+        if new_index < 0:
+            new_index = len(self.suggestion_buttons) - 1
+        elif new_index >= len(self.suggestion_buttons):
+            new_index = 0
+        
+        # Reset previous selection
+        if self.selected_index >= 0 and self.selected_index < len(self.suggestion_buttons):
+            self.suggestion_buttons[self.selected_index].configure(fg_color="transparent")
+        
+        # Highlight new selection
+        self.selected_index = new_index
+        if self.selected_index >= 0:
+            self.suggestion_buttons[self.selected_index].configure(fg_color=COLORS['electric_violet'])
+    
+    def _select_tool(self, tool_id):
+        """Select a tool from suggestions"""
+        self._close_suggestions()
+        self.search_var.set("")  # Clear search
+        
+        if self.on_tool_select:
+            self.on_tool_select(tool_id)
+    
+    def _search_content(self):
+        """Trigger content search in current view"""
+        text = self.search_var.get().strip()
+        self._close_suggestions()
+        
+        if text and self.on_content_search:
+            self.on_content_search(text)
+    
+    def focus(self):
+        """Focus the search entry"""
+        self.entry.focus()
+        self.entry.select_range(0, 'end')
+    
+    def get(self):
+        """Get current search text"""
+        return self.search_var.get()
+    
+    def set_collapsed(self, collapsed):
+        """Adjust appearance for collapsed sidebar"""
+        if collapsed:
+            self.entry.configure(placeholder_text="🔍")
+        else:
+            self.entry.configure(placeholder_text="🔍 Search tools...")
+
+
 class SortableTable(ctk.CTkFrame):
     """
     Sortable and filterable table component.
