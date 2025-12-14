@@ -1,0 +1,545 @@
+"""
+Remote Tools Module - PSExec and iPerf Integration
+Provides remote command execution and bandwidth testing capabilities.
+"""
+
+import subprocess
+import platform
+import os
+import threading
+import shutil
+from pathlib import Path
+from typing import Optional, Callable, Dict, Any
+
+
+class PSExecTool:
+    """
+    PSExec integration for remote command execution.
+    Allows running commands on remote Windows hosts.
+    """
+    
+    def __init__(self):
+        self.psexec_path = self._find_psexec()
+        self.is_available = self.psexec_path is not None
+    
+    def _find_psexec(self) -> Optional[str]:
+        """Find PSExec executable in system PATH or common locations"""
+        # Check PATH first
+        psexec_name = "PsExec.exe" if platform.system() == "Windows" else "psexec"
+        psexec_path = shutil.which(psexec_name)
+        
+        if psexec_path:
+            return psexec_path
+        
+        # Check common Windows locations
+        if platform.system() == "Windows":
+            common_paths = [
+                r"C:\PsTools\PsExec.exe",
+                r"C:\Windows\System32\PsExec.exe",
+                r"C:\Tools\PsExec.exe",
+                os.path.expanduser(r"~\Downloads\PsExec.exe"),
+            ]
+            
+            for path in common_paths:
+                if os.path.exists(path):
+                    return path
+        
+        return None
+    
+    def set_psexec_path(self, path: str) -> bool:
+        """Manually set PSExec path"""
+        if os.path.exists(path):
+            self.psexec_path = path
+            self.is_available = True
+            return True
+        return False
+    
+    def execute_remote_command(
+        self,
+        target_host: str,
+        command: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None,
+        copy_file: Optional[str] = None,
+        interactive: bool = False,
+        elevated: bool = False,
+        callback: Optional[Callable[[str], None]] = None
+    ) -> Dict[str, Any]:
+        """
+        Execute a command on a remote host using PSExec.
+        
+        Args:
+            target_host: Target hostname or IP address
+            command: Command to execute
+            username: Remote username (optional)
+            password: Remote password (optional)
+            domain: Domain name (optional)
+            copy_file: Path to file to copy before execution (optional)
+            interactive: Run interactively (-i flag)
+            elevated: Run with elevated privileges (-h flag)
+            callback: Function to call with output lines
+            
+        Returns:
+            Dictionary with 'success', 'output', 'error', 'return_code'
+        """
+        if not self.is_available:
+            return {
+                'success': False,
+                'output': '',
+                'error': 'PSExec not found. Please download from Microsoft Sysinternals.',
+                'return_code': -1
+            }
+        
+        # Build PSExec command
+        cmd = [self.psexec_path, f"\\\\{target_host}"]
+        
+        # Add credentials if provided
+        if username:
+            if domain:
+                cmd.extend(["-u", f"{domain}\\{username}"])
+            else:
+                cmd.extend(["-u", username])
+        
+        if password:
+            cmd.extend(["-p", password])
+        
+        # Add flags
+        if interactive:
+            cmd.append("-i")
+        
+        if elevated:
+            cmd.append("-h")
+        
+        # Accept EULA silently
+        cmd.append("-accepteula")
+        
+        # Add copy file flag if specified
+        if copy_file and os.path.exists(copy_file):
+            cmd.extend(["-c", copy_file])
+        
+        # Add the command to execute
+        cmd.extend(["cmd", "/c", command])
+        
+        try:
+            # Execute with CREATE_NO_WINDOW on Windows
+            creation_flags = 0
+            if platform.system() == "Windows":
+                creation_flags = subprocess.CREATE_NO_WINDOW
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=creation_flags
+            )
+            
+            output_lines = []
+            
+            # Read output line by line
+            for line in process.stdout:
+                output_lines.append(line.rstrip())
+                if callback:
+                    callback(line.rstrip())
+            
+            process.wait()
+            
+            stderr = process.stderr.read()
+            
+            return {
+                'success': process.returncode == 0,
+                'output': '\n'.join(output_lines),
+                'error': stderr,
+                'return_code': process.returncode
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'output': '',
+                'error': str(e),
+                'return_code': -1
+            }
+    
+    def start_remote_cmd(
+        self,
+        target_host: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Start an interactive remote CMD session.
+        Opens a new command window connected to the remote host.
+        
+        Returns:
+            Dictionary with 'success' and 'error' if failed
+        """
+        if not self.is_available:
+            return {
+                'success': False,
+                'error': 'PSExec not found.'
+            }
+        
+        # Build command
+        cmd = [self.psexec_path, f"\\\\{target_host}"]
+        
+        if username:
+            if domain:
+                cmd.extend(["-u", f"{domain}\\{username}"])
+            else:
+                cmd.extend(["-u", username])
+        
+        if password:
+            cmd.extend(["-p", password])
+        
+        cmd.extend(["-accepteula", "-i", "cmd"])
+        
+        try:
+            # Start without waiting (interactive session)
+            subprocess.Popen(cmd, creationflags=subprocess.CREATE_NEW_CONSOLE if platform.system() == "Windows" else 0)
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def copy_file_to_remote(
+        self,
+        target_host: str,
+        local_path: str,
+        remote_path: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Copy a file to a remote host using administrative share.
+        
+        Args:
+            target_host: Target hostname or IP
+            local_path: Path to local file
+            remote_path: Destination path on remote host (e.g., C:\\Tools\\file.exe)
+            username: Credentials
+            password: Credentials
+            domain: Domain
+            
+        Returns:
+            Dictionary with 'success', 'error'
+        """
+        if not os.path.exists(local_path):
+            return {'success': False, 'error': f'Local file not found: {local_path}'}
+        
+        # Convert remote path to UNC path
+        # C:\Tools\file.exe -> \\host\C$\Tools\file.exe
+        if len(remote_path) >= 2 and remote_path[1] == ':':
+            drive = remote_path[0]
+            path_rest = remote_path[2:]
+            unc_path = f"\\\\{target_host}\\{drive}${path_rest}"
+        else:
+            return {'success': False, 'error': 'Invalid remote path format. Use drive letter path (e.g., C:\\folder\\file)'}
+        
+        try:
+            # Use net use to connect if credentials provided
+            if username and password:
+                net_cmd = f"net use \\\\{target_host}\\IPC$ /user:{domain + chr(92) if domain else ''}{username} {password}"
+                subprocess.run(net_cmd, shell=True, capture_output=True)
+            
+            # Copy file
+            shutil.copy2(local_path, unc_path)
+            
+            return {'success': True}
+            
+        except PermissionError:
+            return {'success': False, 'error': 'Access denied. Check credentials and permissions.'}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+
+class IPerfTool:
+    """
+    iPerf3 integration for bandwidth testing.
+    """
+    
+    def __init__(self):
+        self.iperf_path = self._find_iperf()
+        self.is_available = self.iperf_path is not None
+        self.current_process = None
+    
+    def _find_iperf(self) -> Optional[str]:
+        """Find iPerf3 executable"""
+        # Check PATH
+        for name in ["iperf3", "iperf3.exe", "iperf", "iperf.exe"]:
+            path = shutil.which(name)
+            if path:
+                return path
+        
+        # Check common Windows locations
+        if platform.system() == "Windows":
+            common_paths = [
+                r"C:\iperf3\iperf3.exe",
+                r"C:\Tools\iperf3.exe",
+                r"C:\Program Files\iperf3\iperf3.exe",
+                os.path.expanduser(r"~\Downloads\iperf3.exe"),
+            ]
+            
+            for path in common_paths:
+                if os.path.exists(path):
+                    return path
+        
+        return None
+    
+    def set_iperf_path(self, path: str) -> bool:
+        """Manually set iPerf path"""
+        if os.path.exists(path):
+            self.iperf_path = path
+            self.is_available = True
+            return True
+        return False
+    
+    def run_client_test(
+        self,
+        server_host: str,
+        port: int = 5201,
+        duration: int = 10,
+        parallel: int = 1,
+        reverse: bool = False,
+        udp: bool = False,
+        bandwidth: Optional[str] = None,
+        callback: Optional[Callable[[str], None]] = None
+    ) -> Dict[str, Any]:
+        """
+        Run iPerf3 client test.
+        
+        Args:
+            server_host: Server IP or hostname
+            port: Server port (default 5201)
+            duration: Test duration in seconds
+            parallel: Number of parallel streams
+            reverse: Reverse mode (server sends, client receives)
+            udp: Use UDP instead of TCP
+            bandwidth: Target bandwidth for UDP (e.g., "100M")
+            callback: Function to call with output lines
+            
+        Returns:
+            Dictionary with test results
+        """
+        if not self.is_available:
+            return {
+                'success': False,
+                'error': 'iPerf3 not found. Please install iPerf3.',
+                'results': None
+            }
+        
+        cmd = [
+            self.iperf_path,
+            "-c", server_host,
+            "-p", str(port),
+            "-t", str(duration),
+            "-P", str(parallel),
+            "-J"  # JSON output for parsing
+        ]
+        
+        if reverse:
+            cmd.append("-R")
+        
+        if udp:
+            cmd.append("-u")
+            if bandwidth:
+                cmd.extend(["-b", bandwidth])
+        
+        try:
+            creation_flags = 0
+            if platform.system() == "Windows":
+                creation_flags = subprocess.CREATE_NO_WINDOW
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=creation_flags
+            )
+            
+            self.current_process = process
+            
+            output_lines = []
+            for line in process.stdout:
+                output_lines.append(line)
+                if callback:
+                    callback(line.rstrip())
+            
+            process.wait()
+            self.current_process = None
+            
+            output = ''.join(output_lines)
+            stderr = process.stderr.read()
+            
+            # Parse JSON results
+            results = None
+            try:
+                import json
+                results = json.loads(output)
+            except Exception:
+                pass
+            
+            return {
+                'success': process.returncode == 0,
+                'output': output,
+                'error': stderr,
+                'results': results,
+                'return_code': process.returncode
+            }
+            
+        except Exception as e:
+            self.current_process = None
+            return {
+                'success': False,
+                'error': str(e),
+                'results': None,
+                'return_code': -1
+            }
+    
+    def start_server(
+        self,
+        port: int = 5201,
+        one_off: bool = True,
+        callback: Optional[Callable[[str], None]] = None
+    ) -> Dict[str, Any]:
+        """
+        Start iPerf3 server.
+        
+        Args:
+            port: Port to listen on
+            one_off: Exit after one client connection
+            callback: Function to call with output
+            
+        Returns:
+            Process handle if successful
+        """
+        if not self.is_available:
+            return {
+                'success': False,
+                'error': 'iPerf3 not found.',
+                'process': None
+            }
+        
+        cmd = [self.iperf_path, "-s", "-p", str(port)]
+        
+        if one_off:
+            cmd.append("-1")
+        
+        try:
+            creation_flags = 0
+            if platform.system() == "Windows":
+                creation_flags = subprocess.CREATE_NO_WINDOW
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=creation_flags
+            )
+            
+            return {
+                'success': True,
+                'process': process
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'process': None
+            }
+    
+    def stop_current_test(self):
+        """Stop any running test"""
+        if self.current_process:
+            try:
+                self.current_process.terminate()
+                self.current_process = None
+            except Exception:
+                pass
+    
+    def copy_to_remote(
+        self,
+        target_host: str,
+        remote_path: str,
+        psexec_tool: Optional[PSExecTool] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Copy iPerf3 to a remote host.
+        
+        Args:
+            target_host: Target hostname/IP
+            remote_path: Destination folder (e.g., C:\\Tools)
+            psexec_tool: Optional PSExecTool instance for credential-based copy
+            username, password, domain: Credentials for remote access
+            
+        Returns:
+            Dictionary with 'success', 'remote_iperf_path', 'error'
+        """
+        if not self.is_available:
+            return {
+                'success': False,
+                'error': 'iPerf3 not found locally.',
+                'remote_iperf_path': None
+            }
+        
+        local_iperf = self.iperf_path
+        iperf_filename = os.path.basename(local_iperf)
+        full_remote_path = os.path.join(remote_path, iperf_filename)
+        
+        if psexec_tool:
+            result = psexec_tool.copy_file_to_remote(
+                target_host, local_iperf, full_remote_path,
+                username, password, domain
+            )
+            if result['success']:
+                return {
+                    'success': True,
+                    'remote_iperf_path': full_remote_path,
+                    'error': None
+                }
+            return {
+                'success': False,
+                'error': result['error'],
+                'remote_iperf_path': None
+            }
+        
+        # Try direct UNC copy
+        try:
+            if len(remote_path) >= 2 and remote_path[1] == ':':
+                drive = remote_path[0]
+                path_rest = remote_path[2:]
+                unc_folder = f"\\\\{target_host}\\{drive}${path_rest}"
+            else:
+                return {'success': False, 'error': 'Invalid remote path', 'remote_iperf_path': None}
+            
+            # Create folder if needed
+            os.makedirs(unc_folder, exist_ok=True)
+            
+            unc_file_path = os.path.join(unc_folder, iperf_filename)
+            shutil.copy2(local_iperf, unc_file_path)
+            
+            return {
+                'success': True,
+                'remote_iperf_path': full_remote_path,
+                'error': None
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'remote_iperf_path': None
+            }
+
+
+def get_remote_tools() -> tuple:
+    """Get instances of remote tools"""
+    return PSExecTool(), IPerfTool()
