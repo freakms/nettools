@@ -1181,6 +1181,8 @@ Actions:
             self.status_label.configure(text="Execute remote commands and bandwidth tests")
         elif page_id == "speedtest":
             self.status_label.configure(text="Test internet speed with Ookla servers")
+        elif page_id == "password":
+            self.status_label.configure(text="Generate secure passwords and passphrases")
     
     
     def show_page(self, page_id):
