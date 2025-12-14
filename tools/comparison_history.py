@@ -32,11 +32,24 @@ class ComparisonHistory:
         """
         history = self._load_history(self.port_scan_file)
         
+        # Debug output
+        print(f"DEBUG: Saving port scan for {target}")
+        print(f"DEBUG: Total results: {len(results)}")
+        if results:
+            print(f"DEBUG: First result sample: {results[0]}")
+        
+        # Filter open and closed ports (case-insensitive check)
+        open_ports = [r for r in results if r.get("state", "").lower() == "open"]
+        closed_ports = [r for r in results if r.get("state", "").lower() == "closed"]
+        
+        print(f"DEBUG: Open ports found: {len(open_ports)}")
+        print(f"DEBUG: Closed ports found: {len(closed_ports)}")
+        
         entry = {
             "timestamp": datetime.now().isoformat(),
             "target": target,
-            "open_ports": [r for r in results if r["state"] == "Open"],
-            "closed_ports": [r for r in results if r["state"] == "Closed"],
+            "open_ports": open_ports,
+            "closed_ports": closed_ports,
             "total_scanned": len(results)
         }
         
