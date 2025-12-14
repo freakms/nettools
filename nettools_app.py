@@ -871,32 +871,27 @@ Actions:
         bottom_padding = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=30)
         bottom_padding.pack(fill="x")
         
-        # Theme selector at bottom (fixed position outside scroll)
+        # Theme selector at bottom (fixed position outside scroll) - compact professional style
         theme_frame = ctk.CTkFrame(self.sidebar, corner_radius=0, fg_color="transparent")
-        theme_frame.pack(side="bottom", fill="x", padx=10, pady=10)
+        theme_frame.pack(side="bottom", fill="x", padx=16, pady=16)
         
         self.theme_label = ctk.CTkLabel(
             theme_frame, 
-            text="Theme", 
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['neon_cyan']
+            text="Appearance", 
+            font=ctk.CTkFont(size=10, weight="bold"),
+            text_color=COLORS['text_secondary']
         )
-        self.theme_label.pack(pady=(0, 5))
+        self.theme_label.pack(pady=(0, 8), anchor="w")
         
-        self.theme_selector = ctk.CTkOptionMenu(
+        self.theme_selector = ctk.CTkSegmentedButton(
             theme_frame,
-            values=["Dark", "Light"],
-            command=self.change_theme,
-            width=220,
-            height=40,
-            corner_radius=8,
-            font=ctk.CTkFont(size=13),
-            fg_color=COLORS['electric_violet'],
-            button_color=COLORS['neon_cyan'],
-            button_hover_color=COLORS['neon_cyan_hover']
+            values=["☀️ Light", "🌙 Dark"],
+            command=lambda v: self.change_theme("Light" if "Light" in v else "Dark"),
+            font=ctk.CTkFont(size=11),
+            corner_radius=8
         )
-        self.theme_selector.pack()
-        self.theme_selector.set("Dark")
+        self.theme_selector.set("🌙 Dark")
+        self.theme_selector.pack(fill="x")
         
         # Initialize favorites UI
         self.update_favorites_ui()
