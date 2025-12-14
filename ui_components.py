@@ -1,6 +1,7 @@
 """
 Reusable UI Components for NetTools Suite
 Provides consistent widgets and styling across the application
+Professional UI Design System v2.0
 """
 
 import customtkinter as ctk
@@ -8,63 +9,157 @@ from design_constants import COLORS, SPACING, RADIUS, FONTS, BUTTON_SIZES, CARD_
 
 
 class StyledCard(ctk.CTkFrame):
-    """A styled card container with electric violet theme"""
+    """
+    Professional styled card container with subtle depth and clean borders.
+    Supports multiple visual styles for different contexts.
+    """
     
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, variant="default", hover_effect=True, **kwargs):
+        """
+        Args:
+            variant: "default", "elevated", "outlined", "subtle"
+            hover_effect: Enable hover state change
+        """
         # Extract custom parameters
         show_border = kwargs.pop('show_border', False)
         
-        # Apply electric violet card styling
-        kwargs.setdefault('corner_radius', CARD_STYLE['radius'])
-        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        # Apply card styling based on variant
+        kwargs.setdefault('corner_radius', 12)
+        
+        if variant == "elevated":
+            kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+            kwargs.setdefault('border_width', 1)
+            kwargs.setdefault('border_color', COLORS.get('border', ("#E5E7EB", "#374151")))
+        elif variant == "outlined":
+            kwargs.setdefault('fg_color', "transparent")
+            kwargs.setdefault('border_width', 2)
+            kwargs.setdefault('border_color', COLORS['electric_violet'])
+        elif variant == "subtle":
+            kwargs.setdefault('fg_color', COLORS.get('bg_card', ("gray95", "gray20")))
+        else:  # default
+            kwargs.setdefault('fg_color', COLORS['dashboard_card'])
         
         super().__init__(parent, **kwargs)
         
         if show_border:
             self.configure(
-                border_width=CARD_STYLE['border_width'],
+                border_width=1,
                 border_color=COLORS['electric_violet']
             )
+        
+        # Store original color for hover effect
+        self._original_fg = self.cget('fg_color')
+        self._hover_enabled = hover_effect and variant in ("default", "elevated")
+        
+        if self._hover_enabled:
+            self.bind('<Enter>', self._on_enter)
+            self.bind('<Leave>', self._on_leave)
+    
+    def _on_enter(self, event):
+        if self._hover_enabled:
+            try:
+                self.configure(fg_color=COLORS['dashboard_card_hover'])
+            except:
+                pass
+    
+    def _on_leave(self, event):
+        if self._hover_enabled:
+            try:
+                self.configure(fg_color=self._original_fg)
+            except:
+                pass
 
 
 class StyledButton(ctk.CTkButton):
-    """A styled button with electric violet theme"""
+    """
+    Professional styled button with modern appearance.
+    Supports multiple variants: primary, secondary, success, danger, ghost, outline
+    """
     
-    def __init__(self, parent, size="medium", variant="primary", **kwargs):
+    def __init__(self, parent, size="medium", variant="primary", rounded=False, **kwargs):
+        """
+        Args:
+            size: "small", "medium", "large", "xlarge"
+            variant: "primary", "secondary", "success", "danger", "ghost", "outline"
+            rounded: Use pill-shaped corners
+        """
         # Get size dimensions
         button_size = BUTTON_SIZES.get(size, BUTTON_SIZES["medium"])
         kwargs.setdefault('width', button_size['width'])
         kwargs.setdefault('height', button_size['height'])
         
-        # Get variant colors with electric violet theme
+        # Corner radius
+        corner = button_size['height'] // 2 if rounded else 8
+        kwargs.setdefault('corner_radius', corner)
+        
+        # Get variant colors with modern theme
         if variant == "primary":
             kwargs.setdefault('fg_color', COLORS['electric_violet'])
             kwargs.setdefault('hover_color', COLORS['electric_violet_hover'])
+            kwargs.setdefault('text_color', "white")
+        elif variant == "secondary":
+            kwargs.setdefault('fg_color', COLORS.get('bg_card', ("gray90", "gray25")))
+            kwargs.setdefault('hover_color', COLORS.get('bg_card_hover', ("gray85", "gray30")))
+            kwargs.setdefault('text_color', COLORS['text_primary'])
         elif variant == "success":
             kwargs.setdefault('fg_color', COLORS['success'])
             kwargs.setdefault('hover_color', COLORS['success_hover'])
+            kwargs.setdefault('text_color', "white")
         elif variant == "danger":
             kwargs.setdefault('fg_color', COLORS['danger'])
             kwargs.setdefault('hover_color', COLORS['danger_hover'])
+            kwargs.setdefault('text_color', "white")
+        elif variant == "ghost":
+            kwargs.setdefault('fg_color', "transparent")
+            kwargs.setdefault('hover_color', COLORS['dashboard_card_hover'])
+            kwargs.setdefault('text_color', COLORS['text_primary'])
+        elif variant == "outline":
+            kwargs.setdefault('fg_color', "transparent")
+            kwargs.setdefault('hover_color', COLORS['electric_violet'])
+            kwargs.setdefault('text_color', COLORS['electric_violet'])
+            kwargs.setdefault('border_width', 2)
+            kwargs.setdefault('border_color', COLORS['electric_violet'])
         elif variant == "neutral":
             kwargs.setdefault('fg_color', COLORS['neutral'])
             kwargs.setdefault('hover_color', COLORS['neutral_hover'])
+            kwargs.setdefault('text_color', "white")
         
-        # Default font
+        # Professional font
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['body'], weight="bold"))
         
         super().__init__(parent, **kwargs)
 
 
 class StyledEntry(ctk.CTkEntry):
-    """A styled entry field with consistent appearance"""
+    """
+    Professional styled entry field with focus states and clean appearance.
+    """
     
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, icon=None, **kwargs):
         kwargs.setdefault('height', INPUT_STYLE['height'])
-        kwargs.setdefault('corner_radius', INPUT_STYLE['radius'])
+        kwargs.setdefault('corner_radius', 8)
         kwargs.setdefault('font', ctk.CTkFont(size=FONTS['body']))
+        kwargs.setdefault('border_width', 1)
+        kwargs.setdefault('border_color', COLORS.get('border', ("#E5E7EB", "#374151")))
+        kwargs.setdefault('fg_color', COLORS.get('bg_card', ("white", "#1F2937")))
         
         super().__init__(parent, **kwargs)
+        
+        # Focus styling
+        self.bind('<FocusIn>', self._on_focus_in)
+        self.bind('<FocusOut>', self._on_focus_out)
+    
+    def _on_focus_in(self, event):
+        try:
+            self.configure(border_color=COLORS['electric_violet'])
+        except:
+            pass
+    
+    def _on_focus_out(self, event):
+        try:
+            self.configure(border_color=COLORS.get('border', ("#E5E7EB", "#374151")))
+        except:
+            pass
 
 
 class SectionTitle(ctk.CTkLabel):
