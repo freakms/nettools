@@ -800,6 +800,7 @@ Actions:
                 ("mac", "🔗", "MAC Formatter", "Format MAC addresses"),
                 ("bandwidth", "📶", "Bandwidth Test", "Test speed with iperf3"),
                 ("compare", "⚖️", "Scan Comparison", "Compare scan results"),
+                ("password", "🔐", "Password Generator", "Generate secure passwords"),
             ]),
             ("ADVANCED", "⚙️", [
                 ("profiles", "📁", "Network Profiles", "Manage network configs"),
