@@ -376,6 +376,14 @@ class PortScannerUI:
     
     def display_port_results(self, target, results, was_cancelled):
         """Display port scan results"""
+        # Remove loading spinner
+        if hasattr(self, 'loading_spinner'):
+            try:
+                self.loading_spinner.stop()
+                self.loading_spinner.destroy()
+            except:
+                pass
+        
         # Store results for export
         self.port_scan_results = results
         self.app.port_scan_target = target
