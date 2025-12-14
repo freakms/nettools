@@ -711,28 +711,32 @@ Actions:
         # Separator with subtle style
         separator = ctk.CTkFrame(
             self.sidebar, 
-            height=2, 
+            height=1, 
             corner_radius=0,
-            fg_color=COLORS['electric_violet']
+            fg_color=COLORS.get('border', ("#E5E7EB", "#374151"))
         )
-        separator.pack(fill="x", padx=10, pady=5)
+        separator.pack(fill="x", padx=16, pady=8)
         
         # Smart Command Palette - Search bar in sidebar
-        # Define tools for the command palette with keywords
+        # Define tools for the command palette with keywords (organized by category)
         self.command_palette_tools = [
-            ("dashboard", "🏠", "Dashboard", ["home", "overview", "start"]),
-            ("scanner", "📡", "IPv4 Scanner", ["scan", "network", "ip", "ping", "hosts"]),
-            ("portscan", "🔌", "Port Scanner", ["port", "service", "open"]),
-            ("traceroute", "🛤️", "Traceroute", ["trace", "route", "path", "hop"]),
-            ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput"]),
-            ("dns", "🌐", "DNS Lookup", ["dns", "resolve", "domain", "hostname"]),
-            ("subnet", "🔢", "Subnet Calculator", ["subnet", "cidr", "mask", "calculate"]),
-            ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor"]),
-            ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history"]),
-            ("profiles", "📁", "Network Profiles", ["profile", "config", "interface"]),
-            ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "bandwidth"]),
-            ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli"]),
-            ("phpipam", "📊", "phpIPAM", ["ipam", "ip", "management"]),
+            # Dashboard
+            ("dashboard", "🏠", "Dashboard", ["home", "overview", "start", "main"]),
+            # Scanning
+            ("scanner", "📡", "IPv4 Scanner", ["scan", "network", "ip", "ping", "hosts", "discover"]),
+            ("portscan", "🔌", "Port Scanner", ["port", "service", "open", "tcp", "udp"]),
+            ("traceroute", "🛤️", "Traceroute", ["trace", "route", "path", "hop", "latency"]),
+            # Tools
+            ("dns", "🌐", "DNS Lookup", ["dns", "resolve", "domain", "hostname", "mx", "ns"]),
+            ("subnet", "🔢", "Subnet Calculator", ["subnet", "cidr", "mask", "calculate", "ip"]),
+            ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor", "format"]),
+            ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput", "test"]),
+            ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history", "changes"]),
+            # Advanced
+            ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
+            ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),
+            ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
+            ("phpipam", "📦", "phpIPAM", ["ipam", "ip", "management", "inventory"]),
         ]
         
         self.command_palette = SmartCommandPalette(
