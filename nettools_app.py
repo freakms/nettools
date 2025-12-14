@@ -936,11 +936,17 @@ Actions:
             icon = getattr(btn, '_nav_icon', '•')
             btn.configure(text=icon, anchor="center", width=48)
         
+        # Update favorite buttons if any
+        if hasattr(self, 'favorites_buttons_frame'):
+            for btn in self.favorites_buttons_frame.winfo_children():
+                icon = getattr(btn, '_nav_icon', '•')
+                btn.configure(text=icon, anchor="center", width=48)
+        
         # Hide category labels completely
         for label, icon, name, buttons in self.category_labels:
             label.pack_forget()
         
-        # Hide favorites frame header if exists
+        # Hide favorites label if exists
         if hasattr(self, 'favorites_label'):
             self.favorites_label.pack_forget()
     
@@ -974,9 +980,16 @@ Actions:
             label = getattr(btn, '_nav_label', page_id)
             btn.configure(text=f" {icon}  {label}", anchor="w", width=220)
         
-        # Show favorites label if exists
-        if hasattr(self, 'favorites_label'):
-            self.favorites_label.pack(fill="x", padx=15, pady=(5, 5), before=self.favorites_frame)
+        # Update favorite buttons if any
+        if hasattr(self, 'favorites_buttons_frame'):
+            for btn in self.favorites_buttons_frame.winfo_children():
+                icon = getattr(btn, '_nav_icon', '•')
+                label = getattr(btn, '_nav_label', '')
+                btn.configure(text=f" {icon}  {label}", anchor="w", width=220)
+        
+        # Show favorites label if exists and favorites are present
+        if hasattr(self, 'favorites_label') and self.favorite_tools:
+            self.favorites_label.pack(anchor="w", pady=(5, 5))
         
         # Restore category labels in the correct order by re-packing them before their buttons
         for label_widget, icon, name, button_ids in self.category_labels:
