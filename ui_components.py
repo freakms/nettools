@@ -1404,3 +1404,122 @@ class ContextMenu:
         self.menu_window.bind("<FocusOut>", close_menu)
         self.menu_window.bind("<Escape>", close_menu)
 
+
+
+
+class LoadingSpinner(ctk.CTkFrame):
+    """
+    Animated loading spinner component
+    Usage:
+        spinner = LoadingSpinner(parent)
+        spinner.pack()
+        spinner.start()
+        # ... do work ...
+        spinner.stop()
+    """
+    
+    def __init__(self, parent, text="Loading...", **kwargs):
+        kwargs.setdefault('fg_color', 'transparent')
+        super().__init__(parent, **kwargs)
+        
+        self.text = text
+        self.animation_running = False
+        self.animation_step = 0
+        
+        # Spinner characters
+        self.spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        
+        # Create label
+        self.label = ctk.CTkLabel(
+            self,
+            text=f"{self.spinner_chars[0]} {self.text}",
+            font=ctk.CTkFont(size=14),
+            text_color=COLORS['electric_violet']
+        )
+        self.label.pack(pady=20)
+    
+    def start(self):
+        """Start the spinner animation"""
+        self.animation_running = True
+        self._animate()
+    
+    def stop(self):
+        """Stop the spinner animation"""
+        self.animation_running = False
+    
+    def _animate(self):
+        """Animate the spinner"""
+        if not self.animation_running:
+            return
+        
+        # Update spinner character
+        self.animation_step = (self.animation_step + 1) % len(self.spinner_chars)
+        char = self.spinner_chars[self.animation_step]
+        self.label.configure(text=f"{char} {self.text}")
+        
+        # Schedule next frame
+        self.after(100, self._animate)
+    
+    def update_text(self, text):
+        """Update the loading text"""
+        self.text = text
+
+
+class ProgressIndicator(ctk.CTkFrame):
+    """
+    Progress indicator with percentage and bar
+    Usage:
+        progress = ProgressIndicator(parent, "Scanning...")
+        progress.pack()
+        progress.update_progress(50, "50/100 hosts scanned")
+    """
+    
+    def __init__(self, parent, title="Progress", **kwargs):
+        kwargs.setdefault('fg_color', COLORS['dashboard_card'])
+        kwargs.setdefault('corner_radius', 8)
+        super().__init__(parent, **kwargs)
+        
+        # Title
+        self.title_label = ctk.CTkLabel(
+            self,
+            text=title,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.title_label.pack(padx=20, pady=(15, 5))
+        
+        # Progress bar
+        self.progress_bar = ctk.CTkProgressBar(
+            self,
+            width=300,
+            progress_color=COLORS['electric_violet']
+        )
+        self.progress_bar.pack(padx=20, pady=10)
+        self.progress_bar.set(0)
+        
+        # Status label
+        self.status_label = ctk.CTkLabel(
+            self,
+            text="0%",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary']
+        )
+        self.status_label.pack(padx=20, pady=(0, 15))
+    
+    def update_progress(self, percentage, status_text=""):
+        """Update progress bar and text"""
+        # Clamp percentage between 0 and 100
+        percentage = max(0, min(100, percentage))
+        
+        # Update bar
+        self.progress_bar.set(percentage / 100)
+        
+        # Update text
+        if status_text:
+            self.status_label.configure(text=f"{percentage}% - {status_text}")
+        else:
+            self.status_label.configure(text=f"{percentage}%")
+    
+    def reset(self):
+        """Reset progress to 0"""
+        self.progress_bar.set(0)
+        self.status_label.configure(text="0%")
