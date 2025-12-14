@@ -1211,6 +1211,16 @@ Actions:
             self.status_label.configure(text="Test internet speed with Ookla servers")
         elif page_id == "password":
             self.status_label.configure(text="Generate secure passwords and passphrases")
+        elif page_id == "whois":
+            self.status_label.configure(text="Query domain and IP ownership information")
+        elif page_id == "ssl":
+            self.status_label.configure(text="Check SSL/TLS certificate validity and details")
+        elif page_id == "hash":
+            self.status_label.configure(text="Generate cryptographic hashes for text and files")
+        elif page_id == "api":
+            self.status_label.configure(text="Test REST APIs and HTTP endpoints")
+        elif page_id == "arp":
+            self.status_label.configure(text="View local ARP cache entries")
     
     
     def show_page(self, page_id):
