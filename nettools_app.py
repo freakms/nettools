@@ -34,6 +34,11 @@ from ui.phpipam_ui import PhpipamUI
 from ui.remote_tools_ui import RemoteToolsUI
 from ui.speedtest_ui import SpeedtestUI
 from ui.password_generator_ui import PasswordGeneratorUI
+from ui.whois_ui import WhoisUI
+from ui.ssl_checker_ui import SSLCheckerUI
+from ui.hash_generator_ui import HashGeneratorUI
+from ui.api_tester_ui import APITesterUI
+from ui.arp_viewer_ui import ARPViewerUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
