@@ -79,33 +79,56 @@ FONTS = {
     "tiny": 10,
 }
 
-# Button Sizes
+# Button Sizes - Updated for professional appearance
 BUTTON_SIZES = {
+    "tiny": {"width": 60, "height": 26},
     "small": {"width": 100, "height": 32},
     "medium": {"width": 140, "height": 38},
     "large": {"width": 180, "height": 42},
-    "xlarge": {"width": 200, "height": 48},
+    "xlarge": {"width": 220, "height": 48},
 }
 
 # Card Styling
 CARD_STYLE = {
     "padding": SPACING["lg"],
-    "radius": RADIUS["large"],
+    "radius": 12,
     "border_width": 1,
 }
 
 # Results Row Styling
 ROW_STYLE = {
-    "height": 40,
-    "padding_x": 12,
-    "padding_y": 8,
-    "radius": RADIUS["medium"],
-    "spacing": 3,
+    "height": 44,
+    "padding_x": 16,
+    "padding_y": 10,
+    "radius": 6,
+    "spacing": 4,
 }
 
 # Input Field Styling
 INPUT_STYLE = {
-    "height": 38,
-    "padding": 15,
-    "radius": RADIUS["medium"],
+    "height": 40,
+    "padding": 16,
+    "radius": 8,
+}
+
+# Additional Professional Styling
+ICON_SIZES = {
+    "small": 14,
+    "medium": 18,
+    "large": 24,
+    "xlarge": 32,
+}
+
+# Shadow/Depth simulation colors (for layered UI)
+SHADOWS = {
+    "light": ("gray80", "gray10"),
+    "medium": ("gray70", "gray8"),
+    "strong": ("gray60", "gray5"),
+}
+
+# Animation timing (in milliseconds)
+ANIMATION = {
+    "fast": 100,
+    "normal": 200,
+    "slow": 350,
 }
