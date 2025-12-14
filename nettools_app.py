@@ -3726,30 +3726,42 @@ Actions:
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
                 
-                # Tool names mapping
-                tool_names = {
-                    "scanner": "📡 IPv4 Scanner",
-                    "portscan": "🔌 Port Scanner",
-                    "traceroute": "🛣️ Traceroute",
-                    "bandwidth": "⚡ Bandwidth Test",
-                    "dns": "🌐 DNS Lookup",
-                    "subnet": "🧮 Subnet Calculator",
-                    "mac": "💻 MAC Formatter",
-                    "compare": "📊 Scan Comparison",
-                    "profiles": "📁 Network Profiles",
-                    "panos": "🔥 PAN-OS Generator",
-                    "phpipam": "📦 phpIPAM",
+                # Tool names and icons mapping
+                tool_info = {
+                    "scanner": ("📡", "IPv4 Scanner"),
+                    "portscan": ("🔌", "Port Scanner"),
+                    "traceroute": ("🛤️", "Traceroute"),
+                    "bandwidth": ("📶", "Bandwidth Test"),
+                    "dns": ("🌐", "DNS Lookup"),
+                    "subnet": ("🔢", "Subnet Calculator"),
+                    "mac": ("🔗", "MAC Formatter"),
+                    "compare": ("⚖️", "Scan Comparison"),
+                    "profiles": ("📁", "Network Profiles"),
+                    "panos": ("🛡️", "PAN-OS Generator"),
+                    "phpipam": ("📊", "phpIPAM"),
+                    "remote": ("🖥️", "Remote Tools"),
                 }
                 
                 for tool_id in sorted(self.favorite_tools):
-                    btn = StyledButton(
+                    icon, label = tool_info.get(tool_id, ("•", tool_id))
+                    btn = ctk.CTkButton(
                         self.favorites_buttons_frame,
-                        text=tool_names.get(tool_id, tool_id),
+                        text=f" {icon}  {label}",
                         command=lambda tid=tool_id: self.switch_tool(tid),
-                        size="medium",
-                        variant="neutral"
+                        width=220,
+                        height=36,
+                        corner_radius=8,
+                        anchor="w",
+                        font=ctk.CTkFont(size=12),
+                        fg_color=COLORS['neutral'],
+                        hover_color=COLORS['neutral_hover'],
+                        text_color="white"
                     )
                     btn.pack(fill="x", pady=2)
+                    # Store for collapse/expand
+                    btn._nav_icon = icon
+                    btn._nav_label = label
+                    btn._is_favorite = True
             else:
                 # Completely hide frame when empty (no gap)
                 self.favorites_frame.pack_forget()
