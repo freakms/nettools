@@ -928,19 +928,46 @@ Actions:
         if hasattr(self, 'command_palette'):
             self.command_palette.pack_forget()
         
-        # Update live monitor button - icon only, centered
-        self.live_monitor_btn.configure(text="📊", width=48, anchor="center")
+        # Update live monitor button - icon only, centered, brighter
+        self.live_monitor_btn.configure(
+            text="📊", 
+            width=48, 
+            anchor="center",
+            fg_color=COLORS['success'],
+            text_color="white"
+        )
         
-        # Update nav buttons to show only icons (centered)
+        # Update nav buttons to show only icons (centered, brighter text)
         for page_id, btn in self.nav_buttons.items():
             icon = getattr(btn, '_nav_icon', '•')
-            btn.configure(text=icon, anchor="center", width=48)
+            # Check if this is the active page
+            if page_id == self.current_page:
+                btn.configure(
+                    text=icon, 
+                    anchor="center", 
+                    width=48,
+                    fg_color=COLORS['electric_violet'],
+                    text_color="white"
+                )
+            else:
+                btn.configure(
+                    text=icon, 
+                    anchor="center", 
+                    width=48,
+                    fg_color="transparent",
+                    text_color=COLORS['neon_cyan']  # Brighter cyan color for icons
+                )
         
-        # Update favorite buttons if any
+        # Update favorite buttons if any - brighter icons
         if hasattr(self, 'favorites_buttons_frame'):
             for btn in self.favorites_buttons_frame.winfo_children():
                 icon = getattr(btn, '_nav_icon', '•')
-                btn.configure(text=icon, anchor="center", width=48)
+                btn.configure(
+                    text=icon, 
+                    anchor="center", 
+                    width=48,
+                    text_color=COLORS['neon_cyan']
+                )
         
         # Hide category labels completely
         for label, icon, name, buttons in self.category_labels:
