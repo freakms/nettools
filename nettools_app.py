@@ -753,8 +753,10 @@ Actions:
             text="📊 Live Monitor",
             command=self.open_live_ping_monitor,
             size="large",
-            variant="success"
+            variant="success",
+            width=220
         )
+        self.live_monitor_btn.configure(anchor="w")
         self.live_monitor_btn.pack(fill="x", padx=10, pady=(5, 15))
         Tooltip(self.live_monitor_btn, "Open Live Ping Monitor")
         
