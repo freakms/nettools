@@ -734,6 +734,7 @@ Actions:
             ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor", "format"]),
             ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput", "test"]),
             ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history", "changes"]),
+            ("password", "🔐", "Password Generator", ["password", "passphrase", "generate", "secure", "random"]),
             # Advanced
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
             ("speedtest", "🚀", "Speedtest", ["speed", "ookla", "internet", "download", "upload", "bandwidth"]),
