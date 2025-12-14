@@ -8,6 +8,9 @@ import socket
 import platform
 import subprocess
 import re
+import threading
+import urllib.request
+import json
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 
 
@@ -23,9 +26,13 @@ class DashboardUI:
         """
         self.app = app
         self.network_interfaces = []
+        self.external_ip = "Loading..."
+        self.external_ip_info = {}
     
     def create_content(self, parent):
         """Create clean, informative dashboard"""
+        self.parent = parent
+        
         # Main dashboard container
         dashboard = ctk.CTkScrollableFrame(
             parent,
@@ -57,51 +64,61 @@ class DashboardUI:
         # Gather network information
         self._gather_network_info()
         
-        # Stats cards row (4 cards) - Minimal colors
+        # Stats cards row (5 cards) - Added External IP
         stats_frame = ctk.CTkFrame(dashboard, fg_color="transparent")
         stats_frame.pack(fill="x", padx=SPACING['xxl'], pady=SPACING['lg'])
         
-        # Configure grid
-        for i in range(4):
+        # Configure grid for 5 cards
+        for i in range(5):
             stats_frame.grid_columnconfigure(i, weight=1)
         
-        # Card 1: System Info
-        self._create_info_card(
+        # Card 1: External IP (NEW)
+        self.external_ip_card = self._create_info_card(
             stats_frame,
-            "System",
-            socket.gethostname(),
-            platform.system(),
-            0, 0
+            "🌐 External IP",
+            "Loading...",
+            "Fetching...",
+            0, 0,
+            highlight=True
         )
         
-        # Card 2: Active Interfaces
-        active_count = len([iface for iface in self.network_interfaces if iface.get('status') == 'Up'])
+        # Card 2: System Info
         self._create_info_card(
             stats_frame,
-            "Active Interfaces",
-            str(active_count),
-            f"of {len(self.network_interfaces)} total",
+            "💻 System",
+            socket.gethostname(),
+            platform.system(),
             0, 1
         )
         
-        # Card 3: Recent Scans
-        recent_scans = len(self.app.scanner.results) if hasattr(self.app, 'scanner') else 0
+        # Card 3: Active Interfaces
+        active_count = len([iface for iface in self.network_interfaces if iface.get('status') == 'Up'])
         self._create_info_card(
             stats_frame,
-            "Recent Scans",
-            str(recent_scans),
-            "results available",
+            "📡 Interfaces",
+            str(active_count),
+            f"of {len(self.network_interfaces)} total",
             0, 2
         )
         
-        # Card 4: Network Status
-        status_text = "Connected" if active_count > 0 else "No Connection"
+        # Card 4: Recent Scans
+        recent_scans = len(self.app.scanner.results) if hasattr(self.app, 'scanner') else 0
         self._create_info_card(
             stats_frame,
-            "Network Status",
-            status_text,
-            f"{active_count} interface(s)",
+            "📊 Recent Scans",
+            str(recent_scans),
+            "results available",
             0, 3
+        )
+        
+        # Card 5: Network Status
+        status_text = "Connected" if active_count > 0 else "Offline"
+        self._create_info_card(
+            stats_frame,
+            "🔌 Status",
+            status_text,
+            f"{active_count} active",
+            0, 4
         )
         
         # Main content area (2 columns)
@@ -123,6 +140,72 @@ class DashboardUI:
         
         self._create_recent_activity_section(right_col)
         self._create_system_info_section(right_col)
+        
+        # Fetch external IP in background
+        self._fetch_external_ip()
+    
+    def _fetch_external_ip(self):
+        """Fetch external IP address in background thread"""
+        def fetch():
+            try:
+                # Try multiple services for reliability
+                services = [
+                    ("https://api.ipify.org?format=json", "ip"),
+                    ("https://ipinfo.io/json", "ip"),
+                    ("https://api.myip.com", "ip"),
+                ]
+                
+                ip = None
+                info = {}
+                
+                for url, key in services:
+                    try:
+                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req, timeout=5) as response:
+                            data = json.loads(response.read().decode())
+                            ip = data.get(key)
+                            
+                            # Get additional info if available (from ipinfo.io)
+                            if 'city' in data:
+                                info['city'] = data.get('city', '')
+                                info['region'] = data.get('region', '')
+                                info['country'] = data.get('country', '')
+                                info['org'] = data.get('org', '')
+                            
+                            if ip:
+                                break
+                    except:
+                        continue
+                
+                if ip:
+                    self.external_ip = ip
+                    self.external_ip_info = info
+                    
+                    # Update UI
+                    location = ""
+                    if info.get('city'):
+                        location = f"{info.get('city', '')}, {info.get('country', '')}"
+                    elif info.get('org'):
+                        location = info.get('org', '')[:30]
+                    else:
+                        location = "Internet"
+                    
+                    self.app.after(0, lambda: self._update_external_ip_card(ip, location))
+                else:
+                    self.app.after(0, lambda: self._update_external_ip_card("Unavailable", "Could not fetch"))
+                    
+            except Exception as e:
+                self.app.after(0, lambda: self._update_external_ip_card("Error", str(e)[:20]))
+        
+        thread = threading.Thread(target=fetch, daemon=True)
+        thread.start()
+    
+    def _update_external_ip_card(self, ip, subtitle):
+        """Update the external IP card with fetched data"""
+        if hasattr(self, 'external_ip_value_label'):
+            self.external_ip_value_label.configure(text=ip)
+        if hasattr(self, 'external_ip_subtitle_label'):
+            self.external_ip_subtitle_label.configure(text=subtitle)
     
     def _gather_network_info(self):
         """Gather network interface information using socket and platform commands"""
