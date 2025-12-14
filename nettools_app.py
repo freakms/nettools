@@ -967,9 +967,13 @@ Actions:
             height=32
         )
         
-        # Show command palette
+        # Show command palette (pack it in sidebar, not nav_scroll)
         if hasattr(self, 'command_palette'):
-            self.command_palette.pack(fill="x", padx=5, pady=(5, 10), before=self.nav_scroll)
+            # Re-pack command palette between separator and nav_scroll
+            self.command_palette.pack(fill="x", padx=5, pady=(5, 10))
+            # Move nav_scroll below it
+            self.nav_scroll.pack_forget()
+            self.nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
         
         # Update live monitor button - full text
         self.live_monitor_btn.configure(text="📊 Live Monitor", width=220, anchor="w")
