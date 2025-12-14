@@ -301,9 +301,10 @@ class SpeedtestUI:
             self.app.after(0, update_results)
             self.app.after(0, lambda: self.app.show_toast(f"Speedtest complete: ↓{download_speed:.1f} Mbps ↑{upload_speed:.1f} Mbps", "success"))
             
-        except Exception as e:
-            self._update_status(f"Error: {str(e)}", 0)
-            self.app.after(0, lambda: self.app.show_toast(f"Speedtest failed: {str(e)}", "error"))
+        except Exception as ex:
+            error_msg = str(ex)
+            self._update_status(f"Error: {error_msg}", 0)
+            self.app.after(0, lambda msg=error_msg: self.app.show_toast(f"Speedtest failed: {msg}", "error"))
         
         finally:
             self.is_running = False
