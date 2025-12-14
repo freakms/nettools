@@ -1522,4 +1522,119 @@ class ProgressIndicator(ctk.CTkFrame):
     def reset(self):
         """Reset progress to 0"""
         self.progress_bar.set(0)
+
+
+
+class ErrorDialog:
+    """
+    Enhanced error dialog with suggestions and actions
+    Usage:
+        ErrorDialog.show(
+            parent,
+            "Connection Failed",
+            "Could not connect to target host",
+            suggestions=["Check if host is online", "Verify firewall settings"],
+            actions=[("Retry", retry_function), ("Cancel", None)]
+        )
+    """
+    
+    @staticmethod
+    def show(parent, title, message, suggestions=None, actions=None):
+        """Show enhanced error dialog"""
+        import tkinter.messagebox as mb
+        from tkinter import Toplevel, Frame, Label, Button
+        
+        dialog = Toplevel(parent)
+        dialog.title(title)
+        dialog.geometry("500x350")
+        dialog.transient(parent)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = parent.winfo_x() + (parent.winfo_width() - dialog.winfo_width()) // 2
+        y = parent.winfo_y() + (parent.winfo_height() - dialog.winfo_height()) // 2
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Main frame
+        main_frame = ctk.CTkFrame(dialog, fg_color=COLORS['bg_primary'])
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Error icon and title
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 15))
+        
+        error_label = ctk.CTkLabel(
+            header_frame,
+            text=f"❌ {title}",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=COLORS['danger']
+        )
+        error_label.pack()
+        
+        # Error message
+        message_label = ctk.CTkLabel(
+            main_frame,
+            text=message,
+            font=ctk.CTkFont(size=13),
+            wraplength=450,
+            justify="left"
+        )
+        message_label.pack(pady=(0, 15), anchor="w")
+        
+        # Suggestions
+        if suggestions:
+            suggestions_frame = ctk.CTkFrame(main_frame, fg_color=COLORS['dashboard_card'], corner_radius=8)
+            suggestions_frame.pack(fill="x", pady=(0, 15))
+            
+            suggest_title = ctk.CTkLabel(
+                suggestions_frame,
+                text="💡 Suggestions:",
+                font=ctk.CTkFont(size=12, weight="bold")
+            )
+            suggest_title.pack(anchor="w", padx=15, pady=(10, 5))
+            
+            for suggestion in suggestions:
+                suggest_label = ctk.CTkLabel(
+                    suggestions_frame,
+                    text=f"• {suggestion}",
+                    font=ctk.CTkFont(size=11),
+                    anchor="w"
+                )
+                suggest_label.pack(anchor="w", padx=25, pady=2)
+            
+            ctk.CTkLabel(suggestions_frame, text="").pack(pady=5)  # Spacing
+        
+        # Action buttons
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(10, 0))
+        
+        if actions:
+            for action_text, action_func in actions:
+                def make_action(func):
+                    def wrapped():
+                        dialog.destroy()
+                        if func:
+                            func()
+                    return wrapped
+                
+                btn = StyledButton(
+                    button_frame,
+                    text=action_text,
+                    command=make_action(action_func),
+                    size="medium",
+                    variant="primary" if action_func else "neutral"
+                )
+                btn.pack(side="left", padx=5)
+        else:
+            close_btn = StyledButton(
+                button_frame,
+                text="Close",
+                command=dialog.destroy,
+                size="medium"
+            )
+            close_btn.pack()
+        
+        dialog.focus_set()
+
         self.status_label.configure(text="0%")
