@@ -393,6 +393,13 @@ class PortScannerUI:
         self.port_scan_results = results
         self.app.port_scan_target = target
         
+        # Save to comparison history (if scan completed successfully)
+        if not was_cancelled and results:
+            try:
+                self.comparison_history.save_port_scan(target, results)
+            except Exception as e:
+                print(f"Error saving port scan history: {e}")
+        
         # Clear frame
         for widget in self.app.port_results_frame.winfo_children():
             widget.destroy()
