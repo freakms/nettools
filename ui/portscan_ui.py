@@ -658,6 +658,155 @@ class PortScannerUI:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(export_data, f, indent=2)
     
+
+    def show_port_comparison(self, target):
+        """Show port scan comparison dialog"""
+        # Get history for this target
+        history = self.comparison_history.get_port_scan_history(target)
+        
+        if len(history) < 2:
+            self.app.show_toast(f"Need at least 2 scans of {target} to compare", "warning")
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self.app)
+        comp_window.title(f"Port Scan Comparison - {target}")
+        comp_window.geometry("800x600")
+        comp_window.transient(self.app)
+        comp_window.grab_set()
+        
+        # Center window
+        comp_window.update_idletasks()
+        x = self.app.winfo_x() + (self.app.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        # Main frame
+        main_frame = ctk.CTkFrame(comp_window, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title = ctk.CTkLabel(
+            main_frame,
+            text=f"⚖️ Compare Port Scans - {target}",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title.pack(pady=(0, 20))
+        
+        # Scan selection frame
+        select_frame = ctk.CTkFrame(main_frame)
+        select_frame.pack(fill="x", pady=(0, 20))
+        
+        # Scan 1 selection
+        scan1_frame = ctk.CTkFrame(select_frame, fg_color="transparent")
+        scan1_frame.pack(side="left", expand=True, fill="x", padx=10)
+        
+        ctk.CTkLabel(scan1_frame, text="Earlier Scan:", font=ctk.CTkFont(weight="bold")).pack(anchor="w")
+        
+        scan1_var = ctk.StringVar(value="0")
+        scan1_menu = ctk.CTkOptionMenu(
+            scan1_frame,
+            variable=scan1_var,
+            values=[f"{i}: {h['timestamp'][:19]} ({len(h['open_ports'])} open)" for i, h in enumerate(history)]
+        )
+        scan1_menu.pack(fill="x", pady=5)
+        
+        # Scan 2 selection
+        scan2_frame = ctk.CTkFrame(select_frame, fg_color="transparent")
+        scan2_frame.pack(side="left", expand=True, fill="x", padx=10)
+        
+        ctk.CTkLabel(scan2_frame, text="Later Scan:", font=ctk.CTkFont(weight="bold")).pack(anchor="w")
+        
+        scan2_var = ctk.StringVar(value=str(len(history)-1))
+        scan2_menu = ctk.CTkOptionMenu(
+            scan2_frame,
+            variable=scan2_var,
+            values=[f"{i}: {h['timestamp'][:19]} ({len(h['open_ports'])} open)" for i, h in enumerate(history)]
+        )
+        scan2_menu.pack(fill="x", pady=5)
+        
+        # Results frame
+        results_frame = ctk.CTkScrollableFrame(main_frame)
+        results_frame.pack(fill="both", expand=True)
+        
+        def compare_selected():
+            """Compare selected scans"""
+            # Clear previous results
+            for widget in results_frame.winfo_children():
+                widget.destroy()
+            
+            # Get selected scans
+            idx1 = int(scan1_var.get().split(":")[0])
+            idx2 = int(scan2_var.get().split(":")[0])
+            
+            if idx1 >= idx2:
+                ctk.CTkLabel(results_frame, text="⚠️ Earlier scan must be before later scan", text_color="orange").pack(pady=20)
+                return
+            
+            # Compare
+            comparison = self.comparison_history.compare_port_scans(history[idx1], history[idx2])
+            
+            # Display summary
+            summary_card = StyledCard(results_frame)
+            summary_card.pack(fill="x", pady=10)
+            
+            ctk.CTkLabel(summary_card, text=f"📊 Comparison Summary", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+            ctk.CTkLabel(summary_card, text=f"Total Changes: {comparison['total_changes']}", font=ctk.CTkFont(size=13)).pack(pady=5)
+            
+            # Newly opened ports
+            if comparison['newly_opened']:
+                opened_card = StyledCard(results_frame)
+                opened_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(opened_card, text=f"✅ Newly Opened Ports ({len(comparison['newly_opened'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold"), text_color="green").pack(pady=10, anchor="w", padx=15)
+                
+                for port in sorted(comparison['newly_opened']):
+                    details = comparison['newly_opened_details'].get(port, {})
+                    port_text = f"Port {port} - {details.get('service', 'Unknown')}"
+                    ctk.CTkLabel(opened_card, text=port_text, anchor="w").pack(anchor="w", padx=30, pady=2)
+            
+            # Newly closed ports
+            if comparison['newly_closed']:
+                closed_card = StyledCard(results_frame)
+                closed_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(closed_card, text=f"❌ Newly Closed Ports ({len(comparison['newly_closed'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold"), text_color="red").pack(pady=10, anchor="w", padx=15)
+                
+                for port in sorted(comparison['newly_closed']):
+                    details = comparison['newly_closed_details'].get(port, {})
+                    port_text = f"Port {port} - {details.get('service', 'Unknown')}"
+                    ctk.CTkLabel(closed_card, text=port_text, anchor="w").pack(anchor="w", padx=30, pady=2)
+            
+            # Unchanged ports
+            if comparison['unchanged']:
+                unchanged_card = StyledCard(results_frame)
+                unchanged_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(unchanged_card, text=f"➖ Unchanged Ports ({len(comparison['unchanged'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold")).pack(pady=10, anchor="w", padx=15)
+                
+                for port in sorted(list(comparison['unchanged'])[:10]):  # Show first 10
+                    details = comparison['unchanged_details'].get(port, {})
+                    port_text = f"Port {port} - {details.get('service', 'Unknown')}"
+                    ctk.CTkLabel(unchanged_card, text=port_text, anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
+                
+                if len(comparison['unchanged']) > 10:
+                    ctk.CTkLabel(unchanged_card, text=f"... and {len(comparison['unchanged']) - 10} more", 
+                                anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
+        
+        # Compare button
+        compare_btn = StyledButton(main_frame, text="Compare Selected Scans", command=compare_selected, variant="primary")
+        compare_btn.pack(pady=10)
+        
+        # Auto-compare latest scans
+        compare_selected()
+        
+        # Close button
+        close_btn = StyledButton(main_frame, text="Close", command=comp_window.destroy)
+        close_btn.pack(pady=10)
+
     def _export_port_scan_xml(self, filepath):
         """Export port scan to XML format"""
         root = ET.Element('portscan')
