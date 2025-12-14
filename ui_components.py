@@ -1646,5 +1646,3 @@ def add_tooltip_to_widget(widget, text):
     Usage: add_tooltip_to_widget(my_button, "Click to scan network")
     """
     Tooltip(widget, text)
-
-        self.status_label.configure(text="0%")
