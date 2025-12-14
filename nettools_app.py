@@ -1161,6 +1161,16 @@ Actions:
                     SpeedtestUI(self, self.pages[page_id])
                 elif page_id == "password":
                     PasswordGeneratorUI(self, self.pages[page_id])
+                elif page_id == "whois":
+                    WhoisUI(self, self.pages[page_id])
+                elif page_id == "ssl":
+                    SSLCheckerUI(self, self.pages[page_id])
+                elif page_id == "hash":
+                    HashGeneratorUI(self, self.pages[page_id])
+                elif page_id == "api":
+                    APITesterUI(self, self.pages[page_id])
+                elif page_id == "arp":
+                    ARPViewerUI(self, self.pages[page_id])
                 
                 self.pages_loaded[page_id] = True
             
