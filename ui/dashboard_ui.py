@@ -463,14 +463,17 @@ class DashboardUI:
                 'status': 'Down'
             })
     
-    def _create_info_card(self, parent, title, value, subtitle, row, col):
+    def _create_info_card(self, parent, title, value, subtitle, row, col, highlight=False):
         """Create a clean info card without excessive colors"""
+        # Use highlight color for special cards (like External IP)
+        border_color = COLORS['electric_violet'] if highlight else ("gray70", "gray30")
+        
         card = ctk.CTkFrame(
             parent,
             fg_color=COLORS['dashboard_card'],
             corner_radius=RADIUS['medium'],
-            border_width=1,
-            border_color=("gray70", "gray30")
+            border_width=2 if highlight else 1,
+            border_color=border_color
         )
         card.grid(row=row, column=col, padx=SPACING['sm'], pady=SPACING['sm'], sticky="nsew")
         
@@ -478,17 +481,18 @@ class DashboardUI:
         title_label = ctk.CTkLabel(
             card,
             text=title,
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary']
+            font=ctk.CTkFont(size=12, weight="bold" if highlight else "normal"),
+            text_color=COLORS['electric_violet'] if highlight else COLORS['text_secondary']
         )
         title_label.pack(pady=(SPACING['md'], SPACING['xs']))
         
         # Value (main info)
+        value_color = COLORS['neon_cyan'] if highlight else COLORS['text_primary']
         value_label = ctk.CTkLabel(
             card,
             text=value,
-            font=ctk.CTkFont(size=20, weight="bold"),
-            text_color=COLORS['text_primary']
+            font=ctk.CTkFont(size=18 if highlight else 20, weight="bold"),
+            text_color=value_color
         )
         value_label.pack()
         
@@ -500,6 +504,13 @@ class DashboardUI:
             text_color=COLORS['text_secondary']
         )
         subtitle_label.pack(pady=(SPACING['xs'], SPACING['md']))
+        
+        # Store references for External IP card
+        if highlight:
+            self.external_ip_value_label = value_label
+            self.external_ip_subtitle_label = subtitle_label
+        
+        return card
     
     def _create_network_interfaces_section(self, parent):
         """Create network interfaces information table"""
