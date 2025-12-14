@@ -1015,17 +1015,20 @@ Actions:
         if page_id == self.current_page:
             return
         
-        # Update button states with electric violet theme
+        # Update button states - professional active state
         for btn_id, btn in self.nav_buttons.items():
             if btn_id == page_id:
+                # Active state - filled with accent color
                 btn.configure(
-                    fg_color=COLORS['dashboard_card_hover'],
-                    border_width=2,
-                    border_color=COLORS['electric_violet']
+                    fg_color=COLORS['electric_violet'],
+                    text_color="white",
+                    border_width=0
                 )
             else:
+                # Inactive state - transparent
                 btn.configure(
                     fg_color="transparent",
+                    text_color=COLORS['text_primary'],
                     border_width=0
                 )
         
