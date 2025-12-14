@@ -1301,7 +1301,9 @@ class TabView(ctk.CTkFrame):
 
 class ContextMenu:
     """
-    Right-click context menu for various UI elements using custom Toplevel window
+    Right-click context menu for various UI elements using custom Toplevel window.
+    Fixed z-index issue with proper focus management and click-outside handling.
+    
     Usage:
         menu = ContextMenu(parent_widget, items=[
             ("Copy", lambda: print("Copied")),
@@ -1311,6 +1313,9 @@ class ContextMenu:
         ])
         widget.bind("<Button-3>", menu.show)
     """
+    
+    # Class-level tracking of active menu
+    _active_menu = None
     
     def __init__(self, widget, items):
         """
@@ -1323,43 +1328,56 @@ class ContextMenu:
         self.widget = widget
         self.items = items
         self.menu_window = None
+        self._click_binding = None
+    
+    @classmethod
+    def close_active_menu(cls):
+        """Close any currently active context menu"""
+        if cls._active_menu is not None:
+            try:
+                if cls._active_menu.menu_window is not None:
+                    cls._active_menu.menu_window.destroy()
+                    cls._active_menu.menu_window = None
+            except:
+                pass
+            cls._active_menu = None
     
     def show(self, event):
         """Show context menu at cursor position using custom Toplevel"""
         import customtkinter as ctk
         
-        # Debug marker
-        print("DEBUG: ContextMenu.show() called - NEW VERSION with CTkToplevel")
+        # Close any existing active menu first
+        ContextMenu.close_active_menu()
         
-        # Close any existing menu
-        if self.menu_window is not None:
-            try:
-                self.menu_window.destroy()
-            except:
-                pass
+        # Get the root window (main application window)
+        root = self.widget.winfo_toplevel()
         
         # Create toplevel window for menu
-        self.menu_window = ctk.CTkToplevel(self.widget)
-        self.menu_window.withdraw()  # Hide initially
+        self.menu_window = ctk.CTkToplevel(root)
+        self.menu_window.withdraw()  # Hide initially while configuring
         
         # Remove window decorations
         self.menu_window.overrideredirect(True)
         
-        # Make it stay on top
-        self.menu_window.attributes('-topmost', True)
+        # Configure for proper layering
+        self.menu_window.transient(root)  # Associate with main window
+        self.menu_window.attributes('-topmost', True)  # Keep on top
         
-        # Set position
-        self.menu_window.geometry(f"+{event.x_root}+{event.y_root}")
+        # On Windows, ensure window stays on top
+        try:
+            self.menu_window.attributes('-toolwindow', True)  # Windows: no taskbar icon
+        except:
+            pass
         
-        # Menu container frame
+        # Menu container frame with shadow effect
         menu_frame = ctk.CTkFrame(
             self.menu_window,
-            fg_color=COLORS['bg_card'],
+            fg_color=("#2D2D2D", "#1E1B2E"),  # Darker background for contrast
             corner_radius=8,
-            border_width=1,
+            border_width=2,
             border_color=COLORS['electric_violet']
         )
-        menu_frame.pack(fill="both", expand=True, padx=2, pady=2)
+        menu_frame.pack(fill="both", expand=True, padx=1, pady=1)
         
         # Add menu items
         for item in self.items:
@@ -1372,8 +1390,9 @@ class ContextMenu:
                 
                 def make_command(cmd):
                     def wrapped():
-                        self.menu_window.destroy()
-                        cmd()
+                        self._close()
+                        if cmd:
+                            cmd()
                     return wrapped
                 
                 btn = ctk.CTkButton(
@@ -1382,27 +1401,93 @@ class ContextMenu:
                     command=make_command(command),
                     fg_color="transparent",
                     hover_color=COLORS['electric_violet'],
+                    text_color="white",
                     anchor="w",
-                    height=32,
+                    height=34,
                     corner_radius=6,
                     font=ctk.CTkFont(size=12)
                 )
                 btn.pack(fill="x", padx=5, pady=2)
         
-        # Show menu
-        self.menu_window.deiconify()
-        self.menu_window.focus_set()
+        # Calculate position - ensure menu stays on screen
+        self.menu_window.update_idletasks()
+        menu_width = self.menu_window.winfo_reqwidth()
+        menu_height = self.menu_window.winfo_reqheight()
         
-        # Bind click outside to close
-        def close_menu(e=None):
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        x = event.x_root
+        y = event.y_root
+        
+        # Adjust if menu would go off-screen
+        if x + menu_width > screen_width:
+            x = screen_width - menu_width - 10
+        if y + menu_height > screen_height:
+            y = screen_height - menu_height - 10
+        
+        self.menu_window.geometry(f"+{x}+{y}")
+        
+        # Show menu and ensure it's on top
+        self.menu_window.deiconify()
+        self.menu_window.lift()
+        self.menu_window.focus_force()
+        
+        # Track this as the active menu
+        ContextMenu._active_menu = self
+        
+        # Bind global click to close menu when clicking outside
+        def on_global_click(e):
+            # Check if click was outside the menu
+            if self.menu_window is None:
+                return
             try:
+                # Get click coordinates relative to screen
+                click_x = e.x_root
+                click_y = e.y_root
+                
+                # Get menu bounds
+                menu_x = self.menu_window.winfo_rootx()
+                menu_y = self.menu_window.winfo_rooty()
+                menu_w = self.menu_window.winfo_width()
+                menu_h = self.menu_window.winfo_height()
+                
+                # Close if click is outside menu bounds
+                if not (menu_x <= click_x <= menu_x + menu_w and 
+                        menu_y <= click_y <= menu_y + menu_h):
+                    self._close()
+            except:
+                self._close()
+        
+        # Bind to root window for click-outside detection
+        self._click_binding = root.bind_all("<Button-1>", on_global_click, add="+")
+        
+        # Also close on Escape key
+        self.menu_window.bind("<Escape>", lambda e: self._close())
+        
+        # Prevent event propagation
+        return "break"
+    
+    def _close(self):
+        """Close this context menu and clean up bindings"""
+        if self.menu_window is not None:
+            try:
+                # Remove global click binding
+                if self._click_binding:
+                    root = self.widget.winfo_toplevel()
+                    try:
+                        root.unbind_all("<Button-1>")
+                    except:
+                        pass
+                    self._click_binding = None
+                
                 self.menu_window.destroy()
+                self.menu_window = None
             except:
                 pass
         
-        # Close when clicking outside
-        self.menu_window.bind("<FocusOut>", close_menu)
-        self.menu_window.bind("<Escape>", close_menu)
+        if ContextMenu._active_menu == self:
+            ContextMenu._active_menu = None
 
 
 
