@@ -163,7 +163,7 @@ class ARPViewerUI:
             self.app.after(0, self._display_results)
             
         except Exception as e:
-            self.app.after(0, lambda: self.app.show_toast(f"Error: {str(e)}", "error"))
+            self.app.after(0, lambda msg=str(e): self.app.show_toast(f"Error: {msg}", "error"))
         
         finally:
             self.app.after(0, lambda: self.refresh_btn.configure(state="normal", text="🔄 Refresh ARP Table"))
