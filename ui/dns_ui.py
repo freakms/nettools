@@ -1105,3 +1105,171 @@ class DNSLookupUI:
         )
         success_label.pack(pady=(SPACING['md'], 0))
 
+
+
+    def show_dns_comparison(self, query):
+        """Show DNS lookup comparison dialog"""
+        # Get history for this query
+        history = self.comparison_history.get_dns_lookup_history(query)
+        
+        if len(history) < 2:
+            self.app.show_toast(f"Need at least 2 lookups of {query} to compare", "warning")
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self.app)
+        comp_window.title(f"DNS Lookup Comparison - {query}")
+        comp_window.geometry("800x600")
+        comp_window.transient(self.app)
+        comp_window.grab_set()
+        
+        # Center window
+        comp_window.update_idletasks()
+        x = self.app.winfo_x() + (self.app.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.app.winfo_y() + (self.app.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        # Main frame
+        main_frame = ctk.CTkFrame(comp_window, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title = ctk.CTkLabel(
+            main_frame,
+            text=f"⚖️ Compare DNS Lookups - {query}",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title.pack(pady=(0, 20))
+        
+        # Lookup selection frame
+        select_frame = ctk.CTkFrame(main_frame)
+        select_frame.pack(fill="x", pady=(0, 20))
+        
+        # Lookup 1 selection
+        lookup1_frame = ctk.CTkFrame(select_frame, fg_color="transparent")
+        lookup1_frame.pack(side="left", expand=True, fill="x", padx=10)
+        
+        ctk.CTkLabel(lookup1_frame, text="Earlier Lookup:", font=ctk.CTkFont(weight="bold")).pack(anchor="w")
+        
+        lookup1_var = ctk.StringVar(value="0")
+        lookup1_menu = ctk.CTkOptionMenu(
+            lookup1_frame,
+            variable=lookup1_var,
+            values=[f"{i}: {h['timestamp'][:19]} ({h['record_type']})" for i, h in enumerate(history)]
+        )
+        lookup1_menu.pack(fill="x", pady=5)
+        
+        # Lookup 2 selection
+        lookup2_frame = ctk.CTkFrame(select_frame, fg_color="transparent")
+        lookup2_frame.pack(side="left", expand=True, fill="x", padx=10)
+        
+        ctk.CTkLabel(lookup2_frame, text="Later Lookup:", font=ctk.CTkFont(weight="bold")).pack(anchor="w")
+        
+        lookup2_var = ctk.StringVar(value=str(len(history)-1))
+        lookup2_menu = ctk.CTkOptionMenu(
+            lookup2_frame,
+            variable=lookup2_var,
+            values=[f"{i}: {h['timestamp'][:19]} ({h['record_type']})" for i, h in enumerate(history)]
+        )
+        lookup2_menu.pack(fill="x", pady=5)
+        
+        # Results frame
+        results_frame = ctk.CTkScrollableFrame(main_frame)
+        results_frame.pack(fill="both", expand=True)
+        
+        def compare_selected():
+            """Compare selected lookups"""
+            # Clear previous results
+            for widget in results_frame.winfo_children():
+                widget.destroy()
+            
+            # Get selected lookups
+            idx1 = int(lookup1_var.get().split(":")[0])
+            idx2 = int(lookup2_var.get().split(":")[0])
+            
+            if idx1 >= idx2:
+                ctk.CTkLabel(results_frame, text="⚠️ Earlier lookup must be before later lookup", text_color="orange").pack(pady=20)
+                return
+            
+            # Compare
+            comparison = self.comparison_history.compare_dns_lookups(history[idx1], history[idx2])
+            
+            # Display info
+            info_card = StyledCard(results_frame)
+            info_card.pack(fill="x", pady=10)
+            
+            ctk.CTkLabel(info_card, text=f"Query: {comparison['query']}", font=ctk.CTkFont(size=13)).pack(pady=5, padx=15, anchor="w")
+            ctk.CTkLabel(info_card, text=f"Record Type: {comparison['record_type']}", font=ctk.CTkFont(size=13)).pack(pady=5, padx=15, anchor="w")
+            
+            # Check if there are changes
+            if not comparison['has_changes']:
+                no_change_card = StyledCard(results_frame)
+                no_change_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(no_change_card, text="✅ No Changes Detected", 
+                            font=ctk.CTkFont(size=16, weight="bold"), text_color="green").pack(pady=20)
+                ctk.CTkLabel(no_change_card, text="DNS records are identical between the two lookups", 
+                            font=ctk.CTkFont(size=12)).pack(pady=(0, 20), padx=20)
+            else:
+                # Summary
+                summary_card = StyledCard(results_frame)
+                summary_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(summary_card, text=f"📊 Changes Detected", 
+                            font=ctk.CTkFont(size=16, weight="bold"), text_color="orange").pack(pady=10)
+                
+                change_count = len(comparison['added']) + len(comparison['removed'])
+                ctk.CTkLabel(summary_card, text=f"Total Changes: {change_count}", 
+                            font=ctk.CTkFont(size=13)).pack(pady=5)
+            
+            # Added records
+            if comparison['added']:
+                added_card = StyledCard(results_frame)
+                added_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(added_card, text=f"✅ Added Records ({len(comparison['added'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold"), text_color="green").pack(pady=10, anchor="w", padx=15)
+                
+                for record in comparison['added']:
+                    if record:  # Skip empty strings
+                        ctk.CTkLabel(added_card, text=f"• {record}", anchor="w").pack(anchor="w", padx=30, pady=2)
+            
+            # Removed records
+            if comparison['removed']:
+                removed_card = StyledCard(results_frame)
+                removed_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(removed_card, text=f"❌ Removed Records ({len(comparison['removed'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold"), text_color="red").pack(pady=10, anchor="w", padx=15)
+                
+                for record in comparison['removed']:
+                    if record:  # Skip empty strings
+                        ctk.CTkLabel(removed_card, text=f"• {record}", anchor="w").pack(anchor="w", padx=30, pady=2)
+            
+            # Unchanged records
+            if comparison['unchanged']:
+                unchanged_card = StyledCard(results_frame)
+                unchanged_card.pack(fill="x", pady=10)
+                
+                ctk.CTkLabel(unchanged_card, text=f"➖ Unchanged Records ({len(comparison['unchanged'])})", 
+                            font=ctk.CTkFont(size=14, weight="bold")).pack(pady=10, anchor="w", padx=15)
+                
+                for record in list(comparison['unchanged'])[:10]:  # Show first 10
+                    if record:  # Skip empty strings
+                        ctk.CTkLabel(unchanged_card, text=f"• {record}", anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
+                
+                if len(comparison['unchanged']) > 10:
+                    ctk.CTkLabel(unchanged_card, text=f"... and {len(comparison['unchanged']) - 10} more", 
+                                anchor="w", text_color="gray").pack(anchor="w", padx=30, pady=2)
+        
+        # Compare button
+        compare_btn = StyledButton(main_frame, text="Compare Selected Lookups", command=compare_selected, variant="primary")
+        compare_btn.pack(pady=10)
+        
+        # Auto-compare latest lookups
+        compare_selected()
+        
+        # Close button
+        close_btn = StyledButton(main_frame, text="Close", command=comp_window.destroy)
+        close_btn.pack(pady=10)
+
