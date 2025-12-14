@@ -735,6 +735,7 @@ Actions:
             ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history", "changes"]),
             # Advanced
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
+            ("speedtest", "🚀", "Speedtest", ["speed", "ookla", "internet", "download", "upload", "bandwidth"]),
             ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),
             ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
             ("phpipam", "📦", "phpIPAM", ["ipam", "ip", "management", "inventory"]),
