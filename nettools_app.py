@@ -776,30 +776,29 @@ Actions:
         self.category_labels = []
         self.nav_categories_data = []  # Store category data for rebuilding
         
-        # Category structure with icons: (category_name, icon, [(page_id, icon, label, tooltip), ...])
+        # Category structure - Clean 4-category layout
+        # (category_name, icon, [(page_id, icon, label, tooltip), ...])
         nav_categories = [
-            ("HOME", "🏠", [
+            ("DASHBOARD", "📊", [
                 ("dashboard", "🏠", "Dashboard", "Overview and system info"),
             ]),
-            ("NETWORK SCANNING", "🔍", [
+            ("SCANNING", "🔍", [
                 ("scanner", "📡", "IPv4 Scanner", "Scan network for active hosts"),
                 ("portscan", "🔌", "Port Scanner", "Scan for open ports"),
                 ("traceroute", "🛤️", "Traceroute", "Trace network path"),
-                ("bandwidth", "📶", "Bandwidth Test", "Test speed with iperf3"),
             ]),
-            ("NETWORK TOOLS", "🛠", [
+            ("TOOLS", "🛠️", [
                 ("dns", "🌐", "DNS Lookup", "Resolve hostnames and IPs"),
                 ("subnet", "🔢", "Subnet Calculator", "Calculate subnet info"),
                 ("mac", "🔗", "MAC Formatter", "Format MAC addresses"),
-            ]),
-            ("MANAGEMENT", "📊", [
+                ("bandwidth", "📶", "Bandwidth Test", "Test speed with iperf3"),
                 ("compare", "⚖️", "Scan Comparison", "Compare scan results"),
-                ("profiles", "📁", "Network Profiles", "Manage profiles"),
             ]),
-            ("ADVANCED", "🛡", [
-                ("remote", "🖥️", "Remote Tools", "PSExec & iPerf integration"),
+            ("ADVANCED", "⚙️", [
+                ("profiles", "📁", "Network Profiles", "Manage network configs"),
+                ("remote", "🖥️", "Remote Tools", "PSExec & iPerf"),
                 ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
-                ("phpipam", "📊", "phpIPAM", "IP address management"),
+                ("phpipam", "📦", "phpIPAM", "IP address management"),
             ]),
         ]
         
