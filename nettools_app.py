@@ -681,6 +681,31 @@ Actions:
         )
         separator.pack(fill="x", padx=10, pady=5)
         
+        # Smart Command Palette - Search bar in sidebar
+        # Define tools for the command palette with keywords
+        self.command_palette_tools = [
+            ("dashboard", "🏠", "Dashboard", ["home", "overview", "start"]),
+            ("scanner", "📡", "IPv4 Scanner", ["scan", "network", "ip", "ping", "hosts"]),
+            ("portscan", "🔌", "Port Scanner", ["port", "service", "open"]),
+            ("traceroute", "🛤️", "Traceroute", ["trace", "route", "path", "hop"]),
+            ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput"]),
+            ("dns", "🌐", "DNS Lookup", ["dns", "resolve", "domain", "hostname"]),
+            ("subnet", "🔢", "Subnet Calculator", ["subnet", "cidr", "mask", "calculate"]),
+            ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor"]),
+            ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history"]),
+            ("profiles", "📁", "Network Profiles", ["profile", "config", "interface"]),
+            ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli"]),
+            ("phpipam", "📊", "phpIPAM", ["ipam", "ip", "management"]),
+        ]
+        
+        self.command_palette = SmartCommandPalette(
+            self.sidebar,
+            tools=self.command_palette_tools,
+            on_tool_select=self.switch_tool,
+            on_content_search=self._handle_content_search
+        )
+        self.command_palette.pack(fill="x", padx=5, pady=(5, 10))
+        
         # Scrollable navigation container
         self.nav_scroll = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
         self.nav_scroll.pack(fill="both", expand=True, padx=0, pady=0)
