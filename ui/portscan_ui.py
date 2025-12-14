@@ -105,6 +105,7 @@ class PortScannerUI:
             font=ctk.CTkFont(size=FONTS['small'])
         )
         common_radio.pack(anchor="w", pady=2)
+        add_tooltip_to_widget(common_radio, "Scan well-known service ports\nFastest option, covers most services")
         
         range_radio = ctk.CTkRadioButton(
             port_mode_frame,
@@ -115,6 +116,7 @@ class PortScannerUI:
             font=ctk.CTkFont(size=FONTS['small'])
         )
         range_radio.pack(anchor="w", pady=2)
+        add_tooltip_to_widget(range_radio, "Scan a continuous range of ports\nExample: 1-1024 for all standard ports")
         
         custom_radio = ctk.CTkRadioButton(
             port_mode_frame,
