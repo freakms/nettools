@@ -457,7 +457,7 @@ class RemoteToolsUI:
         
         def run_test():
             def output_callback(line):
-                self.app.after(0, lambda l=line: self._append_iperf_output(l + "\n"))
+                self.app.after(0, lambda out=line: self._append_iperf_output(out + "\n"))
             
             result = self.iperf_tool.run_client_test(
                 target,
