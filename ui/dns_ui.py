@@ -294,6 +294,14 @@ class DNSLookupUI:
     
     def display_dns_results(self, results):
         """Display DNS lookup results"""
+        # Remove loading spinner
+        if hasattr(self, 'dns_loading_spinner'):
+            try:
+                self.dns_loading_spinner.stop()
+                self.dns_loading_spinner.destroy()
+            except:
+                pass
+        
         # Clear frame
         for widget in self.dns_results_frame.winfo_children():
             widget.destroy()
