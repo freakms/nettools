@@ -23,6 +23,7 @@ from datetime import datetime
 from design_constants import COLORS, SPACING, RADIUS, FONTS
 from ui_components import StyledCard, StyledButton, StyledEntry, ResultRow, SubTitle, SectionTitle, ContextMenu, LoadingSpinner, ProgressIndicator, add_tooltip_to_widget
 from tools.port_scanner import PortScanner
+from tools.comparison_history import ComparisonHistory
 
 
 class PortScannerUI:
