@@ -909,6 +909,10 @@ Actions:
             height=36
         )
         
+        # Hide command palette (too small when collapsed)
+        if hasattr(self, 'command_palette'):
+            self.command_palette.pack_forget()
+        
         # Update live monitor button
         self.live_monitor_btn.configure(text="📊", width=40)
         
@@ -937,6 +941,10 @@ Actions:
             width=28,
             height=28
         )
+        
+        # Show command palette
+        if hasattr(self, 'command_palette'):
+            self.command_palette.pack(fill="x", padx=5, pady=(5, 10), before=self.nav_scroll)
         
         # Update live monitor button
         self.live_monitor_btn.configure(text="📊 Live Monitor", width=180)
