@@ -188,6 +188,7 @@ class PortScannerUI:
             variant="primary"
         )
         self.port_scan_btn.pack(side="left", padx=(0, SPACING['md']))
+        add_tooltip_to_widget(self.port_scan_btn, "Start scanning ports on target host\nShortcut: Ctrl+Enter")
         
         self.app.port_cancel_btn = StyledButton(
             button_frame,
