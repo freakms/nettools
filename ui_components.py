@@ -342,19 +342,47 @@ class InfoBox(ctk.CTkFrame):
         
         kwargs.setdefault('fg_color', bg_color)
         kwargs.setdefault('corner_radius', 10)
-        kwargs.setdefault('corner_radius', RADIUS['medium'])
         
         super().__init__(parent, **kwargs)
         
-        # Add message label
+        # Content container
+        content = ctk.CTkFrame(self, fg_color="transparent")
+        content.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
+        
+        # Icon
+        icon_label = ctk.CTkLabel(
+            content,
+            text=icon,
+            font=ctk.CTkFont(size=16)
+        )
+        icon_label.pack(side="left", padx=(0, SPACING['sm']))
+        
+        # Message
         label = ctk.CTkLabel(
-            self,
+            content,
             text=message,
             font=ctk.CTkFont(size=FONTS['body']),
-            text_color="white",
-            wraplength=400
+            text_color=text_color,
+            wraplength=450,
+            justify="left",
+            anchor="w"
         )
-        label.pack(padx=SPACING['md'], pady=SPACING['sm'])
+        label.pack(side="left", fill="x", expand=True)
+        
+        # Dismiss button
+        if dismissible:
+            close_btn = ctk.CTkButton(
+                content,
+                text="✕",
+                width=24,
+                height=24,
+                corner_radius=12,
+                fg_color="transparent",
+                hover_color=("gray70", "gray40"),
+                text_color=text_color,
+                command=self.destroy
+            )
+            close_btn.pack(side="right", padx=(SPACING['sm'], 0))
 
 
 class DataGrid(ctk.CTkFrame):
@@ -374,7 +402,7 @@ class DataGrid(ctk.CTkFrame):
         """Create the header row with electric violet theme"""
         header_frame = ctk.CTkFrame(
             self,
-            corner_radius=RADIUS['medium'],
+            corner_radius=8,
             fg_color=COLORS['electric_violet']
         )
         header_frame.pack(fill="x", pady=(0, SPACING['xs']))
