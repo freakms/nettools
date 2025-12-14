@@ -371,7 +371,7 @@ class RemoteToolsUI:
         
         def run_command():
             def output_callback(line):
-                self.app.after(0, lambda l=line: self._append_psexec_output(l + "\n"))
+                self.app.after(0, lambda out=line: self._append_psexec_output(out + "\n"))
             
             result = self.psexec_tool.execute_remote_command(
                 target, command,
