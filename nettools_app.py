@@ -1141,6 +1141,8 @@ Actions:
                     remote_ui.create_content(self.pages[page_id])
                 elif page_id == "speedtest":
                     SpeedtestUI(self, self.pages[page_id])
+                elif page_id == "password":
+                    PasswordGeneratorUI(self, self.pages[page_id])
                 
                 self.pages_loaded[page_id] = True
             
