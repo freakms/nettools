@@ -440,7 +440,18 @@ class PortScannerUI:
             text=summary_text,
             font=ctk.CTkFont(size=14, weight="bold")
         )
-        summary_label.pack(anchor="w")
+        summary_label.pack(side="left", anchor="w")
+        
+        # Comparison button
+        compare_btn = StyledButton(
+            summary_frame,
+            text="⚖️ Compare Scans",
+            command=lambda: self.show_port_comparison(target),
+            size="small",
+            variant="neutral"
+        )
+        compare_btn.pack(side="right", padx=10)
+        add_tooltip_to_widget(compare_btn, "Compare this scan with previous scans")
         
         # Results table header
         header_frame = ctk.CTkFrame(self.app.port_results_frame, corner_radius=0)
