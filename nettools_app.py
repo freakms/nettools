@@ -3323,11 +3323,12 @@ Actions:
                         error_msg
                     ))
             
-            except Exception as e:
+            except Exception as ex:
+                error_str = str(ex)
                 self.after(0, lambda: progress_label.destroy())
-                self.after(0, lambda: messagebox.showerror(
+                self.after(0, lambda msg=error_str: messagebox.showerror(
                     "Error",
-                    f"Error applying profile: {str(e)}"
+                    f"Error applying profile: {msg}"
                 ))
         
         # Run in thread
