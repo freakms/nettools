@@ -31,6 +31,7 @@ from ui.traceroute_ui import TracerouteUI
 from ui.panos_ui import PANOSUI
 from ui.bandwidth_ui import BandwidthUI
 from ui.phpipam_ui import PhpipamUI
+from ui.remote_tools_ui import RemoteToolsUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
