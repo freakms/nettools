@@ -834,6 +834,7 @@ Actions:
                     self.nav_scroll,
                     text=f" {icon}  {label}",
                     command=lambda p=page_id: self.switch_tool(p),
+                    width=220,
                     height=40,
                     corner_radius=8,
                     anchor="w",
