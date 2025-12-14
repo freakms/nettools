@@ -37,6 +37,7 @@ class PortScannerUI:
             app: Reference to main NetToolsApp instance
         """
         self.app = app
+        self.comparison_history = ComparisonHistory()
 
     def create_content(self, parent):
         """Create Port Scanner page content"""
