@@ -1637,4 +1637,14 @@ class ErrorDialog:
         
         dialog.focus_set()
 
+
+
+
+def add_tooltip_to_widget(widget, text):
+    """
+    Convenience function to add tooltip to any widget
+    Usage: add_tooltip_to_widget(my_button, "Click to scan network")
+    """
+    Tooltip(widget, text)
+
         self.status_label.configure(text="0%")
