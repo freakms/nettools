@@ -925,47 +925,55 @@ Actions:
         if hasattr(self, 'command_palette'):
             self.command_palette.pack_forget()
         
-        # Update live monitor button
-        self.live_monitor_btn.configure(text="📊", width=40)
+        # Update live monitor button - icon only, centered
+        self.live_monitor_btn.configure(text="📊", width=48, anchor="center")
         
         # Update nav buttons to show only icons (centered)
         for page_id, btn in self.nav_buttons.items():
             icon = getattr(btn, '_nav_icon', '•')
-            btn.configure(text=icon, anchor="center")
+            btn.configure(text=icon, anchor="center", width=48)
         
         # Hide category labels completely
         for label, icon, name, buttons in self.category_labels:
             label.pack_forget()
+        
+        # Hide favorites frame header if exists
+        if hasattr(self, 'favorites_label'):
+            self.favorites_label.pack_forget()
     
     def _expand_sidebar(self):
         """Expand sidebar to full width"""
         self.sidebar_collapsed = False
         self.sidebar.configure(width=self.sidebar_expanded_width)
         
-        # Show text elements
-        self.logo_text.pack(side="left")
-        self.subtitle_label.pack(padx=20, pady=(0, 5))
-        self.theme_label.pack(pady=(0, 5))
-        self.theme_selector.pack()
+        # Show text elements in correct order
+        self.logo_text.pack(side="left", padx=(4, 0))
+        self.subtitle_label.pack(padx=20, pady=(0, 8), anchor="w")
+        self.theme_label.pack(pady=(0, 8), anchor="w")
+        self.theme_selector.pack(fill="x")
         self.collapse_btn.configure(
             text="◀",
-            fg_color="transparent",
-            width=28,
-            height=28
+            fg_color=COLORS.get('bg_card', ("gray90", "gray25")),
+            width=32,
+            height=32
         )
         
         # Show command palette
         if hasattr(self, 'command_palette'):
             self.command_palette.pack(fill="x", padx=5, pady=(5, 10), before=self.nav_scroll)
         
-        # Update live monitor button
-        self.live_monitor_btn.configure(text="📊 Live Monitor", width=180)
+        # Update live monitor button - full text
+        self.live_monitor_btn.configure(text="📊 Live Monitor", width=220, anchor="w")
         
         # Update nav buttons to show icons + text
         for page_id, btn in self.nav_buttons.items():
             icon = getattr(btn, '_nav_icon', '•')
             label = getattr(btn, '_nav_label', page_id)
-            btn.configure(text=f" {icon}  {label}", anchor="w")
+            btn.configure(text=f" {icon}  {label}", anchor="w", width=220)
+        
+        # Show favorites label if exists
+        if hasattr(self, 'favorites_label'):
+            self.favorites_label.pack(fill="x", padx=15, pady=(5, 5), before=self.favorites_frame)
         
         # Restore category labels in the correct order by re-packing them before their buttons
         for label_widget, icon, name, button_ids in self.category_labels:
