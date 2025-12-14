@@ -32,6 +32,7 @@ from ui.panos_ui import PANOSUI
 from ui.bandwidth_ui import BandwidthUI
 from ui.phpipam_ui import PhpipamUI
 from ui.remote_tools_ui import RemoteToolsUI
+from ui.speedtest_ui import SpeedtestUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
