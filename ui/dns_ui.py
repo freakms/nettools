@@ -271,13 +271,10 @@ class DNSLookupUI:
         for widget in self.dns_results_frame.winfo_children():
             widget.destroy()
         
-        # Show loading
-        loading_label = ctk.CTkLabel(
-            self.dns_results_frame,
-            text=f"Looking up {query}...",
-            font=ctk.CTkFont(size=12)
-        )
-        loading_label.pack(pady=50)
+        # Show loading spinner
+        self.dns_loading_spinner = LoadingSpinner(self.dns_results_frame, text=f"Looking up {query}...")
+        self.dns_loading_spinner.pack(pady=50)
+        self.dns_loading_spinner.start()
         
         # Perform lookup in background
         lookup_thread = threading.Thread(
