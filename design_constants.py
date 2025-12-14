@@ -10,27 +10,29 @@ COLORS = {
     "primary_hover": ("#42A5F5", "#2196F3"), # Blue hover
     
     # Semantic Colors
-    "success": ("#4CAF50", "#388E3C"),       # Green
-    "success_hover": ("#66BB6A", "#4CAF50"),
-    "warning": ("#FFC107", "#FF6F00"),       # Orange
-    "warning_hover": ("#FFD54F", "#FFC107"),
-    "danger": ("#F44336", "#D32F2F"),        # Red
-    "danger_hover": ("#EF5350", "#F44336"),
+    "success": ("#22C55E", "#16A34A"),       # Green (updated)
+    "success_hover": ("#4ADE80", "#22C55E"),
+    "warning": ("#F59E0B", "#D97706"),       # Orange/Amber
+    "warning_hover": ("#FBBF24", "#F59E0B"),
+    "danger": ("#EF4444", "#DC2626"),        # Red
+    "danger_hover": ("#F87171", "#EF4444"),
     
     # Neutral Colors
-    "neutral": ("#757575", "#616161"),       # Gray
-    "neutral_hover": ("#9E9E9E", "#757575"),
+    "neutral": ("#6B7280", "#4B5563"),       # Gray (updated)
+    "neutral_hover": ("#9CA3AF", "#6B7280"),
     
     # Status Colors
-    "online": "#4CAF50",
-    "offline": "#757575",
-    "scanning": "#2196F3",
+    "online": "#22C55E",
+    "offline": "#6B7280",
+    "scanning": "#3B82F6",
     
     # Background & Text
-    "bg_card": ("gray90", "gray17"),
-    "bg_card_hover": ("gray85", "gray20"),
-    "text_primary": ("gray10", "gray90"),
-    "text_secondary": ("gray60", "gray40"),
+    "bg_primary": ("#F9FAFB", "#111827"),     # Main background
+    "bg_card": ("#FFFFFF", "#1F2937"),        # Card background
+    "bg_card_hover": ("#F3F4F6", "#374151"),  # Card hover
+    "bg_dark": "#0F172A",                      # Dark background
+    "text_primary": ("#111827", "#F9FAFB"),
+    "text_secondary": ("#6B7280", "#9CA3AF"),
     
     # Dashboard Electric Violet Theme
     "dashboard_bg": ("#F5F3FF", "#0F0D1B"),           # Deep purple-black
@@ -42,6 +44,11 @@ COLORS = {
     "neon_cyan_hover": ("#22D3EE", "#67E8F9"),        # Cyan hover
     "glow_purple": "#9333EA",                         # Glow effect color
     "glow_cyan": "#0891B2",                           # Cyan glow
+    
+    # Additional UI Colors
+    "border": ("#E5E7EB", "#374151"),                 # Border color
+    "focus_ring": "#8B5CF6",                          # Focus ring color
+    "selection": ("#EDE9FE", "#312E81"),              # Selection background
 }
 
 # Spacing System (8px base unit)
