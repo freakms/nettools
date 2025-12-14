@@ -635,69 +635,80 @@ Actions:
         return "Unknown"
         
     def create_sidebar(self):
-        """Create modern sidebar navigation with icons and collapse feature"""
-        # Sidebar frame with dark violet background
+        """Create modern professional sidebar navigation"""
+        # Sidebar frame with subtle gradient background
         self.sidebar = ctk.CTkFrame(
             self, 
-            width=250, 
+            width=260, 
             corner_radius=0,
-            fg_color=COLORS['dashboard_card']
+            fg_color=COLORS['dashboard_card'],
+            border_width=0
         )
         self.sidebar.pack(side="left", fill="y", padx=0, pady=0)
         self.sidebar.pack_propagate(False)
         
         self.sidebar_collapsed = False
-        self.sidebar_expanded_width = 250
-        self.sidebar_collapsed_width = 60
+        self.sidebar_expanded_width = 260
+        self.sidebar_collapsed_width = 68
+        
+        # Right border accent
+        border_accent = ctk.CTkFrame(
+            self.sidebar,
+            width=2,
+            corner_radius=0,
+            fg_color=COLORS['electric_violet']
+        )
+        border_accent.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
         
         # Header with logo and collapse button
-        header_frame = ctk.CTkFrame(self.sidebar, height=90, corner_radius=0, fg_color="transparent")
+        header_frame = ctk.CTkFrame(self.sidebar, height=80, corner_radius=0, fg_color="transparent")
         header_frame.pack(fill="x", padx=0, pady=0)
         header_frame.pack_propagate(False)
         
         # Logo row
         logo_row = ctk.CTkFrame(header_frame, fg_color="transparent")
-        logo_row.pack(fill="x", padx=10, pady=(15, 5))
+        logo_row.pack(fill="x", padx=16, pady=(20, 8))
         
         self.logo_icon = ctk.CTkLabel(
             logo_row,
             text="⚡",
-            font=ctk.CTkFont(size=28)
+            font=ctk.CTkFont(size=26)
         )
         self.logo_icon.pack(side="left")
         
         self.logo_text = ctk.CTkLabel(
             logo_row,
-            text=" NetTools",
-            font=ctk.CTkFont(size=22, weight="bold"),
+            text="NetTools",
+            font=ctk.CTkFont(size=20, weight="bold"),
             text_color=COLORS['electric_violet']
         )
-        self.logo_text.pack(side="left")
+        self.logo_text.pack(side="left", padx=(4, 0))
         
-        # Collapse button
+        # Collapse button with rounded style
         self.collapse_btn = ctk.CTkButton(
             logo_row,
             text="◀",
-            width=28,
-            height=28,
-            corner_radius=14,
-            fg_color="transparent",
+            width=32,
+            height=32,
+            corner_radius=8,
+            fg_color=COLORS.get('bg_card', ("gray90", "gray25")),
             hover_color=COLORS['dashboard_card_hover'],
+            text_color=COLORS['text_secondary'],
             command=self.toggle_sidebar,
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=11)
         )
         self.collapse_btn.pack(side="right")
-        Tooltip(self.collapse_btn, "Collapse/Expand Sidebar")
+        Tooltip(self.collapse_btn, "Collapse/Expand (Ctrl+B)")
         
         self.subtitle_label = ctk.CTkLabel(
             header_frame,
-            text="Professional Suite",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['neon_cyan']
+            text="Professional Network Suite",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_secondary']
         )
-        self.subtitle_label.pack(padx=20, pady=(0, 5))
+        self.subtitle_label.pack(padx=20, pady=(0, 8), anchor="w")
         
-        # Separator with electric violet glow
+        # Separator with subtle style
         separator = ctk.CTkFrame(
             self.sidebar, 
             height=2, 
