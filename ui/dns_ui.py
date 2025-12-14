@@ -442,14 +442,29 @@ class DNSLookupUI:
             self.app.update()
             self.app.show_toast("All results copied to clipboard", "success")
         
+        # Button frame
+        button_frame = ctk.CTkFrame(self.dns_results_frame, fg_color="transparent")
+        button_frame.pack(pady=(10, 20), padx=20, anchor="w")
+        
         copy_all_btn = StyledButton(
-            self.dns_results_frame,
+            button_frame,
             text="📄 Copy All Results",
             command=copy_all_results,
             size="medium",
             variant="primary"
         )
-        copy_all_btn.pack(pady=(10, 20), padx=20, anchor="w")
+        copy_all_btn.pack(side="left", padx=(0, 10))
+        
+        # Compare button
+        compare_btn = StyledButton(
+            button_frame,
+            text="⚖️ Compare Lookups",
+            command=lambda: self.show_dns_comparison(results["query"]),
+            size="medium",
+            variant="neutral"
+        )
+        compare_btn.pack(side="left")
+        add_tooltip_to_widget(compare_btn, "Compare this lookup with previous lookups")
     
 
     def perform_dnsdumpster_lookup(self):
