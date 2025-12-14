@@ -1060,6 +1060,9 @@ Actions:
                     PhpipamUI(self, self.pages[page_id])
                 elif page_id == "bandwidth":
                     BandwidthUI(self, self.pages[page_id])
+                elif page_id == "remote":
+                    remote_ui = RemoteToolsUI(self)
+                    remote_ui.create_content(self.pages[page_id])
                 
                 self.pages_loaded[page_id] = True
             
@@ -1094,6 +1097,8 @@ Actions:
             self.status_label.configure(text="Calculate subnet information from CIDR")
         elif page_id == "phpipam":
             self.status_label.configure(text="Manage IP addresses with phpIPAM")
+        elif page_id == "remote":
+            self.status_label.configure(text="Execute remote commands and bandwidth tests")
     
     
     def show_page(self, page_id):
