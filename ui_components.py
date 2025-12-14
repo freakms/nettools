@@ -279,15 +279,28 @@ class StatusBadge(ctk.CTkFrame):
             font=ctk.CTkFont(size=font_size, weight="bold"),
             text_color=text_color
         )
-        label.pack(padx=10, pady=4)
+        label.pack(padx=pad_x, pady=pad_y)
 
 
 class SectionSeparator(ctk.CTkFrame):
-    """A visual separator with electric violet theme"""
+    """
+    A visual separator line.
+    Can be horizontal or have subtle styling.
+    """
     
-    def __init__(self, parent, **kwargs):
-        kwargs.setdefault('height', 2)
-        kwargs.setdefault('fg_color', COLORS['electric_violet'])
+    def __init__(self, parent, style="default", **kwargs):
+        """
+        Args:
+            style: "default" (violet), "subtle" (gray), "gradient" (faded)
+        """
+        kwargs.setdefault('height', 1)
+        
+        if style == "subtle":
+            kwargs.setdefault('fg_color', COLORS.get('border', ("#E5E7EB", "#374151")))
+        elif style == "gradient":
+            kwargs.setdefault('fg_color', ("gray85", "gray30"))
+        else:  # default - violet accent
+            kwargs.setdefault('fg_color', COLORS['electric_violet'])
         
         super().__init__(parent, **kwargs)
 
@@ -304,20 +317,31 @@ class SimpleLoadingIndicator(ctk.CTkLabel):
 
 
 class InfoBox(ctk.CTkFrame):
-    """An information/alert box with electric violet theme"""
+    """
+    Professional information/alert box for displaying messages.
+    Supports multiple types: info, success, warning, error, tip
+    """
     
-    def __init__(self, parent, message, box_type="info", **kwargs):
-        # Determine color based on type with violet theme
-        if box_type == "success":
-            bg_color = COLORS['success']
-        elif box_type == "warning":
-            bg_color = COLORS['warning']
-        elif box_type == "error":
-            bg_color = COLORS['danger']
-        else:
-            bg_color = COLORS['electric_violet']
+    def __init__(self, parent, message, box_type="info", dismissible=False, **kwargs):
+        """
+        Args:
+            message: The message to display
+            box_type: "info", "success", "warning", "error", "tip"
+            dismissible: Show close button
+        """
+        # Icons and colors for different types
+        type_config = {
+            "success": ("✅", COLORS['success'], ("white", "white")),
+            "warning": ("⚠️", COLORS['warning'], ("gray10", "gray10")),
+            "error": ("❌", COLORS['danger'], ("white", "white")),
+            "tip": ("💡", COLORS['neon_cyan'], ("white", "white")),
+            "info": ("ℹ️", COLORS['electric_violet'], ("white", "white")),
+        }
+        
+        icon, bg_color, text_color = type_config.get(box_type, type_config["info"])
         
         kwargs.setdefault('fg_color', bg_color)
+        kwargs.setdefault('corner_radius', 10)
         kwargs.setdefault('corner_radius', RADIUS['medium'])
         
         super().__init__(parent, **kwargs)
