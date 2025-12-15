@@ -561,6 +561,88 @@ class RemoteToolsUI:
             self.psexec_output.insert("end", f"❌ Error:\n{error_msg}\n")
             self.app.show_toast("Failed to start PowerShell Remoting", "error")
     
+    def _start_ssh_session(self):
+        """Start SSH session to remote host"""
+        target = self.psexec_target_entry.get().strip()
+        
+        if not target:
+            self.app.show_toast("Please enter a target host", "warning")
+            return
+        
+        creds = self._get_credentials()
+        
+        self.psexec_output.delete("1.0", "end")
+        self.psexec_output.insert("end", f"Starting SSH session to {target}...\n")
+        
+        try:
+            # Build SSH command
+            if not creds['use_current_credentials'] and creds['username']:
+                if creds['domain']:
+                    user_string = f"{creds['domain']}\\{creds['username']}"
+                else:
+                    user_string = creds['username']
+                ssh_target = f"{user_string}@{target}"
+            else:
+                ssh_target = target
+            
+            self.psexec_output.insert("end", f"Target: {ssh_target}\n")
+            self.psexec_output.insert("end", "-" * 40 + "\n\n")
+            
+            # Start SSH in new window
+            import subprocess
+            subprocess.Popen(
+                ['cmd', '/c', 'start', 'cmd', '/k', f'ssh {ssh_target}'],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            self.psexec_output.insert("end", "✅ SSH window started!\n")
+            self.psexec_output.insert("end", "\nNote: You'll be prompted for password in the new window.\n")
+            self.psexec_output.insert("end", "If SSH fails, ensure OpenSSH is enabled on target:\n")
+            self.psexec_output.insert("end", "  Add-WindowsCapability -Online -Name OpenSSH.Server\n")
+            self.psexec_output.insert("end", "  Start-Service sshd\n")
+            self.app.show_toast(f"Started SSH to {target}", "success")
+            
+        except Exception as e:
+            self.psexec_output.insert("end", f"❌ Error: {str(e)}\n")
+            self.app.show_toast("Failed to start SSH", "error")
+    
+    def _setup_trustedhosts(self):
+        """Setup TrustedHosts to allow all connections"""
+        self.psexec_output.delete("1.0", "end")
+        self.psexec_output.insert("end", "Setting up WinRM TrustedHosts...\n")
+        self.psexec_output.insert("end", "-" * 40 + "\n\n")
+        
+        try:
+            import subprocess
+            
+            # Run PowerShell as admin to set TrustedHosts
+            ps_command = "Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*' -Force; Write-Host 'SUCCESS'"
+            
+            result = subprocess.run(
+                ['powershell', '-ExecutionPolicy', 'Bypass', '-Command', ps_command],
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            stdout = result.stdout.decode('utf-8', errors='replace').strip()
+            stderr = result.stderr.decode('utf-8', errors='replace').strip()
+            
+            if 'SUCCESS' in stdout:
+                self.psexec_output.insert("end", "✅ TrustedHosts set to '*' successfully!\n\n")
+                self.psexec_output.insert("end", "You can now use PowerShell Remoting to connect to any host.\n")
+                self.app.show_toast("TrustedHosts configured successfully", "success")
+            else:
+                error_msg = stderr or stdout or "Unknown error"
+                self.psexec_output.insert("end", f"❌ Error: {error_msg}\n\n")
+                self.psexec_output.insert("end", "This requires running the app as Administrator.\n")
+                self.psexec_output.insert("end", "\nManual fix - run this in Admin PowerShell:\n")
+                self.psexec_output.insert("end", "  Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*' -Force\n")
+                self.app.show_toast("Failed - run as Administrator", "error")
+                
+        except Exception as e:
+            self.psexec_output.insert("end", f"❌ Error: {str(e)}\n")
+            self.app.show_toast("Failed to setup TrustedHosts", "error")
+    
     def _run_iperf_test(self):
         """Run iPerf bandwidth test"""
         target = self.iperf_target_entry.get().strip()
