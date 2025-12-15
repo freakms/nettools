@@ -870,59 +870,36 @@ Actions:
             if idx == 0:
                 self.first_category_label = category_label
             
-            # Category items with icons - use compound button for consistent alignment
+            # Category items with icons - simple button with consistent text
             for page_id, icon, label, tooltip in items:
-                # Create container frame for consistent layout
-                btn_container = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=36)
-                btn_container.pack(fill="x", padx=8, pady=1)
-                btn_container.pack_propagate(False)
+                # Replace problematic emoji icons with simpler ones
+                display_icon = icon
+                if icon == "#️⃣":  # Hash Generator - problematic
+                    display_icon = "#"
+                elif icon == "🛤️":  # Traceroute
+                    display_icon = "🔀"
+                elif icon == "🛡️":  # PAN-OS
+                    display_icon = "🔒"
                 
-                # The actual clickable button
                 btn = ctk.CTkButton(
-                    btn_container,
-                    text="",
+                    self.nav_scroll,
+                    text=f"   {display_icon}    {label}",
                     command=lambda p=page_id: self.switch_tool(p),
+                    width=220,
                     height=36,
                     corner_radius=8,
+                    anchor="w",
+                    font=ctk.CTkFont(size=13),
                     fg_color="transparent",
+                    text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
-                btn.pack(fill="both", expand=True)
-                
-                # Icon label with fixed width for consistent alignment
-                icon_lbl = ctk.CTkLabel(
-                    btn,
-                    text=icon,
-                    font=ctk.CTkFont(size=14),
-                    width=28,
-                    anchor="center"
-                )
-                icon_lbl.place(x=10, rely=0.5, anchor="w")
-                
-                # Text label positioned after icon
-                text_lbl = ctk.CTkLabel(
-                    btn,
-                    text=label,
-                    font=ctk.CTkFont(size=13),
-                    text_color=COLORS['text_primary'],
-                    anchor="w"
-                )
-                text_lbl.place(x=42, rely=0.5, anchor="w")
-                
-                # Make icon and text clickable too
-                for lbl in [icon_lbl, text_lbl]:
-                    lbl.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
-                    lbl.bind("<Enter>", lambda e, b=btn: b.configure(fg_color=COLORS['dashboard_card_hover']))
-                    lbl.bind("<Leave>", lambda e, b=btn, p=page_id: b.configure(
-                        fg_color=COLORS['electric_violet'] if p == self.current_page else "transparent"))
+                btn.pack(fill="x", padx=8, pady=1)
                 
                 # Store references
-                btn._nav_icon = icon
+                btn._nav_icon = display_icon
                 btn._nav_label = label
-                btn._icon_lbl = icon_lbl
-                btn._text_lbl = text_lbl
-                btn._container = btn_container
                 
                 # Add tooltip
                 Tooltip(btn, tooltip)
