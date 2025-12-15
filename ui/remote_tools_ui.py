@@ -456,7 +456,8 @@ class RemoteToolsUI:
             target,
             username=creds['username'],
             password=creds['password'],
-            domain=creds['domain']
+            domain=creds['domain'],
+            use_current_credentials=creds['use_current_credentials']
         )
         
         if result['success']:
