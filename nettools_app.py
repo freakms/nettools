@@ -833,7 +833,7 @@ Actions:
             ]),
             ("ADVANCED", "⚙️", [
                 ("profiles", "📁", "Network Profiles", "Manage network configs"),
-                ("remote", "🖥️", "Remote Tools", "PSExec & iPerf"),
+                # ("remote", "🖥️", "Remote Tools", "PSExec & iPerf"),  # Temporarily disabled
                 ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
                 ("phpipam", "📦", "phpIPAM", "IP address management"),
             ]),
