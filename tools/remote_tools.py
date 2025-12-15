@@ -275,7 +275,8 @@ class PSExecTool:
         username: Optional[str] = None,
         password: Optional[str] = None,
         domain: Optional[str] = None,
-        use_current_credentials: bool = False
+        use_current_credentials: bool = False,
+        use_net_session: bool = True
     ) -> Dict[str, Any]:
         """
         Start an interactive remote CMD session.
@@ -283,6 +284,7 @@ class PSExecTool:
         
         Args:
             use_current_credentials: Don't pass explicit credentials, use current session
+            use_net_session: Establish network session first with net use (for cross-domain)
         
         Returns:
             Dictionary with 'success' and 'error' if failed
@@ -293,10 +295,23 @@ class PSExecTool:
                 'error': 'PSExec not found.'
             }
         
+        # For cross-domain: establish network session first
+        session_established = False
+        if use_net_session and not use_current_credentials and username and password:
+            session_result = self._establish_network_session(target_host, username, password, domain)
+            
+            if not session_result['success']:
+                return {
+                    'success': False,
+                    'error': f"Failed to establish network session: {session_result['error']}"
+                }
+            session_established = True
+        
         # Build command
         cmd = [self.psexec_path, f"\\\\{target_host}"]
         
-        if not use_current_credentials:
+        # Only pass credentials if NOT using net session
+        if not use_current_credentials and not (use_net_session and session_established):
             if username:
                 if domain:
                     cmd.extend(["-u", f"{domain}\\{username}"])
