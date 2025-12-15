@@ -328,3 +328,37 @@ This is a desktop GUI application requiring manual testing on a Windows machine 
 5. Go to Compare > Traceroute
 6. Select two traces and click Compare
 7. Verify comparison table shows hop-by-hop differences
+
+---
+
+## Port Scan & DNS Comparison Features - IMPLEMENTED
+
+### Files Modified:
+- `/app/nettools_app.py` - Full implementation of show_portscan_comparison() and show_dns_comparison()
+
+### Port Scan Comparison Features:
+1. **Select Two Scans** - Dropdown menus showing target, open port count, and timestamp
+2. **Summary Display** - Total changes, newly opened, newly closed, unchanged counts
+3. **Newly Opened Ports** - Green highlighted list with port number and service name
+4. **Newly Closed Ports** - Red highlighted list with port number and service name
+5. **Unchanged Ports** - Gray list showing stable ports
+
+### DNS Lookup Comparison Features:
+1. **Select Two Lookups** - Dropdown menus showing query, record type, and timestamp
+2. **Change Detection** - Visual indicator if changes were detected
+3. **Added Records** - Green highlighted list of new DNS records
+4. **Removed Records** - Red highlighted list of deleted DNS records
+5. **Unchanged Records** - Gray list showing stable records
+
+### Both tools leverage the existing ComparisonHistory class:
+- `/app/tools/comparison_history.py` - Already had compare_port_scans() and compare_dns_lookups() methods
+- History is stored in ~/.nettools_history/
+
+### Testing Steps:
+1. Run `python nettools_app.py`
+2. For Port Scan comparison:
+   - Go to Port Scanner, run scans on same target at different times
+   - Go to Compare > Port Scanner > Compare
+3. For DNS comparison:
+   - Go to DNS Lookup, perform lookups on same domain
+   - Go to Compare > DNS Lookup > Compare
