@@ -250,6 +250,9 @@ class TracerouteUI:
             messagebox.showwarning("Input Required", "Please enter a target host or IP address")
             return
         
+        # Store current target for history
+        self.current_target = target
+        
         # Validate max hops
         try:
             max_hops = int(self.traceroute_maxhops_entry.get())
