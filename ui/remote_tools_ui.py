@@ -407,7 +407,13 @@ class RemoteToolsUI:
             self.psexec_output.insert("end", f"Executing on {target} using current session credentials: {command}\n")
             self.psexec_output.insert("end", "⚠️ Make sure this app is running as Administrator!\n\n")
         else:
-            self.psexec_output.insert("end", f"Executing on {target}: {command}\n\n")
+            # Show debug info
+            user_display = f"{creds['domain']}\\{creds['username']}" if creds['domain'] else creds['username']
+            self.psexec_output.insert("end", f"Target: {target}\n")
+            self.psexec_output.insert("end", f"User: {user_display}\n")
+            self.psexec_output.insert("end", f"Command: {command}\n")
+            self.psexec_output.insert("end", f"PSExec path: {self.psexec_tool.psexec_path}\n")
+            self.psexec_output.insert("end", "-" * 50 + "\n\n")
         
         self.run_cmd_btn.configure(state="disabled")
         
