@@ -1046,7 +1046,7 @@ Actions:
         for page_id, btn in self.nav_buttons.items():
             icon = getattr(btn, '_nav_icon', '•')
             label = getattr(btn, '_nav_label', page_id)
-            btn.configure(text=f" {icon}  {label}", anchor="w", width=220)
+            btn.configure(text=f"  {icon}   {label}", anchor="w", width=220)
         
         # Update favorite buttons if any
         if hasattr(self, 'favorites_buttons_frame'):
