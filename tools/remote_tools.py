@@ -443,7 +443,7 @@ try {{
             
             if username and password:
                 # Create PowerShell script with credentials
-                # Also handles TrustedHosts for IP addresses
+                # Just try to connect - if TrustedHosts is an issue, suggest the setup button
                 ps_script = f'''
 $host.UI.RawUI.WindowTitle = "PowerShell Remoting to {target_host}"
 Write-Host "============================================" -ForegroundColor Cyan
@@ -456,28 +456,26 @@ Write-Host ""
 $password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
 
-# Check if target needs to be added to TrustedHosts (for IP addresses)
-$currentTrustedHosts = (Get-Item WSMan:\\localhost\\Client\\TrustedHosts -ErrorAction SilentlyContinue).Value
-$needsAdd = $false
-
-if ($currentTrustedHosts -notmatch [regex]::Escape("{target_host}")) {{
-    Write-Host "Adding {target_host} to TrustedHosts..." -ForegroundColor Yellow
-    try {{
-        if ([string]::IsNullOrEmpty($currentTrustedHosts)) {{
-            Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value "{target_host}" -Force
-        }} else {{
-            Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value "$currentTrustedHosts,{target_host}" -Force
-        }}
-        $needsAdd = $true
-        Write-Host "TrustedHosts updated successfully" -ForegroundColor Green
-    }} catch {{
-        Write-Host "Could not update TrustedHosts (run app as Admin): $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "Manual fix: Run this as Admin:" -ForegroundColor Yellow
-        Write-Host "  Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '{target_host}' -Force" -ForegroundColor White
-        Write-Host ""
+Write-Host "Connecting..." -ForegroundColor Cyan
+try {{
+    Enter-PSSession -ComputerName {target_host} -Credential $cred -Authentication Negotiate
+}} catch {{
+    Write-Host ""
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    
+    if ($_.Exception.Message -match "TrustedHosts") {{
+        Write-Host "SOLUTION: Use the 'Setup WinRM TrustedHosts' button in NetTools" -ForegroundColor Yellow
+        Write-Host "          (requires running as Administrator once)" -ForegroundColor Yellow
+    }} else {{
+        Write-Host "Troubleshooting:" -ForegroundColor Yellow
+        Write-Host "1. Ensure WinRM is enabled on target: winrm quickconfig" -ForegroundColor White
+        Write-Host "2. Verify firewall allows WinRM (TCP 5985/5986)" -ForegroundColor White
     }}
+    Write-Host ""
+    Read-Host "Press Enter to close"
 }}
+'''
 
 try {{
     Write-Host "Connecting..." -ForegroundColor Cyan
