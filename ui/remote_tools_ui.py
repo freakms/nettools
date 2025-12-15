@@ -627,12 +627,27 @@ class RemoteToolsUI:
         
         try:
             import subprocess
+            import tempfile
+            from pathlib import Path
             
-            # Run PowerShell to set TrustedHosts
-            ps_command = "Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*' -Force; Write-Host 'SUCCESS'"
+            # Create a PowerShell script file to avoid escaping issues
+            temp_dir = Path(tempfile.gettempdir())
+            ps_file = temp_dir / "nettools_setup_trustedhosts.ps1"
+            
+            ps_script = '''
+$ErrorActionPreference = "Stop"
+try {
+    Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+    Write-Host "SUCCESS"
+} catch {
+    Write-Host "ERROR: $($_.Exception.Message)"
+    exit 1
+}
+'''
+            ps_file.write_text(ps_script, encoding='utf-8-sig')
             
             result = subprocess.run(
-                ['powershell', '-ExecutionPolicy', 'Bypass', '-Command', ps_command],
+                ['powershell', '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', str(ps_file)],
                 capture_output=True,
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
@@ -640,7 +655,7 @@ class RemoteToolsUI:
             stdout = result.stdout.decode('utf-8', errors='replace').strip()
             stderr = result.stderr.decode('utf-8', errors='replace').strip()
             
-            if 'SUCCESS' in stdout:
+            if 'SUCCESS' in stdout and result.returncode == 0:
                 self.psexec_output.insert("end", "✅ TrustedHosts set to '*' successfully!\n\n")
                 self.psexec_output.insert("end", "You can now use PowerShell Remoting to connect to any host.\n")
                 self.app.show_toast("TrustedHosts configured successfully", "success")
