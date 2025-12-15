@@ -3655,31 +3655,326 @@ Actions:
         close_btn.pack(side="right")
     
     def show_portscan_comparison(self):
-        """Show port scan comparison"""
-        # TODO: Implement port scan comparison
-        # This would compare different port scan results
-        messagebox.showinfo(
-            "Port Scanner Comparison",
-            "Port scan comparison feature is coming soon!\n\n"
-            "This will allow you to:\n"
-            "• Compare port scan results from different times\n"
-            "• Detect newly opened or closed ports\n"
-            "• Track service changes over time\n\n"
-            "Run multiple port scans to build comparison history."
-        )
+        """Show port scan comparison window"""
+        scans = self.comparison_history.get_port_scan_history()
+        
+        if len(scans) < 2:
+            messagebox.showinfo(
+                "Port Scan Comparison", 
+                "You need at least 2 saved port scans to compare.\n\n"
+                "Run multiple port scans using the Port Scanner tool first.\n"
+                "Results are automatically saved to history."
+            )
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self)
+        comp_window.title("Port Scan Comparison")
+        comp_window.geometry("900x700")
+        comp_window.transient(self)
+        comp_window.grab_set()
+        
+        comp_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        comp_window.lift()
+        comp_window.focus_force()
+        
+        # Title
+        ctk.CTkLabel(
+            comp_window,
+            text="🔌 Port Scan Comparison",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=COLORS['electric_violet']
+        ).pack(padx=20, pady=(20, 10))
+        
+        # Selection frame
+        select_frame = ctk.CTkFrame(comp_window)
+        select_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        # Prepare scan options
+        scan_options = [
+            f"{i+1}. {s['target']} ({len(s['open_ports'])} open) - {s['timestamp'][:16]}" 
+            for i, s in enumerate(scans)
+        ]
+        
+        ctk.CTkLabel(select_frame, text="Scan 1 (Baseline):", 
+                    font=ctk.CTkFont(size=12, weight="bold")).grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        scan1_var = ctk.StringVar(value=scan_options[0])
+        ctk.CTkOptionMenu(select_frame, variable=scan1_var, values=scan_options, width=400).grid(row=0, column=1, padx=10, pady=10)
+        
+        ctk.CTkLabel(select_frame, text="Scan 2 (Compare):", 
+                    font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        scan2_var = ctk.StringVar(value=scan_options[-1] if len(scan_options) > 1 else scan_options[0])
+        ctk.CTkOptionMenu(select_frame, variable=scan2_var, values=scan_options, width=400).grid(row=1, column=1, padx=10, pady=10)
+        
+        compare_btn = StyledButton(select_frame, text="⚖️ Compare", variant="primary")
+        compare_btn.grid(row=0, column=2, rowspan=2, padx=20, pady=10)
+        
+        # Results area
+        results_frame = ctk.CTkFrame(comp_window)
+        results_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        results_scroll = ctk.CTkScrollableFrame(results_frame)
+        results_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        ctk.CTkLabel(results_scroll, text="Select two scans and click 'Compare'",
+                    font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary']).pack(pady=50)
+        
+        def do_comparison():
+            idx1 = int(scan1_var.get().split(".")[0]) - 1
+            idx2 = int(scan2_var.get().split(".")[0]) - 1
+            
+            if idx1 == idx2:
+                messagebox.showwarning("Same Scan", "Please select two different scans.")
+                return
+            
+            comparison = self.comparison_history.compare_port_scans(scans[idx1], scans[idx2])
+            
+            for widget in results_scroll.winfo_children():
+                widget.destroy()
+            
+            # Summary
+            summary_frame = StyledCard(results_scroll, variant="elevated")
+            summary_frame.pack(fill="x", padx=5, pady=10)
+            
+            ctk.CTkLabel(summary_frame, text="📊 Comparison Summary",
+                        font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 5))
+            
+            ctk.CTkLabel(summary_frame,
+                text=f"Target: {comparison['target']}  |  Changes: {comparison['total_changes']}",
+                font=ctk.CTkFont(size=12)).pack(pady=5)
+            
+            summary_text = f"🆕 Newly Opened: {len(comparison['newly_opened'])}  |  "
+            summary_text += f"❌ Newly Closed: {len(comparison['newly_closed'])}  |  "
+            summary_text += f"➖ Unchanged: {len(comparison['unchanged'])}"
+            
+            ctk.CTkLabel(summary_frame, text=summary_text, font=ctk.CTkFont(size=11)).pack(pady=(0, 10))
+            
+            # Newly opened ports
+            if comparison['newly_opened']:
+                opened_frame = StyledCard(results_scroll, variant="elevated")
+                opened_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(opened_frame, text="🆕 Newly Opened Ports",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['success']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                for port in sorted(comparison['newly_opened']):
+                    details = comparison['newly_opened_details'].get(port, {})
+                    service = details.get('service', 'unknown')
+                    ctk.CTkLabel(opened_frame,
+                        text=f"  Port {port} - {service}",
+                        font=ctk.CTkFont(family="Consolas", size=11),
+                        text_color=COLORS['success']).pack(anchor="w", padx=15)
+                
+                ctk.CTkFrame(opened_frame, height=10, fg_color="transparent").pack()
+            
+            # Newly closed ports
+            if comparison['newly_closed']:
+                closed_frame = StyledCard(results_scroll, variant="elevated")
+                closed_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(closed_frame, text="❌ Newly Closed Ports",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['danger']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                for port in sorted(comparison['newly_closed']):
+                    details = comparison['newly_closed_details'].get(port, {})
+                    service = details.get('service', 'unknown')
+                    ctk.CTkLabel(closed_frame,
+                        text=f"  Port {port} - {service}",
+                        font=ctk.CTkFont(family="Consolas", size=11),
+                        text_color=COLORS['danger']).pack(anchor="w", padx=15)
+                
+                ctk.CTkFrame(closed_frame, height=10, fg_color="transparent").pack()
+            
+            # Unchanged ports
+            if comparison['unchanged']:
+                unchanged_frame = StyledCard(results_scroll, variant="elevated")
+                unchanged_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(unchanged_frame, text=f"➖ Unchanged Ports ({len(comparison['unchanged'])})",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['text_secondary']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                ports_text = ", ".join(str(p) for p in sorted(comparison['unchanged'])[:20])
+                if len(comparison['unchanged']) > 20:
+                    ports_text += f"... (+{len(comparison['unchanged']) - 20} more)"
+                
+                ctk.CTkLabel(unchanged_frame, text=ports_text,
+                            font=ctk.CTkFont(size=11),
+                            text_color=COLORS['text_secondary']).pack(anchor="w", padx=15, pady=(0, 10))
+            
+            self.show_toast("Comparison complete", "success")
+        
+        compare_btn.configure(command=do_comparison)
+        
+        StyledButton(comp_window, text="Close", command=comp_window.destroy,
+                    variant="secondary").pack(pady=(0, 15))
     
     def show_dns_comparison(self):
-        """Show DNS lookup comparison"""
-        # TODO: Implement DNS comparison
-        messagebox.showinfo(
-            "DNS Lookup Comparison",
-            "DNS lookup comparison feature is coming soon!\n\n"
-            "This will allow you to:\n"
-            "• Compare DNS records from different queries\n"
-            "• Track changes in A, AAAA, MX, TXT records\n"
-            "• Monitor DNS propagation and changes\n\n"
-            "Perform multiple DNS lookups to build comparison history."
-        )
+        """Show DNS lookup comparison window"""
+        lookups = self.comparison_history.get_dns_lookup_history()
+        
+        if len(lookups) < 2:
+            messagebox.showinfo(
+                "DNS Lookup Comparison", 
+                "You need at least 2 saved DNS lookups to compare.\n\n"
+                "Perform multiple DNS lookups using the DNS tool first.\n"
+                "Results are automatically saved to history."
+            )
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self)
+        comp_window.title("DNS Lookup Comparison")
+        comp_window.geometry("900x650")
+        comp_window.transient(self)
+        comp_window.grab_set()
+        
+        comp_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        comp_window.lift()
+        comp_window.focus_force()
+        
+        # Title
+        ctk.CTkLabel(
+            comp_window,
+            text="🌐 DNS Lookup Comparison",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=COLORS['electric_violet']
+        ).pack(padx=20, pady=(20, 10))
+        
+        # Selection frame
+        select_frame = ctk.CTkFrame(comp_window)
+        select_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        # Prepare lookup options
+        lookup_options = [
+            f"{i+1}. {l['query']} ({l['record_type']}) - {l['timestamp'][:16]}" 
+            for i, l in enumerate(lookups)
+        ]
+        
+        ctk.CTkLabel(select_frame, text="Lookup 1 (Baseline):", 
+                    font=ctk.CTkFont(size=12, weight="bold")).grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        lookup1_var = ctk.StringVar(value=lookup_options[0])
+        ctk.CTkOptionMenu(select_frame, variable=lookup1_var, values=lookup_options, width=400).grid(row=0, column=1, padx=10, pady=10)
+        
+        ctk.CTkLabel(select_frame, text="Lookup 2 (Compare):", 
+                    font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        lookup2_var = ctk.StringVar(value=lookup_options[-1] if len(lookup_options) > 1 else lookup_options[0])
+        ctk.CTkOptionMenu(select_frame, variable=lookup2_var, values=lookup_options, width=400).grid(row=1, column=1, padx=10, pady=10)
+        
+        compare_btn = StyledButton(select_frame, text="⚖️ Compare", variant="primary")
+        compare_btn.grid(row=0, column=2, rowspan=2, padx=20, pady=10)
+        
+        # Results area
+        results_frame = ctk.CTkFrame(comp_window)
+        results_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        results_scroll = ctk.CTkScrollableFrame(results_frame)
+        results_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        ctk.CTkLabel(results_scroll, text="Select two lookups and click 'Compare'",
+                    font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary']).pack(pady=50)
+        
+        def do_comparison():
+            idx1 = int(lookup1_var.get().split(".")[0]) - 1
+            idx2 = int(lookup2_var.get().split(".")[0]) - 1
+            
+            if idx1 == idx2:
+                messagebox.showwarning("Same Lookup", "Please select two different lookups.")
+                return
+            
+            comparison = self.comparison_history.compare_dns_lookups(lookups[idx1], lookups[idx2])
+            
+            for widget in results_scroll.winfo_children():
+                widget.destroy()
+            
+            # Summary
+            summary_frame = StyledCard(results_scroll, variant="elevated")
+            summary_frame.pack(fill="x", padx=5, pady=10)
+            
+            ctk.CTkLabel(summary_frame, text="📊 DNS Comparison Summary",
+                        font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 5))
+            
+            status_text = "🔄 Changes detected" if comparison['has_changes'] else "✅ No changes"
+            status_color = COLORS['warning'] if comparison['has_changes'] else COLORS['success']
+            
+            ctk.CTkLabel(summary_frame,
+                text=f"Query: {comparison['query']}  |  Type: {comparison['record_type']}  |  {status_text}",
+                font=ctk.CTkFont(size=12), text_color=status_color).pack(pady=5)
+            
+            ctk.CTkLabel(summary_frame,
+                text=f"From: {comparison['lookup1_time'][:16]}  →  To: {comparison['lookup2_time'][:16]}",
+                font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary']).pack(pady=(0, 10))
+            
+            # Added records
+            if comparison['added']:
+                added_frame = StyledCard(results_scroll, variant="elevated")
+                added_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(added_frame, text="🆕 Added Records",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['success']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                for record in comparison['added']:
+                    ctk.CTkLabel(added_frame, text=f"  + {record}",
+                        font=ctk.CTkFont(family="Consolas", size=11),
+                        text_color=COLORS['success']).pack(anchor="w", padx=15)
+                
+                ctk.CTkFrame(added_frame, height=10, fg_color="transparent").pack()
+            
+            # Removed records
+            if comparison['removed']:
+                removed_frame = StyledCard(results_scroll, variant="elevated")
+                removed_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(removed_frame, text="❌ Removed Records",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['danger']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                for record in comparison['removed']:
+                    ctk.CTkLabel(removed_frame, text=f"  - {record}",
+                        font=ctk.CTkFont(family="Consolas", size=11),
+                        text_color=COLORS['danger']).pack(anchor="w", padx=15)
+                
+                ctk.CTkFrame(removed_frame, height=10, fg_color="transparent").pack()
+            
+            # Unchanged records
+            if comparison['unchanged']:
+                unchanged_frame = StyledCard(results_scroll, variant="elevated")
+                unchanged_frame.pack(fill="x", padx=5, pady=5)
+                
+                ctk.CTkLabel(unchanged_frame, text=f"➖ Unchanged Records ({len(comparison['unchanged'])})",
+                            font=ctk.CTkFont(size=13, weight="bold"),
+                            text_color=COLORS['text_secondary']).pack(anchor="w", padx=15, pady=(10, 5))
+                
+                for record in list(comparison['unchanged'])[:10]:
+                    ctk.CTkLabel(unchanged_frame, text=f"  {record}",
+                        font=ctk.CTkFont(family="Consolas", size=11),
+                        text_color=COLORS['text_secondary']).pack(anchor="w", padx=15)
+                
+                if len(comparison['unchanged']) > 10:
+                    ctk.CTkLabel(unchanged_frame, 
+                        text=f"  ... and {len(comparison['unchanged']) - 10} more",
+                        font=ctk.CTkFont(size=11),
+                        text_color=COLORS['text_secondary']).pack(anchor="w", padx=15)
+                
+                ctk.CTkFrame(unchanged_frame, height=10, fg_color="transparent").pack()
+            
+            self.show_toast("Comparison complete", "success")
+        
+        compare_btn.configure(command=do_comparison)
+        
+        StyledButton(comp_window, text="Close", command=comp_window.destroy,
+                    variant="secondary").pack(pady=(0, 15))
     
     def show_traceroute_comparison(self):
         """Show traceroute comparison window"""
