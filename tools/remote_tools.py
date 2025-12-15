@@ -476,23 +476,6 @@ try {{
     Read-Host "Press Enter to close"
 }}
 '''
-
-try {{
-    Write-Host "Connecting..." -ForegroundColor Cyan
-    Enter-PSSession -ComputerName {target_host} -Credential $cred -Authentication Negotiate
-}} catch {{
-    Write-Host ""
-    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Troubleshooting:" -ForegroundColor Yellow
-    Write-Host "1. Ensure WinRM is enabled on target: winrm quickconfig" -ForegroundColor White
-    Write-Host "2. Run this app as Administrator to auto-add TrustedHosts" -ForegroundColor White
-    Write-Host "3. Or manually add: Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '{target_host}' -Force" -ForegroundColor White
-    Write-Host "4. Verify firewall allows WinRM (TCP 5985/5986)" -ForegroundColor White
-    Write-Host ""
-    Read-Host "Press Enter to close"
-}}
-'''
             else:
                 # Use current credentials
                 ps_script = f'''
