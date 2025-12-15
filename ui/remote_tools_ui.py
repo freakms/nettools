@@ -369,7 +369,8 @@ class RemoteToolsUI:
         return {
             'username': self.username_entry.get().strip() or None,
             'password': self.password_entry.get().strip() or None,
-            'domain': self.domain_entry.get().strip() or None
+            'domain': self.domain_entry.get().strip() or None,
+            'use_current_credentials': self.use_current_session_var.get()
         }
     
     def _run_psexec_command(self):
@@ -392,7 +393,13 @@ class RemoteToolsUI:
         creds = self._get_credentials()
         
         self.psexec_output.delete("1.0", "end")
-        self.psexec_output.insert("end", f"Executing on {target}: {command}\n\n")
+        
+        if creds['use_current_credentials']:
+            self.psexec_output.insert("end", f"Executing on {target} using current session credentials: {command}\n")
+            self.psexec_output.insert("end", "⚠️ Make sure this app is running as Administrator!\n\n")
+        else:
+            self.psexec_output.insert("end", f"Executing on {target}: {command}\n\n")
+        
         self.run_cmd_btn.configure(state="disabled")
         
         def run_command():
@@ -404,6 +411,7 @@ class RemoteToolsUI:
                 username=creds['username'],
                 password=creds['password'],
                 domain=creds['domain'],
+                use_current_credentials=creds['use_current_credentials'],
                 callback=output_callback
             )
             
