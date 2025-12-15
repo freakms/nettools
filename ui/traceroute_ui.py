@@ -32,6 +32,10 @@ class TracerouteUI:
         self.trace_running = False
         self.trace_process = None
         self.trace_results_text = ""
+        self.current_target = ""
+        
+        # History manager
+        self.trace_manager = TracerouteManager()
         
         # Build UI
         self.create_ui()
