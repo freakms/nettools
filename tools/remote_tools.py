@@ -348,23 +348,33 @@ class PSExecTool:
             # Single quotes in PowerShell need to be doubled
             escaped_password = password.replace("'", "''")
             
+            # Escape backslashes in PSExec path for PowerShell
+            psexec_path_escaped = self.psexec_path.replace("\\", "\\\\")
+            
             # Create PowerShell script that:
             # 1. Creates a credential object
             # 2. Starts a new CMD process with those credentials
             # 3. That CMD runs PSExec
             ps_script = f'''
 $ErrorActionPreference = "Stop"
-$password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
-$cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
-
-# Start CMD with credentials, which then runs PSExec
-Start-Process -FilePath "cmd.exe" -ArgumentList '/k', 'title PSExec Session to {target_host} && "{self.psexec_path}" \\\\{target_host} -accepteula cmd' -Credential $cred
+try {{
+    $password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
+    $cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
+    
+    # Start CMD with credentials, which then runs PSExec
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/k title PSExec to {target_host} & `"{psexec_path_escaped}`" \\\\{target_host} -accepteula cmd" -Credential $cred
+    
+    Write-Host "SUCCESS"
+}} catch {{
+    Write-Host "ERROR: $($_.Exception.Message)"
+    exit 1
+}}
 '''
             
             # Write PowerShell script to temp file
             temp_dir = Path(tempfile.gettempdir())
             ps_file = temp_dir / "nettools_psexec_session.ps1"
-            ps_file.write_text(ps_script, encoding='utf-8')
+            ps_file.write_text(ps_script, encoding='utf-8-sig')  # UTF-8 with BOM for PowerShell
             
             # Execute PowerShell script
             result = subprocess.run(
@@ -376,13 +386,16 @@ Start-Process -FilePath "cmd.exe" -ArgumentList '/k', 'title PSExec Session to {
                 creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
             )
             
-            if result.returncode == 0:
+            # Decode output
+            stdout = result.stdout.decode('utf-8', errors='replace').strip() if result.stdout else ''
+            stderr = result.stderr.decode('utf-8', errors='replace').strip() if result.stderr else ''
+            
+            if result.returncode == 0 and 'SUCCESS' in stdout:
                 return {'success': True}
             else:
-                # Decode error output
-                error_output = result.stderr.decode('utf-8', errors='replace') if result.stderr else ''
-                stdout_output = result.stdout.decode('utf-8', errors='replace') if result.stdout else ''
-                error_msg = error_output or stdout_output or 'Unknown PowerShell error'
+                error_msg = stderr or stdout or 'PowerShell execution failed'
+                # Clean up the error message
+                error_msg = error_msg.replace('~', '').strip()
                 return {'success': False, 'error': error_msg}
             
         except Exception as e:
