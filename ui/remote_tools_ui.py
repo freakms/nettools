@@ -243,12 +243,21 @@ class RemoteToolsUI:
         
         self.start_cmd_btn = StyledButton(
             btn_frame,
-            text="🖥️ Start Remote CMD",
+            text="🖥️ Remote CMD (PSExec)",
             command=self._start_remote_cmd,
             variant="neutral"
         )
         self.start_cmd_btn.pack(side="left", padx=(0, 10))
-        Tooltip(self.start_cmd_btn, "Open an interactive CMD window on the remote host")
+        Tooltip(self.start_cmd_btn, "Open an interactive CMD window using PSExec")
+        
+        self.start_ps_btn = StyledButton(
+            btn_frame,
+            text="💠 Remote PowerShell (WinRM)",
+            command=self._start_ps_remoting,
+            variant="neutral"
+        )
+        self.start_ps_btn.pack(side="left", padx=(0, 10))
+        Tooltip(self.start_ps_btn, "Open PowerShell Remoting session (requires WinRM on target)")
         
         # Output area
         output_label = ctk.CTkLabel(
