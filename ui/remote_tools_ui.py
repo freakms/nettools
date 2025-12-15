@@ -608,6 +608,19 @@ class RemoteToolsUI:
     
     def _setup_trustedhosts(self):
         """Setup TrustedHosts to allow all connections"""
+        # Check if running as admin
+        if not self.app.is_admin():
+            # Ask if user wants to restart as admin
+            from tkinter import messagebox
+            result = messagebox.askyesno(
+                "Administrator Required",
+                "Setting TrustedHosts requires Administrator privileges.\n\n"
+                "Do you want to restart the application as Administrator?"
+            )
+            if result:
+                self.app.restart_as_admin()
+            return
+        
         self.psexec_output.delete("1.0", "end")
         self.psexec_output.insert("end", "Setting up WinRM TrustedHosts...\n")
         self.psexec_output.insert("end", "-" * 40 + "\n\n")
@@ -615,7 +628,7 @@ class RemoteToolsUI:
         try:
             import subprocess
             
-            # Run PowerShell as admin to set TrustedHosts
+            # Run PowerShell to set TrustedHosts
             ps_command = "Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*' -Force; Write-Host 'SUCCESS'"
             
             result = subprocess.run(
@@ -633,11 +646,8 @@ class RemoteToolsUI:
                 self.app.show_toast("TrustedHosts configured successfully", "success")
             else:
                 error_msg = stderr or stdout or "Unknown error"
-                self.psexec_output.insert("end", f"❌ Error: {error_msg}\n\n")
-                self.psexec_output.insert("end", "This requires running the app as Administrator.\n")
-                self.psexec_output.insert("end", "\nManual fix - run this in Admin PowerShell:\n")
-                self.psexec_output.insert("end", "  Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*' -Force\n")
-                self.app.show_toast("Failed - run as Administrator", "error")
+                self.psexec_output.insert("end", f"❌ Error: {error_msg}\n")
+                self.app.show_toast("Failed to set TrustedHosts", "error")
                 
         except Exception as e:
             self.psexec_output.insert("end", f"❌ Error: {str(e)}\n")
