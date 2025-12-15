@@ -314,6 +314,14 @@ class TracerouteUI:
         self.trace_cancel_btn.configure(state="disabled")
         self.trace_running = False
         
+        # Save to history for comparison
+        if output and len(output) > 50 and self.current_target:
+            try:
+                trace_id = self.trace_manager.add_trace(self.current_target, output, success)
+                self.app.show_toast(f"Saved to history (ID: {trace_id})", "success")
+            except Exception as e:
+                print(f"Could not save trace: {e}")
+        
         if success:
             self.trace_progress_label.configure(text="✅ Trace complete")
             self.trace_export_btn.configure(state="normal")
