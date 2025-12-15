@@ -412,6 +412,98 @@ try {{
         except Exception as e:
             return {'success': False, 'error': str(e)}
     
+    def start_powershell_remoting(
+        self,
+        target_host: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Start an interactive PowerShell Remoting session (Enter-PSSession).
+        This is often more reliable than PSExec for cross-domain scenarios.
+        
+        Requires WinRM to be enabled on the target host.
+        
+        Returns:
+            Dictionary with 'success' and 'error' if failed
+        """
+        try:
+            import tempfile
+            temp_dir = Path(tempfile.gettempdir())
+            
+            # Build user string
+            if domain:
+                user_string = f"{domain}\\{username}"
+            else:
+                user_string = username
+            
+            # Escape password for PowerShell
+            escaped_password = password.replace("'", "''") if password else ""
+            
+            if username and password:
+                # Create PowerShell script with credentials
+                ps_script = f'''
+$host.UI.RawUI.WindowTitle = "PowerShell Remoting to {target_host}"
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host " PowerShell Remoting Session" -ForegroundColor Cyan
+Write-Host " Target: {target_host}" -ForegroundColor Cyan
+Write-Host " User: {user_string}" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+$password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
+
+try {{
+    Enter-PSSession -ComputerName {target_host} -Credential $cred
+}} catch {{
+    Write-Host ""
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Troubleshooting:" -ForegroundColor Yellow
+    Write-Host "1. Ensure WinRM is enabled on target: winrm quickconfig" -ForegroundColor Yellow
+    Write-Host "2. Check if target is in TrustedHosts or use HTTPS" -ForegroundColor Yellow
+    Write-Host "3. Verify firewall allows WinRM (TCP 5985/5986)" -ForegroundColor Yellow
+    Write-Host ""
+    Read-Host "Press Enter to close"
+}}
+'''
+            else:
+                # Use current credentials
+                ps_script = f'''
+$host.UI.RawUI.WindowTitle = "PowerShell Remoting to {target_host}"
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host " PowerShell Remoting Session" -ForegroundColor Cyan
+Write-Host " Target: {target_host}" -ForegroundColor Cyan
+Write-Host " Using current credentials" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+try {{
+    Enter-PSSession -ComputerName {target_host}
+}} catch {{
+    Write-Host ""
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    Read-Host "Press Enter to close"
+}}
+'''
+            
+            ps_file = temp_dir / "nettools_ps_remoting.ps1"
+            ps_file.write_text(ps_script, encoding='utf-8-sig')
+            
+            # Start PowerShell with the script in a new window
+            subprocess.Popen(
+                ['powershell', '-ExecutionPolicy', 'Bypass', '-NoExit', '-File', str(ps_file)],
+                creationflags=subprocess.CREATE_NEW_CONSOLE if platform.system() == "Windows" else 0
+            )
+            
+            return {'success': True}
+            
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
     def copy_file_to_remote(
         self,
         target_host: str,
