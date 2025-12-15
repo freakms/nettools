@@ -175,11 +175,15 @@ class PSExecTool:
         target_host: str,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        domain: Optional[str] = None
+        domain: Optional[str] = None,
+        use_current_credentials: bool = False
     ) -> Dict[str, Any]:
         """
         Start an interactive remote CMD session.
         Opens a new command window connected to the remote host.
+        
+        Args:
+            use_current_credentials: Don't pass explicit credentials, use current session
         
         Returns:
             Dictionary with 'success' and 'error' if failed
@@ -193,14 +197,15 @@ class PSExecTool:
         # Build command
         cmd = [self.psexec_path, f"\\\\{target_host}"]
         
-        if username:
-            if domain:
-                cmd.extend(["-u", f"{domain}\\{username}"])
-            else:
-                cmd.extend(["-u", username])
-        
-        if password:
-            cmd.extend(["-p", password])
+        if not use_current_credentials:
+            if username:
+                if domain:
+                    cmd.extend(["-u", f"{domain}\\{username}"])
+                else:
+                    cmd.extend(["-u", username])
+            
+            if password:
+                cmd.extend(["-p", password])
         
         cmd.extend(["-accepteula", "-i", "cmd"])
         
