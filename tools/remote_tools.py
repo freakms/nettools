@@ -234,25 +234,41 @@ class PSExecTool:
             if platform.system() == "Windows":
                 creation_flags = subprocess.CREATE_NO_WINDOW
             
+            # Use bytes mode and decode manually to handle encoding issues
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True,
                 creationflags=creation_flags
             )
             
             output_lines = []
             
-            # Read output line by line
+            # Read output line by line (as bytes, then decode with error handling)
             for line in process.stdout:
-                output_lines.append(line.rstrip())
+                try:
+                    decoded_line = line.decode('utf-8', errors='replace').rstrip()
+                except:
+                    try:
+                        decoded_line = line.decode('cp850', errors='replace').rstrip()
+                    except:
+                        decoded_line = line.decode('latin-1', errors='replace').rstrip()
+                
+                output_lines.append(decoded_line)
                 if callback:
-                    callback(line.rstrip())
+                    callback(decoded_line)
             
             process.wait()
             
-            stderr = process.stderr.read()
+            # Read stderr with same error handling
+            stderr_bytes = process.stderr.read()
+            try:
+                stderr = stderr_bytes.decode('utf-8', errors='replace')
+            except:
+                try:
+                    stderr = stderr_bytes.decode('cp850', errors='replace')
+                except:
+                    stderr = stderr_bytes.decode('latin-1', errors='replace')
             
             return {
                 'success': process.returncode == 0,
