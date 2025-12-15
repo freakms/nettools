@@ -1216,8 +1216,9 @@ Actions:
             self.status_label.configure(text="Calculate subnet information from CIDR")
         elif page_id == "phpipam":
             self.status_label.configure(text="Manage IP addresses with phpIPAM")
-        elif page_id == "remote":
-            self.status_label.configure(text="Execute remote commands and bandwidth tests")
+        # Remote Tools disabled
+        # elif page_id == "remote":
+        #     self.status_label.configure(text="Execute remote commands and bandwidth tests")
         elif page_id == "speedtest":
             self.status_label.configure(text="Test internet speed with Ookla servers")
         elif page_id == "password":
