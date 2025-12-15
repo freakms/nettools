@@ -866,64 +866,28 @@ Actions:
             if idx == 0:
                 self.first_category_label = category_label
             
-            # Category items with icons - professional styling with fixed icon width
+            # Category items with icons - professional styling with consistent spacing
             for page_id, icon, label, tooltip in items:
-                # Create a frame to hold icon and label with consistent spacing
-                btn_frame = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=40)
-                btn_frame.pack(fill="x", padx=10, pady=2)
-                btn_frame.pack_propagate(False)
-                
+                # Use consistent formatting: icon takes ~3 chars space
                 btn = ctk.CTkButton(
-                    btn_frame,
-                    text="",
+                    self.nav_scroll,
+                    text=f"  {icon}   {label}",
                     command=lambda p=page_id: self.switch_tool(p),
-                    height=40,
+                    width=220,
+                    height=38,
                     corner_radius=8,
                     anchor="w",
+                    font=ctk.CTkFont(size=13),
                     fg_color="transparent",
                     text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
-                btn.pack(fill="both", expand=True)
+                btn.pack(fill="x", padx=8, pady=1)
                 
-                # Create inner layout with fixed icon width
-                inner_frame = ctk.CTkFrame(btn, fg_color="transparent")
-                inner_frame.place(relx=0, rely=0.5, anchor="w", x=8)
-                
-                icon_label = ctk.CTkLabel(
-                    inner_frame,
-                    text=icon,
-                    width=24,
-                    font=ctk.CTkFont(size=14),
-                    anchor="center"
-                )
-                icon_label.pack(side="left", padx=(0, 8))
-                
-                text_label = ctk.CTkLabel(
-                    inner_frame,
-                    text=label,
-                    font=ctk.CTkFont(size=13),
-                    text_color=COLORS['text_primary'],
-                    anchor="w"
-                )
-                text_label.pack(side="left")
-                
-                # Make labels clickable
-                for widget in [icon_label, text_label, inner_frame]:
-                    widget.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
-                    widget.bind("<Enter>", lambda e, b=btn: b.configure(fg_color=COLORS['dashboard_card_hover']))
-                    widget.bind("<Leave>", lambda e, b=btn, p=page_id: b.configure(
-                        fg_color=COLORS['electric_violet'] if p == self.current_page else "transparent"
-                    ))
-                
-                # Store references for collapse/expand
+                # Store icon and label for collapse/expand
                 btn._nav_icon = icon
                 btn._nav_label = label
-                btn._icon_label = icon_label
-                btn._text_label = text_label
-                btn._inner_frame = inner_frame
-                btn._btn_frame = btn_frame
                 
                 # Add tooltip
                 Tooltip(btn, tooltip)
