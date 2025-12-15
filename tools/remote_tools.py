@@ -354,17 +354,32 @@ class PSExecTool:
             # Create PowerShell script that:
             # 1. Creates a credential object
             # 2. Starts a new CMD process with those credentials
-            # 3. That CMD runs PSExec
-            # Note: -WorkingDirectory is required when using -Credential
+            # 3. That CMD runs a batch file with PSExec
+            
+            # First create a batch file with the PSExec command
+            batch_content = f'''@echo off
+title PSExec Session to {target_host}
+echo ============================================
+echo  Connecting to {target_host}
+echo  User: {user_string}
+echo ============================================
+echo.
+"{self.psexec_path}" \\\\{target_host} -accepteula cmd
+echo.
+echo Connection closed. Press any key to exit.
+pause > nul
+'''
+            batch_file = temp_dir / "nettools_psexec.bat"
+            batch_file.write_text(batch_content, encoding='utf-8')
+            
+            # PowerShell script runs the batch file with credentials
             ps_script = f'''
 $ErrorActionPreference = "Stop"
 try {{
     $password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
     
-    # Start CMD with credentials, which then runs PSExec
-    # WorkingDirectory must be accessible to the remote user
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/k title PSExec to {target_host} & `"{psexec_path_escaped}`" \\\\{target_host} -accepteula cmd" -Credential $cred -WorkingDirectory "C:\\Windows\\System32"
+    Start-Process -FilePath "{str(batch_file)}" -Credential $cred -WorkingDirectory "C:\\Windows\\System32"
     
     Write-Host "SUCCESS"
 }} catch {{
