@@ -311,7 +311,7 @@ class PSExecTool:
         Start an interactive remote CMD session.
         Opens a new command window connected to the remote host.
         
-        For cross-domain: Creates a batch file and runs it with runas /netonly
+        For cross-domain: Uses PowerShell Start-Process with -Credential
         to establish proper credential context.
         
         Returns:
@@ -332,8 +332,8 @@ class PSExecTool:
             except Exception as e:
                 return {'success': False, 'error': str(e)}
         
-        # Cross-domain case: Use runas /netonly approach
-        # This creates the proper credential context that PSExec needs
+        # Cross-domain case: Use PowerShell with -Credential
+        # This properly passes credentials without prompting
         
         try:
             import tempfile
@@ -344,44 +344,46 @@ class PSExecTool:
             else:
                 user_string = username
             
-            # Create a batch file that runs PSExec
-            # The batch file will be executed with runas /netonly
-            batch_content = f'''@echo off
-echo ============================================
-echo Connecting to {target_host} as {user_string}
-echo ============================================
-echo.
-"{self.psexec_path}" \\\\{target_host} -accepteula cmd
-echo.
-echo Session ended. Press any key to close.
-pause > nul
+            # Escape special characters in password for PowerShell
+            # Single quotes in PowerShell need to be doubled
+            escaped_password = password.replace("'", "''")
+            
+            # Create PowerShell script that:
+            # 1. Creates a credential object
+            # 2. Starts a new CMD process with those credentials
+            # 3. That CMD runs PSExec
+            ps_script = f'''
+$ErrorActionPreference = "Stop"
+$password = ConvertTo-SecureString '{escaped_password}' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
+
+# Start CMD with credentials, which then runs PSExec
+Start-Process -FilePath "cmd.exe" -ArgumentList '/k', 'title PSExec Session to {target_host} && "{self.psexec_path}" \\\\{target_host} -accepteula cmd' -Credential $cred
 '''
             
-            # Write batch file to temp location
+            # Write PowerShell script to temp file
             temp_dir = Path(tempfile.gettempdir())
-            batch_file = temp_dir / "nettools_psexec_session.bat"
-            batch_file.write_text(batch_content, encoding='utf-8')
+            ps_file = temp_dir / "nettools_psexec_session.ps1"
+            ps_file.write_text(ps_script, encoding='utf-8')
             
-            # Create a VBScript to run runas with password (avoids password prompt)
-            # This is the key - runas /netonly creates the right credential context
-            vbs_content = f'''Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "runas /netonly /user:{user_string} ""cmd /c """"{batch_file}""""", 1, False
-WScript.Sleep 500
-WshShell.SendKeys "{password}{{ENTER}}"
-'''
-            vbs_file = temp_dir / "nettools_runas.vbs"
-            vbs_file.write_text(vbs_content, encoding='utf-8')
-            
-            # Execute the VBScript
-            subprocess.Popen(
-                ['wscript', str(vbs_file)],
+            # Execute PowerShell script
+            result = subprocess.run(
+                [
+                    'powershell', '-ExecutionPolicy', 'Bypass', 
+                    '-NoProfile', '-File', str(ps_file)
+                ],
+                capture_output=True,
                 creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
             )
             
-            return {
-                'success': True,
-                'message': f'Started runas session for {user_string}. Enter password in the popup if prompted.'
-            }
+            if result.returncode == 0:
+                return {'success': True}
+            else:
+                # Decode error output
+                error_output = result.stderr.decode('utf-8', errors='replace') if result.stderr else ''
+                stdout_output = result.stdout.decode('utf-8', errors='replace') if result.stdout else ''
+                error_msg = error_output or stdout_output or 'Unknown PowerShell error'
+                return {'success': False, 'error': error_msg}
             
         except Exception as e:
             return {'success': False, 'error': str(e)}
