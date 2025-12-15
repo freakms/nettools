@@ -103,17 +103,31 @@ class PSExecTool:
                 connect_cmd,
                 shell=True,
                 capture_output=True,
-                text=True,
                 creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
             )
+            
+            # Decode output with error handling for German/special characters
+            def safe_decode(byte_data):
+                if not byte_data:
+                    return ""
+                try:
+                    return byte_data.decode('utf-8', errors='replace')
+                except:
+                    try:
+                        return byte_data.decode('cp850', errors='replace')
+                    except:
+                        return byte_data.decode('latin-1', errors='replace')
+            
+            stdout_text = safe_decode(result.stdout)
+            stderr_text = safe_decode(result.stderr)
             
             if result.returncode == 0:
                 return {'success': True, 'error': None, 'already_connected': False}
             else:
                 # Check if already connected
-                if "1219" in result.stderr or "already" in result.stderr.lower():
+                if "1219" in stderr_text or "already" in stderr_text.lower() or "bereits" in stderr_text.lower():
                     return {'success': True, 'error': None, 'already_connected': True}
-                return {'success': False, 'error': result.stderr.strip() or result.stdout.strip(), 'already_connected': False}
+                return {'success': False, 'error': stderr_text.strip() or stdout_text.strip(), 'already_connected': False}
                 
         except Exception as e:
             return {'success': False, 'error': str(e), 'already_connected': False}
