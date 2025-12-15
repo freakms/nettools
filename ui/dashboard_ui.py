@@ -190,12 +190,13 @@ class DashboardUI:
                     else:
                         location = "Internet"
                     
-                    self.app.after(0, lambda: self._update_external_ip_card(ip, location))
+                    self.app.after(0, lambda ip=ip, loc=location: self._update_external_ip_card(ip, loc))
                 else:
                     self.app.after(0, lambda: self._update_external_ip_card("Unavailable", "Could not fetch"))
                     
-            except Exception as e:
-                self.app.after(0, lambda: self._update_external_ip_card("Error", str(e)[:20]))
+            except Exception as ex:
+                error_msg = str(ex)[:20]
+                self.app.after(0, lambda msg=error_msg: self._update_external_ip_card("Error", msg))
         
         thread = threading.Thread(target=fetch, daemon=True)
         thread.start()
