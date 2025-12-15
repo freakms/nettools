@@ -87,6 +87,7 @@ from tools.port_scanner import PortScanner
 from tools.dns_lookup import DNSLookup
 from tools.subnet_calculator import SubnetCalculator
 from tools.traceroute import Traceroute
+from tools.traceroute_manager import TracerouteManager
 from tools.phpipam_tool import PHPIPAMTool
 
 # phpIPAM integration
