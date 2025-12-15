@@ -127,17 +127,17 @@ class RemoteToolsUI:
         
         cred_desc = ctk.CTkLabel(
             cred_card,
-            text="Enter credentials for remote host access, or use current Windows session",
+            text="Enter credentials for cross-domain remote access (uses 'net use' session)",
             font=ctk.CTkFont(size=11),
             text_color=COLORS['text_secondary']
         )
         cred_desc.pack(padx=SPACING['md'], pady=(0, SPACING['sm']), anchor="w")
         
         # Use current session checkbox
-        self.use_current_session_var = ctk.BooleanVar(value=True)
+        self.use_current_session_var = ctk.BooleanVar(value=False)
         current_session_cb = ctk.CTkCheckBox(
             cred_card,
-            text="Use current Windows session credentials (run app as Administrator)",
+            text="Use current Windows session (same domain, app running as admin)",
             variable=self.use_current_session_var,
             font=ctk.CTkFont(size=12),
             fg_color=COLORS['electric_violet'],
@@ -151,13 +151,13 @@ class RemoteToolsUI:
         # Domain
         domain_label = ctk.CTkLabel(self.cred_frame, text="Domain:", font=ctk.CTkFont(size=12), width=80, anchor="e")
         domain_label.grid(row=0, column=0, padx=(0, 10), pady=5)
-        self.domain_entry = StyledEntry(self.cred_frame, placeholder_text="DOMAIN (optional)")
+        self.domain_entry = StyledEntry(self.cred_frame, placeholder_text="DOMAIN (e.g., CORP)")
         self.domain_entry.grid(row=0, column=1, sticky="ew", pady=5)
         
         # Username
         user_label = ctk.CTkLabel(self.cred_frame, text="Username:", font=ctk.CTkFont(size=12), width=80, anchor="e")
         user_label.grid(row=1, column=0, padx=(0, 10), pady=5)
-        self.username_entry = StyledEntry(self.cred_frame, placeholder_text="Administrator")
+        self.username_entry = StyledEntry(self.cred_frame, placeholder_text="admin.user")
         self.username_entry.grid(row=1, column=1, sticky="ew", pady=5)
         
         # Password
@@ -169,7 +169,16 @@ class RemoteToolsUI:
         
         self.cred_frame.columnconfigure(1, weight=1)
         
-        # Initially hide credential fields if using current session
+        # Info about how it works
+        info_label = ctk.CTkLabel(
+            cred_card,
+            text="💡 Credentials establish a network session via 'net use' before running PSExec",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['neon_cyan']
+        )
+        info_label.pack(padx=SPACING['md'], pady=(0, SPACING['md']), anchor="w")
+        
+        # Show credential fields by default (not using current session)
         self._toggle_cred_fields()
     
     def _toggle_cred_fields(self):
