@@ -1104,10 +1104,12 @@ Actions:
             # Restore full text
             label_widget.configure(text=f"{icon} {name}", font=ctk.CTkFont(size=11, weight="bold"))
             
-            # Re-pack the category label before its first button
+            # Re-pack the category label before its first button's container
             if button_ids and button_ids[0] in self.nav_buttons:
                 first_button = self.nav_buttons[button_ids[0]]
-                label_widget.pack(fill="x", padx=15, pady=(12, 5), before=first_button)
+                # Use the container if available
+                target = getattr(first_button, '_container', first_button)
+                label_widget.pack(fill="x", padx=15, pady=(12, 5), before=target)
             else:
                 # Fallback: just pack it normally
                 label_widget.pack(fill="x", padx=15, pady=(12, 5))
