@@ -305,16 +305,14 @@ class PSExecTool:
         username: Optional[str] = None,
         password: Optional[str] = None,
         domain: Optional[str] = None,
-        use_current_credentials: bool = False,
-        use_net_session: bool = True
+        use_current_credentials: bool = False
     ) -> Dict[str, Any]:
         """
         Start an interactive remote CMD session.
         Opens a new command window connected to the remote host.
         
-        Args:
-            use_current_credentials: Don't pass explicit credentials, use current session
-            use_net_session: Establish network session first with net use (for cross-domain)
+        For cross-domain: Creates a batch file and runs it with runas /netonly
+        to establish proper credential context.
         
         Returns:
             Dictionary with 'success' and 'error' if failed
@@ -325,19 +323,68 @@ class PSExecTool:
                 'error': 'PSExec not found.'
             }
         
-        # For cross-domain: establish network session first
-        session_established = False
-        if use_net_session and not use_current_credentials and username and password:
-            session_result = self._establish_network_session(target_host, username, password, domain)
-            
-            if not session_result['success']:
-                return {
-                    'success': False,
-                    'error': f"Failed to establish network session: {session_result['error']}"
-                }
-            session_established = True
+        if use_current_credentials or not username or not password:
+            # Simple case: use current session
+            cmd = [self.psexec_path, f"\\\\{target_host}", "-accepteula", "-i", "cmd"]
+            try:
+                subprocess.Popen(cmd, creationflags=subprocess.CREATE_NEW_CONSOLE if platform.system() == "Windows" else 0)
+                return {'success': True}
+            except Exception as e:
+                return {'success': False, 'error': str(e)}
         
-        # Build command
+        # Cross-domain case: Use runas /netonly approach
+        # This creates the proper credential context that PSExec needs
+        
+        try:
+            import tempfile
+            
+            # Build user string
+            if domain:
+                user_string = f"{domain}\\{username}"
+            else:
+                user_string = username
+            
+            # Create a batch file that runs PSExec
+            # The batch file will be executed with runas /netonly
+            batch_content = f'''@echo off
+echo ============================================
+echo Connecting to {target_host} as {user_string}
+echo ============================================
+echo.
+"{self.psexec_path}" \\\\{target_host} -accepteula cmd
+echo.
+echo Session ended. Press any key to close.
+pause > nul
+'''
+            
+            # Write batch file to temp location
+            temp_dir = Path(tempfile.gettempdir())
+            batch_file = temp_dir / "nettools_psexec_session.bat"
+            batch_file.write_text(batch_content, encoding='utf-8')
+            
+            # Create a VBScript to run runas with password (avoids password prompt)
+            # This is the key - runas /netonly creates the right credential context
+            vbs_content = f'''Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run "runas /netonly /user:{user_string} ""cmd /c """"{batch_file}""""", 1, False
+WScript.Sleep 500
+WshShell.SendKeys "{password}{{ENTER}}"
+'''
+            vbs_file = temp_dir / "nettools_runas.vbs"
+            vbs_file.write_text(vbs_content, encoding='utf-8')
+            
+            # Execute the VBScript
+            subprocess.Popen(
+                ['wscript', str(vbs_file)],
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
+            )
+            
+            return {
+                'success': True,
+                'message': f'Started runas session for {user_string}. Enter password in the popup if prompted.'
+            }
+            
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
         cmd = [self.psexec_path, f"\\\\{target_host}"]
         
         # Only pass credentials if NOT using net session
