@@ -4286,7 +4286,7 @@ Actions:
                     "profiles": ("📁", "Network Profiles"),
                     "panos": ("🛡️", "PAN-OS Generator"),
                     "phpipam": ("📊", "phpIPAM"),
-                    "remote": ("🖥️", "Remote Tools"),
+                    # "remote": ("🖥️", "Remote Tools"),  # Temporarily disabled
                 }
                 
                 for tool_id in sorted(self.favorite_tools):
