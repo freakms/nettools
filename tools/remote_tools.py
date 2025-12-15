@@ -355,6 +355,7 @@ class PSExecTool:
             # 1. Creates a credential object
             # 2. Starts a new CMD process with those credentials
             # 3. That CMD runs PSExec
+            # Note: -WorkingDirectory is required when using -Credential
             ps_script = f'''
 $ErrorActionPreference = "Stop"
 try {{
@@ -362,7 +363,8 @@ try {{
     $cred = New-Object System.Management.Automation.PSCredential ('{user_string}', $password)
     
     # Start CMD with credentials, which then runs PSExec
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/k title PSExec to {target_host} & `"{psexec_path_escaped}`" \\\\{target_host} -accepteula cmd" -Credential $cred
+    # WorkingDirectory must be accessible to the remote user
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/k title PSExec to {target_host} & `"{psexec_path_escaped}`" \\\\{target_host} -accepteula cmd" -Credential $cred -WorkingDirectory "C:\\Windows\\System32"
     
     Write-Host "SUCCESS"
 }} catch {{
