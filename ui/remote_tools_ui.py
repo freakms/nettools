@@ -127,35 +127,61 @@ class RemoteToolsUI:
         
         cred_desc = ctk.CTkLabel(
             cred_card,
-            text="Enter credentials for remote host access (required for PSExec)",
+            text="Enter credentials for remote host access, or use current Windows session",
             font=ctk.CTkFont(size=11),
             text_color=COLORS['text_secondary']
         )
         cred_desc.pack(padx=SPACING['md'], pady=(0, SPACING['sm']), anchor="w")
         
-        cred_frame = ctk.CTkFrame(cred_card, fg_color="transparent")
-        cred_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+        # Use current session checkbox
+        self.use_current_session_var = ctk.BooleanVar(value=True)
+        current_session_cb = ctk.CTkCheckBox(
+            cred_card,
+            text="Use current Windows session credentials (run app as Administrator)",
+            variable=self.use_current_session_var,
+            font=ctk.CTkFont(size=12),
+            fg_color=COLORS['electric_violet'],
+            command=self._toggle_cred_fields
+        )
+        current_session_cb.pack(padx=SPACING['md'], pady=(0, SPACING['sm']), anchor="w")
+        
+        self.cred_frame = ctk.CTkFrame(cred_card, fg_color="transparent")
+        self.cred_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
         
         # Domain
-        domain_label = ctk.CTkLabel(cred_frame, text="Domain:", font=ctk.CTkFont(size=12), width=80, anchor="e")
+        domain_label = ctk.CTkLabel(self.cred_frame, text="Domain:", font=ctk.CTkFont(size=12), width=80, anchor="e")
         domain_label.grid(row=0, column=0, padx=(0, 10), pady=5)
-        self.domain_entry = StyledEntry(cred_frame, placeholder_text="DOMAIN (optional)")
+        self.domain_entry = StyledEntry(self.cred_frame, placeholder_text="DOMAIN (optional)")
         self.domain_entry.grid(row=0, column=1, sticky="ew", pady=5)
         
         # Username
-        user_label = ctk.CTkLabel(cred_frame, text="Username:", font=ctk.CTkFont(size=12), width=80, anchor="e")
+        user_label = ctk.CTkLabel(self.cred_frame, text="Username:", font=ctk.CTkFont(size=12), width=80, anchor="e")
         user_label.grid(row=1, column=0, padx=(0, 10), pady=5)
-        self.username_entry = StyledEntry(cred_frame, placeholder_text="Administrator")
+        self.username_entry = StyledEntry(self.cred_frame, placeholder_text="Administrator")
         self.username_entry.grid(row=1, column=1, sticky="ew", pady=5)
         
         # Password
-        pass_label = ctk.CTkLabel(cred_frame, text="Password:", font=ctk.CTkFont(size=12), width=80, anchor="e")
+        pass_label = ctk.CTkLabel(self.cred_frame, text="Password:", font=ctk.CTkFont(size=12), width=80, anchor="e")
         pass_label.grid(row=2, column=0, padx=(0, 10), pady=5)
-        self.password_entry = StyledEntry(cred_frame, placeholder_text="••••••••")
+        self.password_entry = StyledEntry(self.cred_frame, placeholder_text="••••••••")
         self.password_entry.configure(show="•")
         self.password_entry.grid(row=2, column=1, sticky="ew", pady=5)
         
-        cred_frame.columnconfigure(1, weight=1)
+        self.cred_frame.columnconfigure(1, weight=1)
+        
+        # Initially hide credential fields if using current session
+        self._toggle_cred_fields()
+    
+    def _toggle_cred_fields(self):
+        """Toggle visibility of credential input fields"""
+        if self.use_current_session_var.get():
+            # Hide credential fields
+            for widget in self.cred_frame.winfo_children():
+                widget.grid_remove()
+        else:
+            # Show credential fields
+            for widget in self.cred_frame.winfo_children():
+                widget.grid()
     
     def _create_psexec_section(self, parent):
         """Create PSExec section"""
