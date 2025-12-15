@@ -338,6 +338,9 @@ class PSExecTool:
         try:
             import tempfile
             
+            # Define temp_dir first!
+            temp_dir = Path(tempfile.gettempdir())
+            
             # Build user string
             if domain:
                 user_string = f"{domain}\\{username}"
@@ -347,14 +350,6 @@ class PSExecTool:
             # Escape special characters in password for PowerShell
             # Single quotes in PowerShell need to be doubled
             escaped_password = password.replace("'", "''")
-            
-            # Escape backslashes in PSExec path for PowerShell
-            psexec_path_escaped = self.psexec_path.replace("\\", "\\\\")
-            
-            # Create PowerShell script that:
-            # 1. Creates a credential object
-            # 2. Starts a new CMD process with those credentials
-            # 3. That CMD runs a batch file with PSExec
             
             # First create a batch file with the PSExec command
             batch_content = f'''@echo off
@@ -389,7 +384,6 @@ try {{
 '''
             
             # Write PowerShell script to temp file
-            temp_dir = Path(tempfile.gettempdir())
             ps_file = temp_dir / "nettools_psexec_session.ps1"
             ps_file.write_text(ps_script, encoding='utf-8-sig')  # UTF-8 with BOM for PowerShell
             
