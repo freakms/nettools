@@ -11,6 +11,7 @@ from datetime import datetime
 from design_constants import COLORS, FONTS, SPACING
 from ui_components import StyledCard, StyledButton, StyledEntry, SectionTitle, SubTitle
 from tools.traceroute import Traceroute
+from tools.traceroute_manager import TracerouteManager
 
 
 class TracerouteUI:
