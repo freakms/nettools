@@ -294,3 +294,37 @@ This is a desktop GUI application requiring manual testing on a Windows machine 
 - Python 3.8+
 - `pip install -r requirements.txt`
 - Run: `python nettools_app.py`
+
+---
+
+## Traceroute Comparison Feature - IMPLEMENTED
+
+### New Files Created:
+- `/app/tools/traceroute_manager.py` - TracerouteManager class for saving and comparing traces
+
+### Files Modified:
+- `/app/ui/traceroute_ui.py` - Added automatic history saving after each traceroute
+- `/app/nettools_app.py` - Full implementation of show_traceroute_comparison()
+
+### Features:
+1. **Auto-save Traceroutes** - Results are automatically saved to ~/.nettools/traceroutes.json
+2. **Hop Parsing** - Parses Windows/Linux traceroute output into structured data
+3. **Comparison UI** - Side-by-side comparison with:
+   - Baseline vs Compare trace selection
+   - Summary stats (route changes, latency improvements/degradations, timeouts)
+   - Hop-by-hop table with IP addresses, latencies, and status
+   - Color-coded differences (green=improved, red=degraded, yellow=route changed)
+4. **Status Detection**:
+   - Route changes (different IP at same hop)
+   - Latency improvements (>5ms faster)
+   - Latency degradations (>5ms slower)
+   - New/resolved timeouts
+
+### Testing Steps:
+1. Run `python nettools_app.py`
+2. Go to Traceroute tool
+3. Run traceroute to any target (e.g., google.com)
+4. Run another traceroute (same or different target)
+5. Go to Compare > Traceroute
+6. Select two traces and click Compare
+7. Verify comparison table shows hop-by-hop differences
