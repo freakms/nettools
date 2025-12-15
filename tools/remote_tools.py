@@ -54,6 +54,83 @@ class PSExecTool:
             return True
         return False
     
+    def _establish_network_session(
+        self,
+        target_host: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Establish a network session to the remote host using net use.
+        This is required for cross-domain authentication.
+        
+        Args:
+            target_host: Target hostname or IP
+            username: Username for authentication
+            password: Password for authentication
+            domain: Domain name
+            
+        Returns:
+            Dictionary with 'success', 'error', 'already_connected'
+        """
+        if not username or not password:
+            return {'success': False, 'error': 'Username and password required', 'already_connected': False}
+        
+        # Build the user string
+        if domain:
+            user_string = f"{domain}\\{username}"
+        else:
+            user_string = username
+        
+        # First, try to delete any existing connection (ignore errors)
+        delete_cmd = f'net use "\\\\{target_host}\\IPC$" /delete /y'
+        try:
+            subprocess.run(
+                delete_cmd,
+                shell=True,
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
+            )
+        except:
+            pass
+        
+        # Establish new connection
+        connect_cmd = f'net use "\\\\{target_host}\\IPC$" /user:"{user_string}" "{password}"'
+        
+        try:
+            result = subprocess.run(
+                connect_cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
+            )
+            
+            if result.returncode == 0:
+                return {'success': True, 'error': None, 'already_connected': False}
+            else:
+                # Check if already connected
+                if "1219" in result.stderr or "already" in result.stderr.lower():
+                    return {'success': True, 'error': None, 'already_connected': True}
+                return {'success': False, 'error': result.stderr.strip() or result.stdout.strip(), 'already_connected': False}
+                
+        except Exception as e:
+            return {'success': False, 'error': str(e), 'already_connected': False}
+    
+    def _disconnect_network_session(self, target_host: str):
+        """Disconnect the network session"""
+        try:
+            delete_cmd = f'net use "\\\\{target_host}\\IPC$" /delete /y'
+            subprocess.run(
+                delete_cmd,
+                shell=True,
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
+            )
+        except:
+            pass
+    
     def execute_remote_command(
         self,
         target_host: str,
@@ -66,6 +143,7 @@ class PSExecTool:
         elevated: bool = False,
         run_as_system: bool = False,
         use_current_credentials: bool = False,
+        use_net_session: bool = True,
         callback: Optional[Callable[[str], None]] = None
     ) -> Dict[str, Any]:
         """
@@ -82,6 +160,7 @@ class PSExecTool:
             elevated: Run with elevated privileges (-h flag)
             run_as_system: Run as SYSTEM account (-s flag)
             use_current_credentials: Don't pass explicit credentials, use current session
+            use_net_session: Establish network session first with net use (for cross-domain)
             callback: Function to call with output lines
             
         Returns:
@@ -95,11 +174,31 @@ class PSExecTool:
                 'return_code': -1
             }
         
-        # Build PSExec command
+        # For cross-domain: establish network session first
+        session_established = False
+        if use_net_session and not use_current_credentials and username and password:
+            if callback:
+                callback(f"Establishing network session to {target_host}...")
+            
+            session_result = self._establish_network_session(target_host, username, password, domain)
+            
+            if not session_result['success']:
+                return {
+                    'success': False,
+                    'output': '',
+                    'error': f"Failed to establish network session: {session_result['error']}",
+                    'return_code': -1
+                }
+            
+            session_established = True
+            if callback:
+                callback("Network session established. Running PSExec...")
+        
+        # Build PSExec command - when using net session, don't pass credentials to PSExec
         cmd = [self.psexec_path, f"\\\\{target_host}"]
         
-        # Add credentials if provided and not using current session
-        if not use_current_credentials:
+        # Only pass credentials to PSExec if NOT using net session
+        if not use_current_credentials and not (use_net_session and session_established):
             if username:
                 if domain:
                     cmd.extend(["-u", f"{domain}\\{username}"])
