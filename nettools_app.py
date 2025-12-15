@@ -172,6 +172,9 @@ class NetToolsApp(ctk.CTk):
         # Initialize scan manager
         self.scan_manager = ScanManager()
         
+        # Initialize traceroute manager
+        self.traceroute_manager = TracerouteManager()
+        
         # Initialize network profile manager
         self.profile_manager = NetworkProfileManager()
         
