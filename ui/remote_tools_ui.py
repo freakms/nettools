@@ -259,6 +259,28 @@ class RemoteToolsUI:
         self.start_ps_btn.pack(side="left", padx=(0, 10))
         Tooltip(self.start_ps_btn, "Open PowerShell Remoting session (requires WinRM on target)")
         
+        self.start_ssh_btn = StyledButton(
+            btn_frame,
+            text="🔐 SSH",
+            command=self._start_ssh_session,
+            variant="neutral"
+        )
+        self.start_ssh_btn.pack(side="left", padx=(0, 10))
+        Tooltip(self.start_ssh_btn, "Connect via SSH (if OpenSSH is enabled on target)")
+        
+        # Second row of buttons - setup
+        btn_frame2 = ctk.CTkFrame(psexec_card, fg_color="transparent")
+        btn_frame2.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
+        
+        self.setup_winrm_btn = StyledButton(
+            btn_frame2,
+            text="⚙️ Setup WinRM TrustedHosts (one-time)",
+            command=self._setup_trustedhosts,
+            variant="secondary"
+        )
+        self.setup_winrm_btn.pack(side="left", padx=(0, 10))
+        Tooltip(self.setup_winrm_btn, "Set TrustedHosts to * to allow all connections (run as Admin)")
+        
         # Output area
         output_label = ctk.CTkLabel(
             psexec_card,
