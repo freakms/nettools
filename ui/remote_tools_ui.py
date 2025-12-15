@@ -467,6 +467,15 @@ class RemoteToolsUI:
         
         creds = self._get_credentials()
         
+        # Show what we're doing in the output
+        self.psexec_output.delete("1.0", "end")
+        user_display = f"{creds['domain']}\\{creds['username']}" if creds['domain'] else creds['username']
+        self.psexec_output.insert("end", f"Starting remote CMD session...\n")
+        self.psexec_output.insert("end", f"Target: {target}\n")
+        self.psexec_output.insert("end", f"User: {user_display}\n")
+        self.psexec_output.insert("end", f"PSExec: {self.psexec_tool.psexec_path}\n")
+        self.psexec_output.insert("end", "-" * 40 + "\n\n")
+        
         result = self.psexec_tool.start_remote_cmd(
             target,
             username=creds['username'],
@@ -476,9 +485,12 @@ class RemoteToolsUI:
         )
         
         if result['success']:
+            self.psexec_output.insert("end", "✅ CMD window started successfully!\n")
             self.app.show_toast(f"Started remote CMD session to {target}", "success")
         else:
-            self.app.show_toast(f"Failed: {result.get('error', 'Unknown error')}", "error")
+            error_msg = result.get('error', 'Unknown error')
+            self.psexec_output.insert("end", f"❌ Error:\n{error_msg}\n")
+            self.app.show_toast("Failed to start remote CMD - see output for details", "error")
     
     def _run_iperf_test(self):
         """Run iPerf bandwidth test"""
