@@ -634,7 +634,7 @@ class RemoteToolsUI:
             temp_dir = Path(tempfile.gettempdir())
             ps_file = temp_dir / "nettools_setup_trustedhosts.ps1"
             
-            ps_script = '''
+            ps_script = r'''
 $ErrorActionPreference = "Stop"
 try {
     Set-Item -Path WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
