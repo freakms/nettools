@@ -1055,13 +1055,11 @@ Actions:
         # Update live monitor button - full text
         self.live_monitor_btn.configure(text="📊 Live Monitor", width=220, anchor="w")
         
-        # Update nav buttons to show icons + text with proper positioning
+        # Update nav buttons to show icons + text
         for page_id, btn in self.nav_buttons.items():
-            # Restore icon and text label positions
-            if hasattr(btn, '_icon_lbl'):
-                btn._icon_lbl.place(x=10, rely=0.5, anchor="w")
-            if hasattr(btn, '_text_lbl'):
-                btn._text_lbl.place(x=42, rely=0.5, anchor="w")
+            icon = getattr(btn, '_nav_icon', '•')
+            label = getattr(btn, '_nav_label', page_id)
+            btn.configure(text=f"   {icon}    {label}", anchor="w", width=220)
         
         # Update favorite buttons if any
         if hasattr(self, 'favorites_buttons_frame'):
