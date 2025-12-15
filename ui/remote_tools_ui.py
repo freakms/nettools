@@ -501,6 +501,44 @@ class RemoteToolsUI:
             self.psexec_output.insert("end", f"❌ Error:\n{error_msg}\n")
             self.app.show_toast("Failed to start remote CMD - see output for details", "error")
     
+    def _start_ps_remoting(self):
+        """Start PowerShell Remoting session"""
+        target = self.psexec_target_entry.get().strip()
+        
+        if not target:
+            self.app.show_toast("Please enter a target host", "warning")
+            return
+        
+        creds = self._get_credentials()
+        
+        # Show what we're doing in the output
+        self.psexec_output.delete("1.0", "end")
+        self.psexec_output.insert("end", f"Starting PowerShell Remoting session...\n")
+        self.psexec_output.insert("end", f"Target: {target}\n")
+        if not creds['use_current_credentials'] and creds['username']:
+            user_display = f"{creds['domain']}\\{creds['username']}" if creds['domain'] else creds['username']
+            self.psexec_output.insert("end", f"User: {user_display}\n")
+        else:
+            self.psexec_output.insert("end", f"User: (current session)\n")
+        self.psexec_output.insert("end", "-" * 40 + "\n\n")
+        
+        result = self.psexec_tool.start_powershell_remoting(
+            target,
+            username=creds['username'] if not creds['use_current_credentials'] else None,
+            password=creds['password'] if not creds['use_current_credentials'] else None,
+            domain=creds['domain'] if not creds['use_current_credentials'] else None
+        )
+        
+        if result['success']:
+            self.psexec_output.insert("end", "✅ PowerShell window started!\n")
+            self.psexec_output.insert("end", "\nNote: If connection fails, ensure WinRM is enabled on target:\n")
+            self.psexec_output.insert("end", "  winrm quickconfig\n")
+            self.app.show_toast(f"Started PowerShell Remoting to {target}", "success")
+        else:
+            error_msg = result.get('error', 'Unknown error')
+            self.psexec_output.insert("end", f"❌ Error:\n{error_msg}\n")
+            self.app.show_toast("Failed to start PowerShell Remoting", "error")
+    
     def _run_iperf_test(self):
         """Run iPerf bandwidth test"""
         target = self.iperf_target_entry.get().strip()
