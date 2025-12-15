@@ -986,26 +986,24 @@ Actions:
             text_color="white"
         )
         
-        # Update nav buttons to show only icons (centered, brighter text)
+        # Update nav buttons to show only icons (centered)
         for page_id, btn in self.nav_buttons.items():
             icon = getattr(btn, '_nav_icon', '•')
             
-            # Hide text label, show only icon centered
-            if hasattr(btn, '_text_lbl'):
-                btn._text_lbl.place_forget()
-            if hasattr(btn, '_icon_lbl'):
-                btn._icon_lbl.place(relx=0.5, rely=0.5, anchor="center")
-            if hasattr(btn, '_container'):
-                btn._container.configure(height=36)
-            
-            # Update button style
+            # Update button to icon-only mode
             if page_id == self.current_page:
                 btn.configure(
+                    text=icon,
+                    anchor="center",
+                    width=48,
                     fg_color=COLORS['electric_violet'],
                     text_color="white"
                 )
             else:
                 btn.configure(
+                    text=icon,
+                    anchor="center",
+                    width=48,
                     fg_color="transparent",
                     text_color=COLORS['neon_cyan']
                 )
