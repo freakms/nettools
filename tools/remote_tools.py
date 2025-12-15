@@ -64,6 +64,8 @@ class PSExecTool:
         copy_file: Optional[str] = None,
         interactive: bool = False,
         elevated: bool = False,
+        run_as_system: bool = False,
+        use_current_credentials: bool = False,
         callback: Optional[Callable[[str], None]] = None
     ) -> Dict[str, Any]:
         """
@@ -78,6 +80,8 @@ class PSExecTool:
             copy_file: Path to file to copy before execution (optional)
             interactive: Run interactively (-i flag)
             elevated: Run with elevated privileges (-h flag)
+            run_as_system: Run as SYSTEM account (-s flag)
+            use_current_credentials: Don't pass explicit credentials, use current session
             callback: Function to call with output lines
             
         Returns:
@@ -94,15 +98,16 @@ class PSExecTool:
         # Build PSExec command
         cmd = [self.psexec_path, f"\\\\{target_host}"]
         
-        # Add credentials if provided
-        if username:
-            if domain:
-                cmd.extend(["-u", f"{domain}\\{username}"])
-            else:
-                cmd.extend(["-u", username])
-        
-        if password:
-            cmd.extend(["-p", password])
+        # Add credentials if provided and not using current session
+        if not use_current_credentials:
+            if username:
+                if domain:
+                    cmd.extend(["-u", f"{domain}\\{username}"])
+                else:
+                    cmd.extend(["-u", username])
+            
+            if password:
+                cmd.extend(["-p", password])
         
         # Add flags
         if interactive:
@@ -110,6 +115,9 @@ class PSExecTool:
         
         if elevated:
             cmd.append("-h")
+        
+        if run_as_system:
+            cmd.append("-s")
         
         # Accept EULA silently
         cmd.append("-accepteula")
