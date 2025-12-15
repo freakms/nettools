@@ -3678,17 +3678,260 @@ Actions:
         )
     
     def show_traceroute_comparison(self):
-        """Show traceroute comparison"""
-        # TODO: Implement traceroute comparison
-        messagebox.showinfo(
-            "Traceroute Comparison",
-            "Traceroute comparison feature is coming soon!\n\n"
-            "This will allow you to:\n"
-            "• Compare network paths from different times\n"
-            "• Identify routing changes\n"
-            "• Monitor latency differences\n\n"
-            "Run multiple traceroutes to build comparison history."
+        """Show traceroute comparison window"""
+        traces = self.traceroute_manager.get_traces()
+        
+        if len(traces) < 2:
+            messagebox.showinfo(
+                "Traceroute Comparison", 
+                "You need at least 2 saved traceroutes to compare.\n\n"
+                "Run multiple traceroutes using the Traceroute tool first.\n"
+                "Results are automatically saved to history."
+            )
+            return
+        
+        # Create comparison window
+        comp_window = ctk.CTkToplevel(self)
+        comp_window.title("Traceroute Comparison")
+        comp_window.geometry("1000x750")
+        comp_window.transient(self)
+        comp_window.grab_set()
+        
+        # Center window
+        comp_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - comp_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - comp_window.winfo_height()) // 2
+        comp_window.geometry(f"+{x}+{y}")
+        
+        comp_window.lift()
+        comp_window.focus_force()
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            comp_window,
+            text="🛤️ Traceroute Comparison",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=COLORS['electric_violet']
         )
+        title_label.pack(padx=20, pady=(20, 10))
+        
+        # Selection frame
+        select_frame = ctk.CTkFrame(comp_window)
+        select_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        # Prepare trace options
+        trace_options = [
+            f"{t['id']} - {t['target']} ({t['summary']['total_hops']} hops)" 
+            for t in traces
+        ]
+        
+        # Trace 1 selection
+        ctk.CTkLabel(
+            select_frame, text="Trace 1 (Baseline):", 
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        
+        trace1_var = ctk.StringVar(value=trace_options[0])
+        trace1_menu = ctk.CTkOptionMenu(select_frame, variable=trace1_var, values=trace_options, width=450)
+        trace1_menu.grid(row=0, column=1, padx=10, pady=10)
+        
+        # Trace 2 selection
+        ctk.CTkLabel(
+            select_frame, text="Trace 2 (Compare):", 
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        
+        trace2_var = ctk.StringVar(value=trace_options[-1] if len(trace_options) > 1 else trace_options[0])
+        trace2_menu = ctk.CTkOptionMenu(select_frame, variable=trace2_var, values=trace_options, width=450)
+        trace2_menu.grid(row=1, column=1, padx=10, pady=10)
+        
+        # Compare button
+        compare_btn = StyledButton(
+            select_frame,
+            text="⚖️ Compare",
+            variant="primary"
+        )
+        compare_btn.grid(row=0, column=2, rowspan=2, padx=20, pady=10)
+        
+        # Results area
+        results_frame = ctk.CTkFrame(comp_window)
+        results_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        
+        results_scroll = ctk.CTkScrollableFrame(results_frame)
+        results_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        results_label = ctk.CTkLabel(
+            results_scroll,
+            text="Select two traceroutes and click 'Compare' to see differences",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary']
+        )
+        results_label.pack(pady=50)
+        
+        def do_comparison():
+            """Perform the comparison"""
+            trace1_id = trace1_var.get().split(" - ")[0]
+            trace2_id = trace2_var.get().split(" - ")[0]
+            
+            if trace1_id == trace2_id:
+                messagebox.showwarning("Same Trace", "Please select two different traceroutes to compare.")
+                return
+            
+            comparison = self.traceroute_manager.compare_traces(trace1_id, trace2_id)
+            
+            if not comparison:
+                messagebox.showerror("Error", "Could not load traceroute data.")
+                return
+            
+            # Clear results
+            for widget in results_scroll.winfo_children():
+                widget.destroy()
+            
+            # Summary card
+            summary_frame = StyledCard(results_scroll, variant="elevated")
+            summary_frame.pack(fill="x", padx=5, pady=10)
+            
+            ctk.CTkLabel(
+                summary_frame,
+                text="📊 Comparison Summary",
+                font=ctk.CTkFont(size=14, weight="bold")
+            ).pack(pady=(10, 5))
+            
+            # Trace info
+            info_frame = ctk.CTkFrame(summary_frame, fg_color="transparent")
+            info_frame.pack(fill="x", padx=15, pady=5)
+            
+            t1 = comparison["trace1"]
+            t2 = comparison["trace2"]
+            
+            ctk.CTkLabel(
+                info_frame,
+                text=f"Baseline: {t1['target']} ({t1['total_hops']} hops, avg {t1['avg_latency'] or 'N/A'}ms) - {t1['timestamp'][:16]}",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['neon_cyan']
+            ).pack(anchor="w")
+            
+            ctk.CTkLabel(
+                info_frame,
+                text=f"Compare:  {t2['target']} ({t2['total_hops']} hops, avg {t2['avg_latency'] or 'N/A'}ms) - {t2['timestamp'][:16]}",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['electric_violet']
+            ).pack(anchor="w")
+            
+            # Summary stats
+            s = comparison["summary"]
+            summary_text = f"🔄 Route Changes: {s['route_changes']}  |  "
+            summary_text += f"📈 Improved: {s['latency_improved']}  |  "
+            summary_text += f"📉 Degraded: {s['latency_degraded']}  |  "
+            summary_text += f"⏱️ New Timeouts: {s['new_timeouts']}  |  "
+            summary_text += f"✅ Resolved: {s['resolved_timeouts']}"
+            
+            ctk.CTkLabel(
+                summary_frame,
+                text=summary_text,
+                font=ctk.CTkFont(size=11)
+            ).pack(pady=(5, 10))
+            
+            # Hop comparison table header
+            header_frame = ctk.CTkFrame(results_scroll, fg_color=COLORS['electric_violet'])
+            header_frame.pack(fill="x", padx=5, pady=(10, 2))
+            
+            headers = [("Hop", 50), ("Baseline IP", 150), ("Compare IP", 150), 
+                      ("Baseline (ms)", 100), ("Compare (ms)", 100), ("Δ Latency", 80), ("Status", 120)]
+            
+            header_inner = ctk.CTkFrame(header_frame, fg_color="transparent")
+            header_inner.pack(fill="x", padx=10, pady=8)
+            
+            for text, width in headers:
+                ctk.CTkLabel(
+                    header_inner, text=text,
+                    font=ctk.CTkFont(size=11, weight="bold"),
+                    text_color="white", width=width, anchor="w"
+                ).pack(side="left", padx=3)
+            
+            # Hop rows
+            status_colors = {
+                "unchanged": COLORS['text_secondary'],
+                "route_changed": COLORS['warning'],
+                "improved": COLORS['success'],
+                "degraded": COLORS['danger'],
+                "new_timeout": COLORS['danger'],
+                "resolved_timeout": COLORS['success'],
+                "new_hop": COLORS['neon_cyan'],
+                "removed_hop": COLORS['warning']
+            }
+            
+            status_icons = {
+                "unchanged": "➖",
+                "route_changed": "🔀",
+                "improved": "📈",
+                "degraded": "📉",
+                "new_timeout": "⏱️",
+                "resolved_timeout": "✅",
+                "new_hop": "🆕",
+                "removed_hop": "❌"
+            }
+            
+            for i, hop in enumerate(comparison["hops"]):
+                row_color = ("gray90", "gray25") if i % 2 == 0 else ("gray85", "gray20")
+                row_frame = ctk.CTkFrame(results_scroll, fg_color=row_color, corner_radius=4)
+                row_frame.pack(fill="x", padx=5, pady=1)
+                
+                row_inner = ctk.CTkFrame(row_frame, fg_color="transparent")
+                row_inner.pack(fill="x", padx=10, pady=6)
+                
+                # Hop number
+                ctk.CTkLabel(row_inner, text=str(hop['hop']), width=50, anchor="w",
+                            font=ctk.CTkFont(size=11, weight="bold")).pack(side="left", padx=3)
+                
+                # Baseline IP
+                ip1_color = COLORS['danger'] if hop['trace1_timeout'] else COLORS['text_primary']
+                ctk.CTkLabel(row_inner, text=hop['trace1_ip'], width=150, anchor="w",
+                            font=ctk.CTkFont(family="Consolas", size=10),
+                            text_color=ip1_color).pack(side="left", padx=3)
+                
+                # Compare IP
+                ip2_color = COLORS['danger'] if hop['trace2_timeout'] else COLORS['text_primary']
+                ctk.CTkLabel(row_inner, text=hop['trace2_ip'], width=150, anchor="w",
+                            font=ctk.CTkFont(family="Consolas", size=10),
+                            text_color=ip2_color).pack(side="left", padx=3)
+                
+                # Latencies
+                lat1 = f"{hop['trace1_latency']}" if hop['trace1_latency'] else "-"
+                lat2 = f"{hop['trace2_latency']}" if hop['trace2_latency'] else "-"
+                
+                ctk.CTkLabel(row_inner, text=lat1, width=100, anchor="w",
+                            font=ctk.CTkFont(size=10)).pack(side="left", padx=3)
+                ctk.CTkLabel(row_inner, text=lat2, width=100, anchor="w",
+                            font=ctk.CTkFont(size=10)).pack(side="left", padx=3)
+                
+                # Latency diff
+                diff_text = f"{hop['latency_diff']:+.1f}" if hop['latency_diff'] is not None else "-"
+                diff_color = COLORS['success'] if hop['latency_diff'] and hop['latency_diff'] < 0 else (
+                    COLORS['danger'] if hop['latency_diff'] and hop['latency_diff'] > 0 else COLORS['text_secondary']
+                )
+                ctk.CTkLabel(row_inner, text=diff_text, width=80, anchor="w",
+                            font=ctk.CTkFont(size=10), text_color=diff_color).pack(side="left", padx=3)
+                
+                # Status
+                status = hop['status']
+                status_text = f"{status_icons.get(status, '')} {status.replace('_', ' ').title()}"
+                ctk.CTkLabel(row_inner, text=status_text, width=120, anchor="w",
+                            font=ctk.CTkFont(size=10),
+                            text_color=status_colors.get(status, COLORS['text_primary'])).pack(side="left", padx=3)
+            
+            self.show_toast("Comparison complete", "success")
+        
+        compare_btn.configure(command=do_comparison)
+        
+        # Close button
+        close_btn = StyledButton(
+            comp_window,
+            text="Close",
+            command=comp_window.destroy,
+            variant="secondary"
+        )
+        close_btn.pack(pady=(0, 15))
     
     def open_live_ping_monitor(self):
         """Open the live ping monitor window"""
