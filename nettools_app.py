@@ -176,6 +176,9 @@ class NetToolsApp(ctk.CTk):
         # Initialize traceroute manager
         self.traceroute_manager = TracerouteManager()
         
+        # Initialize comparison history for port scans and DNS
+        self.comparison_history = ComparisonHistory()
+        
         # Initialize network profile manager
         self.profile_manager = NetworkProfileManager()
         
