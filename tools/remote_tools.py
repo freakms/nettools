@@ -385,27 +385,6 @@ WshShell.SendKeys "{password}{{ENTER}}"
             
         except Exception as e:
             return {'success': False, 'error': str(e)}
-        cmd = [self.psexec_path, f"\\\\{target_host}"]
-        
-        # Only pass credentials if NOT using net session
-        if not use_current_credentials and not (use_net_session and session_established):
-            if username:
-                if domain:
-                    cmd.extend(["-u", f"{domain}\\{username}"])
-                else:
-                    cmd.extend(["-u", username])
-            
-            if password:
-                cmd.extend(["-p", password])
-        
-        cmd.extend(["-accepteula", "-i", "cmd"])
-        
-        try:
-            # Start without waiting (interactive session)
-            subprocess.Popen(cmd, creationflags=subprocess.CREATE_NEW_CONSOLE if platform.system() == "Windows" else 0)
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
     
     def copy_file_to_remote(
         self,
