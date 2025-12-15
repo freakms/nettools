@@ -335,11 +335,15 @@ class NetToolsApp(ctk.CTk):
     
     def load_favorites(self):
         """Load favorite tools from config"""
+        # Disabled tools that should be filtered out
+        disabled_tools = {'remote'}
         try:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     config = json.load(f)
-                    return set(config.get('favorite_tools', []))
+                    favorites = set(config.get('favorite_tools', []))
+                    # Filter out disabled tools
+                    return favorites - disabled_tools
         except Exception as e:
             print(f"Could not load favorites: {e}")
         return set()
