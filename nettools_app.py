@@ -1163,9 +1163,10 @@ Actions:
                     PhpipamUI(self, self.pages[page_id])
                 elif page_id == "bandwidth":
                     BandwidthUI(self, self.pages[page_id])
-                elif page_id == "remote":
-                    remote_ui = RemoteToolsUI(self)
-                    remote_ui.create_content(self.pages[page_id])
+                # Remote Tools temporarily disabled
+                # elif page_id == "remote":
+                #     remote_ui = RemoteToolsUI(self)
+                #     remote_ui.create_content(self.pages[page_id])
                 elif page_id == "speedtest":
                     SpeedtestUI(self, self.pages[page_id])
                 elif page_id == "password":
