@@ -758,7 +758,7 @@ Actions:
             ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history", "changes"]),
             # Advanced
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
-            ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),
+            # ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),  # Temporarily disabled
             ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
             ("phpipam", "📦", "phpIPAM", ["ipam", "ip", "management", "inventory"]),
         ]
