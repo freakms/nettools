@@ -1154,11 +1154,12 @@ Actions:
         # Update live monitor button - full text
         self.live_monitor_btn.configure(text="📊 Live Monitor", width=220, anchor="w")
         
-        # Update nav buttons to show icons + text
+        # Update nav buttons to show icons + text with consistent alignment
         for page_id, btn in self.nav_buttons.items():
-            icon = getattr(btn, '_nav_icon', '•')
+            icon = getattr(btn, '_nav_icon', '[?]')
             label = getattr(btn, '_nav_label', page_id)
-            btn.configure(text=f"   {icon}    {label}", anchor="w", width=220)
+            icon_text = f"{icon:^5}"  # Center icon in 5-char field
+            btn.configure(text=f"{icon_text} {label}", anchor="w", width=220)
         
         # Update favorite buttons if any
         if hasattr(self, 'favorites_buttons_frame'):
