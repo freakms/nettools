@@ -508,6 +508,13 @@ class IPv4Scanner:
             if hostname:
                 return hostname
         
+        # Method 8: WMI (Windows - requires admin/network access, slowest but powerful)
+        # Only try this if other methods failed
+        if self.use_netbios and is_windows:
+            hostname = self.resolve_wmi(ip, timeout=3)
+            if hostname:
+                return hostname
+        
         return ""
     
     def ping_host(self, ip, timeout_ms, resolve_dns=True):
