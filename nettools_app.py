@@ -945,54 +945,25 @@ Actions:
                 elif icon == "⚙️":  # Settings - compound emoji
                     display_icon = "✦"
                 
-                # Create a frame-based nav item for consistent alignment
-                btn_frame = ctk.CTkFrame(
-                    self.nav_scroll,
-                    fg_color="transparent",
-                    height=36,
-                    corner_radius=8
-                )
-                btn_frame.pack(fill="x", padx=8, pady=1)
-                btn_frame.pack_propagate(False)
+                # Simple button with proper text formatting
+                # Use fixed-width spacing for icon to ensure alignment
+                btn_text = f"  {display_icon}   {label}"
                 
-                # Clickable button that fills the frame
                 btn = ctk.CTkButton(
-                    btn_frame,
-                    text="",
+                    self.nav_scroll,
+                    text=btn_text,
                     command=lambda p=page_id: self.switch_tool(p),
                     width=220,
                     height=36,
                     corner_radius=8,
+                    anchor="w",
+                    font=ctk.CTkFont(size=13),
                     fg_color="transparent",
+                    text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
-                btn.place(x=0, y=0, relwidth=1, relheight=1)
-                
-                # Icon label - fixed width for alignment (30px)
-                icon_label = ctk.CTkLabel(
-                    btn_frame,
-                    text=display_icon,
-                    width=30,
-                    font=ctk.CTkFont(size=14),
-                    text_color=COLORS['text_primary'],
-                    anchor="center"
-                )
-                icon_label.place(x=12, y=0, relheight=1)
-                
-                # Text label - starts at fixed position
-                text_label = ctk.CTkLabel(
-                    btn_frame,
-                    text=label,
-                    font=ctk.CTkFont(size=13),
-                    text_color=COLORS['text_primary'],
-                    anchor="w"
-                )
-                text_label.place(x=48, y=0, relheight=1)
-                
-                # Make labels click-through to the button
-                icon_label.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
-                text_label.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
+                btn.pack(fill="x", padx=8, pady=1)
                 
                 # Store references for expand/collapse
                 btn._nav_icon = display_icon
