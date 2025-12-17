@@ -166,6 +166,9 @@ class NetToolsApp(ctk.CTk):
         # Favorites only (recent removed as not useful)
         self.favorite_tools = self.load_favorites()
         
+        # Enabled tools (user can hide tools they don't use)
+        self.enabled_tools = self.get_enabled_tools()
+        
         # Scan profiles
         self.scan_profiles = self.load_scan_profiles()
         
