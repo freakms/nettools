@@ -461,6 +461,125 @@ class IPv4Scanner:
         except Exception:
             return ""
     
+    def resolve_snmp(self, ip, timeout=2, community='public'):
+        """
+        Resolve hostname via SNMP - works for switches, routers, printers, etc.
+        Queries sysName OID (1.3.6.1.2.1.1.5.0) which contains the device hostname.
+        
+        This is how Advanced IP Scanner gets names from network devices!
+        """
+        if not SNMP_AVAILABLE:
+            return ""
+        
+        try:
+            # SNMP OID for sysName (device hostname)
+            # This is the standard MIB-II sysName object
+            sysName_oid = '1.3.6.1.2.1.1.5.0'
+            
+            # Try common community strings
+            communities = [community, 'public', 'private', 'admin']
+            
+            for comm in communities:
+                try:
+                    iterator = getCmd(
+                        SnmpEngine(),
+                        CommunityData(comm, mpModel=0),  # SNMPv1
+                        UdpTransportTarget((ip, 161), timeout=timeout, retries=0),
+                        ContextData(),
+                        ObjectType(ObjectIdentity(sysName_oid))
+                    )
+                    
+                    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
+                    
+                    if errorIndication or errorStatus:
+                        continue
+                    
+                    for varBind in varBinds:
+                        value = str(varBind[1])
+                        if value and value != ip and not value.startswith('No Such'):
+                            return value.strip()
+                except Exception:
+                    continue
+            
+            return ""
+        except Exception:
+            return ""
+    
+    def resolve_snmp_fallback(self, ip, timeout=2):
+        """
+        Fallback SNMP query using raw socket (if pysnmp not available).
+        Sends a simple SNMPv1 GET request for sysName.
+        """
+        try:
+            # Build SNMPv1 GET request for sysName (1.3.6.1.2.1.1.5.0)
+            # This is a simplified SNMP packet
+            
+            community = b'public'
+            
+            # SNMP GET-REQUEST packet (simplified)
+            # OID 1.3.6.1.2.1.1.5.0 = sysName
+            oid = bytes([0x06, 0x08, 0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x05, 0x00])  # OID encoding
+            
+            # Null value
+            null_value = bytes([0x05, 0x00])
+            
+            # VarBind
+            varbind = bytes([0x30, len(oid) + len(null_value)]) + oid + null_value
+            
+            # VarBindList
+            varbind_list = bytes([0x30, len(varbind)]) + varbind
+            
+            # Request ID
+            request_id = bytes([0x02, 0x01, 0x01])
+            
+            # Error status and index
+            error_status = bytes([0x02, 0x01, 0x00])
+            error_index = bytes([0x02, 0x01, 0x00])
+            
+            # PDU (GET-REQUEST = 0xA0)
+            pdu_content = request_id + error_status + error_index + varbind_list
+            pdu = bytes([0xA0, len(pdu_content)]) + pdu_content
+            
+            # Community string
+            community_encoded = bytes([0x04, len(community)]) + community
+            
+            # Version (SNMPv1 = 0)
+            version = bytes([0x02, 0x01, 0x00])
+            
+            # Full message
+            message_content = version + community_encoded + pdu
+            message = bytes([0x30, len(message_content)]) + message_content
+            
+            # Send UDP packet
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(timeout)
+            sock.sendto(message, (ip, 161))
+            
+            response, _ = sock.recvfrom(1024)
+            sock.close()
+            
+            # Parse response - look for the string value
+            # The hostname is usually near the end as an OCTET STRING (0x04)
+            if len(response) > 30:
+                # Find OCTET STRING markers
+                for i in range(len(response) - 2):
+                    if response[i] == 0x04:  # OCTET STRING tag
+                        str_len = response[i + 1]
+                        if str_len > 0 and str_len < 64 and i + 2 + str_len <= len(response):
+                            try:
+                                hostname = response[i + 2:i + 2 + str_len].decode('ascii', errors='ignore').strip()
+                                if hostname and len(hostname) > 1 and hostname != ip:
+                                    # Basic validation - looks like a hostname
+                                    if hostname[0].isalpha() or hostname[0].isdigit():
+                                        return hostname
+                            except Exception:
+                                pass
+            return ""
+        except socket.timeout:
+            return ""
+        except Exception:
+            return ""
+    
     def resolve_hostname(self, ip, timeout=1):
         """
         Resolve hostname using multiple methods (like Advanced IP Scanner):
