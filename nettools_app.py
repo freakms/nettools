@@ -1113,11 +1113,12 @@ Actions:
         # Update favorite buttons if any - brighter icons
         if hasattr(self, 'favorites_buttons_frame'):
             for btn in self.favorites_buttons_frame.winfo_children():
-                icon = getattr(btn, '_nav_icon', '•')
+                icon = getattr(btn, '_nav_icon', '[?]')
                 btn.configure(
                     text=icon, 
                     anchor="center", 
                     width=48,
+                    font=ctk.CTkFont(family="Consolas", size=11),
                     text_color=COLORS['neon_cyan']
                 )
         
