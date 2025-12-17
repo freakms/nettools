@@ -318,7 +318,7 @@ class UserManualPDF(FPDF):
         for i, feature in enumerate(features):
             self.set_xy(25, y_start + 26 + (i * 6))
             self.set_text_color(*self.success_color)
-            self.cell(5, 5, chr(10003))  # Checkmark
+            self.cell(5, 5, '>')
             self.set_text_color(60, 60, 60)
             self.cell(0, 5, feature)
         
