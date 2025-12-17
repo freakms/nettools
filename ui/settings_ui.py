@@ -177,7 +177,7 @@ class SettingsUI:
                     variable=cb_var,
                     font=ctk.CTkFont(size=12),
                     fg_color=COLORS['electric_violet'],
-                    hover_color=COLORS['electric_violet_dark'],
+                    hover_color=COLORS['electric_violet_hover'],
                     command=lambda tid=tool_id: self._on_tool_toggle(tid),
                     state="disabled" if is_required else "normal"
                 )
