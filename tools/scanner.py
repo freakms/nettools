@@ -248,13 +248,50 @@ class IPv4Scanner:
         except Exception:
             return ""
     
+    def resolve_powershell_dns(self, ip, timeout=3):
+        """Resolve hostname using PowerShell Resolve-DnsName (Windows)"""
+        if platform.system() != 'Windows':
+            return ""
+        
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
+            # Use PowerShell to do a PTR lookup
+            cmd = f'powershell -NoProfile -Command "(Resolve-DnsName -Name {ip} -DnsOnly -ErrorAction SilentlyContinue).NameHost"'
+            
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                capture_output=True,
+                timeout=timeout,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            output = ""
+            for encoding in ['utf-8', 'cp850', 'cp1252', 'latin-1']:
+                try:
+                    output = result.stdout.decode(encoding).strip()
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if output and output != ip and not output.startswith('Resolve-'):
+                return output
+            return ""
+        except Exception:
+            return ""
+    
     def resolve_hostname(self, ip, timeout=1):
         """
         Resolve hostname using multiple methods (like Advanced IP Scanner):
         1. Reverse DNS lookup (socket.gethostbyaddr)
         2. Windows ping -a (reverse DNS via ping)
-        3. NetBIOS Name Service (direct UDP query to port 137)
-        4. nbtstat command (Windows - most reliable for local Windows machines)
+        3. PowerShell Resolve-DnsName (Windows)
+        4. NetBIOS Name Service (direct UDP query to port 137)
+        5. nbtstat command (Windows - most reliable for local Windows machines)
         """
         hostname = ""
         
@@ -270,13 +307,19 @@ class IPv4Scanner:
             if hostname:
                 return hostname
         
-        # Method 3: NetBIOS Name Service (works for Windows machines in local network)
+        # Method 3: PowerShell Resolve-DnsName (Windows - can use LLMNR)
+        if self.use_dns and platform.system() == 'Windows':
+            hostname = self.resolve_powershell_dns(ip, timeout=2)
+            if hostname:
+                return hostname
+        
+        # Method 4: NetBIOS Name Service (works for Windows machines in local network)
         if self.use_netbios:
             hostname = self.resolve_netbios_raw(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 4: nbtstat command (Windows - slower but reliable)
+        # Method 5: nbtstat command (Windows - slower but reliable)
         if self.use_nbtstat and platform.system() == 'Windows':
             hostname = self.resolve_nbtstat(ip, timeout=2)
             if hostname:
