@@ -732,7 +732,7 @@ Actions:
         border_accent.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
         
         # Header with logo and collapse button
-        header_frame = ctk.CTkFrame(self.sidebar, height=80, corner_radius=0, fg_color="transparent")
+        header_frame = ctk.CTkFrame(self.sidebar, height=95, corner_radius=0, fg_color="transparent")
         header_frame.pack(fill="x", padx=0, pady=0)
         header_frame.pack_propagate(False)
         
