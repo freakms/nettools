@@ -1088,27 +1088,28 @@ Actions:
         
         # Update nav buttons to show only icons (centered)
         for page_id, btn in self.nav_buttons.items():
-            icon = getattr(btn, '_nav_icon', '[?]')
+            icon = getattr(btn, '_nav_icon', '•')
+            btn_frame = getattr(btn, '_nav_frame', None)
+            icon_label = getattr(btn, '_icon_label', None)
+            text_label = getattr(btn, '_text_label', None)
             
-            # Update button to icon-only mode
+            # Hide text label, center icon
+            if text_label:
+                text_label.place_forget()
+            if icon_label:
+                icon_label.place(relx=0.5, rely=0.5, anchor="center")
+            if btn_frame:
+                btn_frame.configure(width=48)
+            
+            # Update colors based on active state
             if page_id == self.current_page:
-                btn.configure(
-                    text=icon,
-                    anchor="center",
-                    width=48,
-                    font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
-                    fg_color=COLORS['electric_violet'],
-                    text_color="white"
-                )
+                btn.configure(fg_color=COLORS['electric_violet'])
+                if icon_label:
+                    icon_label.configure(text_color="white")
             else:
-                btn.configure(
-                    text=icon,
-                    anchor="center",
-                    width=48,
-                    font=ctk.CTkFont(family="Consolas", size=11),
-                    fg_color="transparent",
-                    text_color=COLORS['neon_cyan']
-                )
+                btn.configure(fg_color="transparent")
+                if icon_label:
+                    icon_label.configure(text_color=COLORS['neon_cyan'])
         
         # Update favorite buttons if any - brighter icons
         if hasattr(self, 'favorites_buttons_frame'):
