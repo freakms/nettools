@@ -457,10 +457,14 @@ class IPv4Scanner:
         1. Reverse DNS lookup (socket.gethostbyaddr)
         2. Windows ping -a (reverse DNS via ping)
         3. PowerShell Resolve-DnsName (Windows)
-        4. NetBIOS Name Service (direct UDP query to port 137)
-        5. nbtstat command (Windows - most reliable for local Windows machines)
+        4. SMB hostname via port 445 (works without NetBIOS!)
+        5. net view command (Windows - SMB based)
+        6. NetBIOS Name Service (direct UDP query to port 137)
+        7. nbtstat command (Windows)
+        8. WMI query (Windows - requires admin access)
         """
         hostname = ""
+        is_windows = platform.system() == 'Windows'
         
         # Method 1: Reverse DNS (fastest, works for registered DNS entries)
         if self.use_dns:
@@ -469,25 +473,37 @@ class IPv4Scanner:
                 return hostname
         
         # Method 2: ping -a on Windows (another way to do reverse DNS)
-        if self.use_dns and platform.system() == 'Windows':
+        if self.use_dns and is_windows:
             hostname = self.resolve_ping_a(ip, timeout=1)
             if hostname:
                 return hostname
         
         # Method 3: PowerShell Resolve-DnsName (Windows - can use LLMNR)
-        if self.use_dns and platform.system() == 'Windows':
+        if self.use_dns and is_windows:
             hostname = self.resolve_powershell_dns(ip, timeout=2)
             if hostname:
                 return hostname
         
-        # Method 4: NetBIOS Name Service (works for Windows machines in local network)
+        # Method 4: SMB hostname via port 445 (works WITHOUT NetBIOS!)
+        if self.use_netbios:
+            hostname = self.resolve_smb_hostname(ip, timeout=1)
+            if hostname:
+                return hostname
+        
+        # Method 5: net view command (Windows - SMB based, often works)
+        if self.use_netbios and is_windows:
+            hostname = self.resolve_net_view(ip, timeout=2)
+            if hostname:
+                return hostname
+        
+        # Method 6: NetBIOS Name Service (direct UDP query - requires NetBIOS enabled)
         if self.use_netbios:
             hostname = self.resolve_netbios_raw(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 5: nbtstat command (Windows - slower but reliable)
-        if self.use_nbtstat and platform.system() == 'Windows':
+        # Method 7: nbtstat command (Windows - requires NetBIOS)
+        if self.use_nbtstat and is_windows:
             hostname = self.resolve_nbtstat(ip, timeout=2)
             if hostname:
                 return hostname
