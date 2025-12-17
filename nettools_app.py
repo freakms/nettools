@@ -1125,31 +1125,28 @@ Actions:
         # Update live monitor button - full text
         self.live_monitor_btn.configure(text="📊 Live Monitor", width=220, anchor="w")
         
-        # Update nav buttons to show icons + text with frame-based layout
+        # Update nav buttons to show icons + text
         for page_id, btn in self.nav_buttons.items():
-            btn_frame = getattr(btn, '_nav_frame', None)
-            icon_label = getattr(btn, '_icon_label', None)
-            text_label = getattr(btn, '_text_label', None)
+            icon = getattr(btn, '_nav_icon', '•')
+            label = getattr(btn, '_nav_label', page_id)
+            btn_text = f"  {icon}   {label}"
             
-            # Restore full width and show both labels
-            if btn_frame:
-                btn_frame.configure(width=220)
-            if icon_label:
-                icon_label.place(x=12, y=0, relheight=1)
-                icon_label.configure(text_color=COLORS['text_primary'])
-            if text_label:
-                text_label.place(x=48, y=0, relheight=1)
-                text_label.configure(text_color=COLORS['text_primary'])
-            
-            # Reset button colors
             if page_id == self.current_page:
-                btn.configure(fg_color=COLORS['electric_violet'])
-                if icon_label:
-                    icon_label.configure(text_color="white")
-                if text_label:
-                    text_label.configure(text_color="white")
+                btn.configure(
+                    text=btn_text,
+                    anchor="w",
+                    width=220,
+                    fg_color=COLORS['electric_violet'],
+                    text_color="white"
+                )
             else:
-                btn.configure(fg_color="transparent")
+                btn.configure(
+                    text=btn_text,
+                    anchor="w",
+                    width=220,
+                    fg_color="transparent",
+                    text_color=COLORS['text_primary']
+                )
         
         # Update favorite buttons if any
         if hasattr(self, 'favorites_buttons_frame'):
