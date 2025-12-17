@@ -40,6 +40,7 @@ from ui.ssl_checker_ui import SSLCheckerUI
 from ui.hash_generator_ui import HashGeneratorUI
 from ui.api_tester_ui import APITesterUI
 from ui.arp_viewer_ui import ARPViewerUI
+from ui.settings_ui import SettingsUI
 try:
     import telnetlib
     TELNETLIB_AVAILABLE = True
