@@ -930,26 +930,65 @@ Actions:
             if self.first_category_label is None:
                 self.first_category_label = category_label
             
-            # Category items with icons - simple button with consistent text
+            # Category items with icons - using frame-based layout for consistent alignment
             for page_id, icon, label, tooltip in filtered_items:
-                # Replace problematic emoji icons with simpler ones
+                # Replace problematic emoji icons with simpler text icons
                 display_icon = icon
-                if icon == "#️⃣":  # Hash Generator - problematic
+                if icon == "#️⃣":  # Hash Generator - use simple #
                     display_icon = "#"
-                elif icon == "🛤️":  # Traceroute
-                    display_icon = "🔀"
-                elif icon == "🛡️":  # PAN-OS
-                    display_icon = "🔒"
+                elif icon == "🛤️":  # Traceroute - use arrow
+                    display_icon = "->"
+                elif icon == "🛡️":  # PAN-OS - use lock
+                    display_icon = "[S]"
+                elif icon == "📡":  # Scanner/API - keep or use text
+                    display_icon = "[~]"
+                elif icon == "🔌":  # Port Scanner
+                    display_icon = "[P]"
+                elif icon == "🔍":  # WHOIS/Search
+                    display_icon = "[?]"
+                elif icon == "🌐":  # DNS
+                    display_icon = "[D]"
+                elif icon == "🔒":  # SSL
+                    display_icon = "[L]"
+                elif icon == "🔢":  # Subnet
+                    display_icon = "[#]"
+                elif icon == "🔗":  # MAC
+                    display_icon = "[M]"
+                elif icon == "🔐":  # Password
+                    display_icon = "[K]"
+                elif icon == "🚀":  # Speedtest
+                    display_icon = "[>]"
+                elif icon == "📶":  # Bandwidth
+                    display_icon = "[B]"
+                elif icon == "⚖️":  # Compare
+                    display_icon = "[=]"
+                elif icon == "📁":  # Profiles
+                    display_icon = "[F]"
+                elif icon == "📦":  # phpIPAM
+                    display_icon = "[I]"
+                elif icon == "⚙️":  # Settings
+                    display_icon = "[*]"
+                elif icon == "🏠":  # Dashboard
+                    display_icon = "[H]"
+                elif icon == "📊":  # ARP/Dashboard
+                    display_icon = "[A]"
+                elif icon == "🧪":  # Testing  
+                    display_icon = "[T]"
+                
+                # Create button with consistent formatting using fixed-width icon placeholder
+                # Format: "  [X]  Label" where [X] is always 3 chars
+                icon_text = f"{display_icon:^5}"  # Center icon in 5-char field
+                btn_text = f"{icon_text} {label}"
                 
                 btn = ctk.CTkButton(
                     self.nav_scroll,
-                    text=f"   {display_icon}    {label}",
+                    text=btn_text,
                     command=lambda p=page_id: self.switch_tool(p),
                     width=220,
                     height=36,
                     corner_radius=8,
                     anchor="w",
-                    font=ctk.CTkFont(size=13),
+                    font=ctk.CTkFont(family="Consolas", size=12),  # Monospace for alignment
                     fg_color="transparent",
                     text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
