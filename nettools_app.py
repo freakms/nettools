@@ -4422,22 +4422,13 @@ Actions:
     def update_nav_button_stars(self):
         """Update star indicators on navigation buttons"""
         for tool_id, btn in self.nav_buttons.items():
-            text_label = getattr(btn, '_text_label', None)
-            original_label = getattr(btn, '_nav_label', tool_id)
+            icon = getattr(btn, '_nav_icon', '•')
+            label = getattr(btn, '_nav_label', tool_id)
             
-            if text_label:
-                # Using frame-based layout with separate text label
-                if tool_id in self.favorite_tools:
-                    text_label.configure(text=f"{original_label} ⭐")
-                else:
-                    text_label.configure(text=original_label)
+            if tool_id in self.favorite_tools:
+                btn.configure(text=f"  {icon}   {label} ⭐")
             else:
-                # Fallback for old-style buttons
-                original_text = btn.cget("text").replace(" ⭐", "")
-                if tool_id in self.favorite_tools:
-                    btn.configure(text=f"{original_text} ⭐")
-                else:
-                    btn.configure(text=original_text)
+                btn.configure(text=f"  {icon}   {label}")
     
     def show_tool_context_menu(self, event, tool_id):
         """Show context menu for tool (right-click)"""
