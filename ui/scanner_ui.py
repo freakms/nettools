@@ -160,6 +160,16 @@ class ScannerUI:
         self.app.only_responding_check.select()  # Check by default
         self.app.only_responding_check.pack(side="left", padx=15, pady=15)
         
+        # Enhanced hostname resolution option (NetBIOS + DNS like Advanced IP Scanner)
+        self.app.enhanced_dns_check = ctk.CTkCheckBox(
+            options_frame,
+            text="Enhanced name resolution (NetBIOS)",
+            text_color=COLORS['neon_cyan']
+        )
+        self.app.enhanced_dns_check.select()  # Enable by default for better results
+        self.app.enhanced_dns_check.pack(side="left", padx=15, pady=15)
+        add_tooltip_to_widget(self.app.enhanced_dns_check, "Uses multiple methods like Advanced IP Scanner:\nDNS + NetBIOS + nbtstat for better hostname detection")
+        
         self.app.show_all_btn = StyledButton(
             options_frame,
             text="👁 Show All Addresses",
