@@ -455,50 +455,6 @@ class IPv4Scanner:
     
     def resolve_snmp(self, ip, timeout=2, community='public'):
         """
-        Resolve hostname via SNMP - works for switches, routers, printers, etc.
-        Queries sysName OID (1.3.6.1.2.1.1.5.0) which contains the device hostname.
-        
-        This is how Advanced IP Scanner gets names from network devices!
-        """
-        if not SNMP_AVAILABLE:
-            return ""
-        
-        try:
-            # SNMP OID for sysName (device hostname)
-            # This is the standard MIB-II sysName object
-            sysName_oid = '1.3.6.1.2.1.1.5.0'
-            
-            # Try common community strings
-            communities = [community, 'public', 'private', 'admin']
-            
-            for comm in communities:
-                try:
-                    iterator = getCmd(
-                        SnmpEngine(),
-                        CommunityData(comm, mpModel=0),  # SNMPv1
-                        UdpTransportTarget((ip, 161), timeout=timeout, retries=0),
-                        ContextData(),
-                        ObjectType(ObjectIdentity(sysName_oid))
-                    )
-                    
-                    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
-                    
-                    if errorIndication or errorStatus:
-                        continue
-                    
-                    for varBind in varBinds:
-                        value = str(varBind[1])
-                        if value and value != ip and not value.startswith('No Such'):
-                            return value.strip()
-                except Exception:
-                    continue
-            
-            return ""
-        except Exception:
-            return ""
-    
-    def resolve_snmp_fallback(self, ip, timeout=2):
-        """
         Fallback SNMP query using raw socket (if pysnmp not available).
         Sends a simple SNMPv1 GET request for sysName.
         """
