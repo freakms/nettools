@@ -140,7 +140,9 @@ class DeveloperDocsPDF(FPDF):
             # Dotted line
             self.set_draw_color(*self.border_gray)
             y = self.get_y() - 4
-            self.dashed_line(10, y, 200, y, 1, 2)
+            self.set_dash_pattern(dash=1, gap=2)
+            self.line(10, y, 200, y)
+            self.set_dash_pattern()
 
     def chapter_title(self, title, numbered=False):
         """Create a styled chapter title"""
