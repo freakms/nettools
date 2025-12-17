@@ -58,61 +58,96 @@ class IPv4Scanner:
         except Exception:
             return ""
     
-    def resolve_netbios(self, ip, timeout=2):
-        """Resolve hostname via NetBIOS Name Service (NBNS) - UDP port 137"""
+    def resolve_netbios_raw(self, ip, timeout=2):
+        """
+        Resolve hostname via NetBIOS Name Service (NBNS) - UDP port 137
+        Sends a NetBIOS Node Status Request to get the computer name
+        """
         try:
-            # NetBIOS Name Query packet
-            # Transaction ID (2 bytes) + Flags (2 bytes) + Questions (2 bytes) + 
-            # Answer RRs (2 bytes) + Authority RRs (2 bytes) + Additional RRs (2 bytes)
-            transaction_id = b'\x80\x01'
-            flags = b'\x00\x00'  # Standard query
-            questions = b'\x00\x01'
-            answer_rrs = b'\x00\x00'
-            authority_rrs = b'\x00\x00'
-            additional_rrs = b'\x00\x00'
+            # Build NetBIOS Node Status Request packet
+            # This is a NBSTAT query for the wildcard name '*'
             
-            # Query for '*' (CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA) - status query
-            # Encoded NetBIOS name for '*' (wildcard)
-            query_name = b'\x20CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x00'
-            query_type = b'\x00\x21'  # NBSTAT
-            query_class = b'\x00\x01'  # IN
+            # Header
+            transaction_id = b'\x80\x94'  # Random transaction ID
+            flags = b'\x00\x00'  # Standard query, no recursion
+            qdcount = b'\x00\x01'  # 1 question
+            ancount = b'\x00\x00'  # 0 answers
+            nscount = b'\x00\x00'  # 0 authority
+            arcount = b'\x00\x00'  # 0 additional
             
-            packet = (transaction_id + flags + questions + answer_rrs + 
-                     authority_rrs + additional_rrs + query_name + query_type + query_class)
+            # Question section - encoded '*' name for NBSTAT query
+            # NetBIOS first-level encoding of '*' padded to 16 chars
+            # '*' = 0x2A, padded with spaces (0x20) to 16 bytes
+            # First-level encoding: each nibble + 'A' (0x41)
+            # '*' (0x2A) -> 'C' 'K' (0x43, 0x4B)
+            # ' ' (0x20) -> 'C' 'A' (0x43, 0x41)
+            encoded_name = b'\x20'  # Length 32
+            encoded_name += b'CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'  # Encoded '*' + 15 spaces
+            encoded_name += b'\x00'  # Name terminator
             
-            # Send UDP packet to port 137
+            qtype = b'\x00\x21'   # NBSTAT (Node Status)
+            qclass = b'\x00\x01'  # IN (Internet)
+            
+            packet = (transaction_id + flags + qdcount + ancount + 
+                     nscount + arcount + encoded_name + qtype + qclass)
+            
+            # Send UDP packet
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(timeout)
             sock.sendto(packet, (ip, 137))
             
             # Receive response
-            response, _ = sock.recvfrom(1024)
+            response, _ = sock.recvfrom(2048)
             sock.close()
             
-            # Parse response - name is at offset after header (12 bytes) + query section
-            if len(response) > 57:
-                # Skip to answer section and find name count
-                name_count = response[56]
-                if name_count > 0:
-                    # Names start at offset 57
-                    offset = 57
-                    for i in range(name_count):
-                        if offset + 18 <= len(response):
-                            # NetBIOS name is 15 bytes + 1 byte suffix + 2 bytes flags
-                            name_bytes = response[offset:offset + 15]
-                            suffix = response[offset + 15]
-                            
-                            # Decode name (strip padding spaces)
-                            try:
-                                name = name_bytes.decode('ascii', errors='ignore').strip()
-                                # Return workstation name (suffix 0x00) or server name (suffix 0x20)
-                                if suffix in (0x00, 0x20) and name and not name.startswith('\x00'):
-                                    return name
-                            except (UnicodeDecodeError, AttributeError):
-                                pass
-                            offset += 18
+            # Parse the response
+            if len(response) < 57:
+                return ""
+            
+            # The response format:
+            # - 12 bytes header
+            # - Question section (copy of request)
+            # - Answer section with node status
+            
+            # Find the number of names in the response
+            # This is after the header (12) + question section (~38 bytes) + answer header (~12 bytes)
+            # Look for the name count byte
+            
+            # Skip to after the question section
+            # The name count is typically at offset 56 or thereabouts
+            pos = 56
+            if pos >= len(response):
+                return ""
+            
+            num_names = response[pos]
+            pos += 1
+            
+            # Parse each name entry (18 bytes each: 15 name + 1 suffix + 2 flags)
+            for _ in range(num_names):
+                if pos + 18 > len(response):
+                    break
+                
+                name_bytes = response[pos:pos + 15]
+                suffix = response[pos + 15]
+                # flags = response[pos + 16:pos + 18]  # Not needed
+                pos += 18
+                
+                # Decode the name
+                try:
+                    name = name_bytes.decode('ascii', errors='ignore').rstrip()
+                    # suffix 0x00 = Workstation, 0x20 = Server
+                    # We want the workstation or server name, not group names
+                    if suffix in (0x00, 0x20) and name and len(name) > 0:
+                        # Skip names starting with special chars
+                        if not name.startswith(('_', '~', '\x01', '\x00')):
+                            return name
+                except Exception:
+                    continue
+            
             return ""
-        except (socket.timeout, socket.error, Exception):
+        except socket.timeout:
+            return ""
+        except Exception:
             return ""
     
     def resolve_nbtstat(self, ip, timeout=3):
@@ -121,41 +156,105 @@ class IPv4Scanner:
             return ""
         
         try:
+            # Use CREATE_NO_WINDOW flag on Windows
+            startupinfo = None
+            creationflags = 0
+            if platform.system() == 'Windows':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+                creationflags = subprocess.CREATE_NO_WINDOW
+            
             result = subprocess.run(
                 ['nbtstat', '-A', ip],
                 capture_output=True,
-                text=True,
                 timeout=timeout,
-                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
+                startupinfo=startupinfo,
+                creationflags=creationflags
             )
             
-            if result.returncode == 0 and result.stdout:
-                lines = result.stdout.split('\n')
+            # Decode output, handling different encodings
+            output = ""
+            for encoding in ['utf-8', 'cp850', 'cp1252', 'latin-1']:
+                try:
+                    output = result.stdout.decode(encoding)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if output:
+                lines = output.split('\n')
                 for line in lines:
-                    # Look for lines with <00> UNIQUE (workstation) or <20> UNIQUE (server)
                     line = line.strip()
-                    if '<00>' in line and 'UNIQUE' in line:
+                    # Look for lines with <00> UNIQUE (workstation) or <20> UNIQUE (server)
+                    if '<00>' in line and 'UNIQUE' in line.upper():
                         parts = line.split()
                         if parts:
                             name = parts[0].strip()
-                            if name and not name.startswith('_'):
+                            if name and not name.startswith(('_', '~')):
                                 return name
-                    elif '<20>' in line and 'UNIQUE' in line:
+                    elif '<20>' in line and 'UNIQUE' in line.upper():
                         parts = line.split()
                         if parts:
                             name = parts[0].strip()
-                            if name and not name.startswith('_'):
+                            if name and not name.startswith(('_', '~')):
                                 return name
             return ""
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, Exception):
+        except subprocess.TimeoutExpired:
+            return ""
+        except Exception:
+            return ""
+    
+    def resolve_ping_a(self, ip, timeout=2):
+        """Resolve hostname using Windows 'ping -a' command (reverse DNS via ping)"""
+        if platform.system() != 'Windows':
+            return ""
+        
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
+            result = subprocess.run(
+                ['ping', '-a', '-n', '1', '-w', str(int(timeout * 1000)), ip],
+                capture_output=True,
+                timeout=timeout + 1,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            output = ""
+            for encoding in ['utf-8', 'cp850', 'cp1252', 'latin-1']:
+                try:
+                    output = result.stdout.decode(encoding)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if output:
+                # Look for pattern: "Pinging hostname [ip]" or "Ping wird ausgeführt für hostname [ip]"
+                lines = output.split('\n')
+                for line in lines:
+                    if '[' in line and ']' in line:
+                        # Extract hostname before [ip]
+                        import re
+                        # Match: "Pinging hostname [ip]" - extract hostname
+                        match = re.search(r'(?:Pinging|Ping\s+\S+\s+\S+\s+für)\s+(\S+)\s+\[', line, re.IGNORECASE)
+                        if match:
+                            hostname = match.group(1)
+                            if hostname and hostname != ip:
+                                return hostname
+            return ""
+        except Exception:
             return ""
     
     def resolve_hostname(self, ip, timeout=1):
         """
         Resolve hostname using multiple methods (like Advanced IP Scanner):
-        1. Reverse DNS lookup
-        2. NetBIOS Name Service (direct UDP query)
-        3. nbtstat command (Windows fallback)
+        1. Reverse DNS lookup (socket.gethostbyaddr)
+        2. Windows ping -a (reverse DNS via ping)
+        3. NetBIOS Name Service (direct UDP query to port 137)
+        4. nbtstat command (Windows - most reliable for local Windows machines)
         """
         hostname = ""
         
@@ -165,13 +264,19 @@ class IPv4Scanner:
             if hostname:
                 return hostname
         
-        # Method 2: NetBIOS Name Service (works for Windows machines in local network)
-        if self.use_netbios:
-            hostname = self.resolve_netbios(ip, timeout=1)
+        # Method 2: ping -a on Windows (another way to do reverse DNS)
+        if self.use_dns and platform.system() == 'Windows':
+            hostname = self.resolve_ping_a(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 3: nbtstat command (Windows fallback, slower but reliable)
+        # Method 3: NetBIOS Name Service (works for Windows machines in local network)
+        if self.use_netbios:
+            hostname = self.resolve_netbios_raw(ip, timeout=1)
+            if hostname:
+                return hostname
+        
+        # Method 4: nbtstat command (Windows - slower but reliable)
         if self.use_nbtstat and platform.system() == 'Windows':
             hostname = self.resolve_nbtstat(ip, timeout=2)
             if hostname:
