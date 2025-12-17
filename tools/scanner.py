@@ -455,75 +455,134 @@ class IPv4Scanner:
     
     def resolve_snmp(self, ip, timeout=2, community='public'):
         """
-        Fallback SNMP query using raw socket (if pysnmp not available).
-        Sends a simple SNMPv1 GET request for sysName.
+        Resolve hostname via SNMP - works for switches, routers, printers, etc.
+        Queries sysName OID (1.3.6.1.2.1.1.5.0) which contains the device hostname.
+        
+        This is how Advanced IP Scanner gets names from network devices!
+        Uses raw sockets - no external library needed.
+        """
+        # Try multiple community strings
+        communities = [community, 'public', 'private', 'admin', 'snmp', 'monitor']
+        
+        for comm in communities:
+            result = self._snmp_get_sysname(ip, comm.encode(), timeout)
+            if result:
+                return result
+        
+        return ""
+    
+    def _snmp_get_sysname(self, ip, community, timeout):
+        """
+        Send SNMPv1/v2c GET request for sysName (1.3.6.1.2.1.1.5.0)
         """
         try:
-            # Build SNMPv1 GET request for sysName (1.3.6.1.2.1.1.5.0)
-            # This is a simplified SNMP packet
+            # Build proper SNMPv1 GET-REQUEST packet
+            # OID 1.3.6.1.2.1.1.5.0 = iso.org.dod.internet.mgmt.mib-2.system.sysName.0
             
-            community = b'public'
+            # OID encoding: 1.3.6.1.2.1.1.5.0
+            # First two numbers combined: 1*40 + 3 = 43 = 0x2b
+            # Then: 6, 1, 2, 1, 1, 5, 0
+            oid_bytes = bytes([0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x05, 0x00])
+            oid = bytes([0x06, len(oid_bytes)]) + oid_bytes
             
-            # SNMP GET-REQUEST packet (simplified)
-            # OID 1.3.6.1.2.1.1.5.0 = sysName
-            oid = bytes([0x06, 0x08, 0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x05, 0x00])  # OID encoding
+            # Null value for GET request
+            null_val = bytes([0x05, 0x00])
             
-            # Null value
-            null_value = bytes([0x05, 0x00])
+            # VarBind: SEQUENCE { OID, NULL }
+            varbind_content = oid + null_val
+            varbind = bytes([0x30, len(varbind_content)]) + varbind_content
             
-            # VarBind
-            varbind = bytes([0x30, len(oid) + len(null_value)]) + oid + null_value
-            
-            # VarBindList
+            # VarBindList: SEQUENCE { VarBind }
             varbind_list = bytes([0x30, len(varbind)]) + varbind
             
-            # Request ID
-            request_id = bytes([0x02, 0x01, 0x01])
+            # Request ID (INTEGER)
+            import random
+            req_id = random.randint(1, 65535)
+            req_id_bytes = req_id.to_bytes(2, 'big')
+            request_id = bytes([0x02, 0x02]) + req_id_bytes
             
-            # Error status and index
+            # Error status (INTEGER 0)
             error_status = bytes([0x02, 0x01, 0x00])
+            
+            # Error index (INTEGER 0)
             error_index = bytes([0x02, 0x01, 0x00])
             
-            # PDU (GET-REQUEST = 0xA0)
+            # PDU content
             pdu_content = request_id + error_status + error_index + varbind_list
+            
+            # GET-REQUEST PDU (0xA0)
             pdu = bytes([0xA0, len(pdu_content)]) + pdu_content
             
-            # Community string
-            community_encoded = bytes([0x04, len(community)]) + community
+            # Community string (OCTET STRING)
+            community_str = bytes([0x04, len(community)]) + community
             
-            # Version (SNMPv1 = 0)
+            # SNMP Version (INTEGER 0 = SNMPv1)
             version = bytes([0x02, 0x01, 0x00])
             
-            # Full message
-            message_content = version + community_encoded + pdu
+            # Complete SNMP message (SEQUENCE)
+            message_content = version + community_str + pdu
             message = bytes([0x30, len(message_content)]) + message_content
             
-            # Send UDP packet
+            # Send UDP packet to port 161
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(timeout)
             sock.sendto(message, (ip, 161))
             
-            response, _ = sock.recvfrom(1024)
+            # Receive response
+            response, _ = sock.recvfrom(2048)
             sock.close()
             
-            # Parse response - look for the string value
-            # The hostname is usually near the end as an OCTET STRING (0x04)
-            if len(response) > 30:
-                # Find OCTET STRING markers
-                for i in range(len(response) - 2):
-                    if response[i] == 0x04:  # OCTET STRING tag
-                        str_len = response[i + 1]
-                        if str_len > 0 and str_len < 64 and i + 2 + str_len <= len(response):
-                            try:
-                                hostname = response[i + 2:i + 2 + str_len].decode('ascii', errors='ignore').strip()
-                                if hostname and len(hostname) > 1 and hostname != ip:
-                                    # Basic validation - looks like a hostname
-                                    if hostname[0].isalpha() or hostname[0].isdigit():
-                                        return hostname
-                            except Exception:
-                                pass
-            return ""
+            # Parse the response to extract sysName value
+            return self._parse_snmp_response(response)
+            
         except socket.timeout:
+            return ""
+        except Exception:
+            return ""
+    
+    def _parse_snmp_response(self, response):
+        """Parse SNMP response and extract the sysName string value"""
+        try:
+            if len(response) < 20:
+                return ""
+            
+            # The response is a SEQUENCE containing version, community, and response PDU
+            # We need to find the VarBind value (OCTET STRING) containing sysName
+            
+            # Simple approach: scan for OCTET STRING (0x04) tags and extract values
+            # The sysName value is typically the last significant OCTET STRING
+            
+            found_strings = []
+            i = 0
+            while i < len(response) - 2:
+                if response[i] == 0x04:  # OCTET STRING tag
+                    length = response[i + 1]
+                    
+                    # Handle long form length encoding
+                    if length & 0x80:
+                        num_len_bytes = length & 0x7f
+                        if i + 2 + num_len_bytes < len(response):
+                            length = int.from_bytes(response[i + 2:i + 2 + num_len_bytes], 'big')
+                            i += num_len_bytes
+                    
+                    if length > 0 and length < 256 and i + 2 + length <= len(response):
+                        try:
+                            value = response[i + 2:i + 2 + length].decode('utf-8', errors='ignore').strip()
+                            # Filter out community strings and keep potential hostnames
+                            if value and len(value) >= 2 and value not in ('public', 'private', 'admin'):
+                                # Basic hostname validation
+                                if value[0].isalnum() and not value.startswith(('1.', '2.')):
+                                    found_strings.append(value)
+                        except Exception:
+                            pass
+                    i += 2 + length
+                else:
+                    i += 1
+            
+            # Return the longest found string (likely the sysName)
+            if found_strings:
+                return max(found_strings, key=len)
+            
             return ""
         except Exception:
             return ""
