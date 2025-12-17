@@ -397,6 +397,15 @@ class ScannerUI:
         
         # Start scan in thread
         aggression = self.app.aggro_selector.get()
+        
+        # Check if enhanced name resolution is enabled
+        enhanced_dns = hasattr(self.app, 'enhanced_dns_check') and self.app.enhanced_dns_check.get()
+        
+        # Configure scanner for enhanced resolution
+        self.app.scanner.use_netbios = enhanced_dns
+        self.app.scanner.use_nbtstat = enhanced_dns
+        self.app.scanner.use_dns = True  # Always use DNS
+        
         self.app.scan_thread = threading.Thread(
             target=self.app.scanner.scan_network,
             args=(cidr, aggression),
