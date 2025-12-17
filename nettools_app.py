@@ -995,15 +995,17 @@ Actions:
                 text_label.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
                 
                 # Store references for expand/collapse
-                btn._nav_icon = display_icon  # Text-based icon like [H], [D], etc.
+                btn._nav_icon = display_icon
                 btn._nav_label = label
-                btn._nav_original_emoji = icon  # Original emoji for reference
+                btn._nav_frame = btn_frame
+                btn._icon_label = icon_label
+                btn._text_label = text_label
                 
-                # Add tooltip
-                Tooltip(btn, tooltip)
+                # Add tooltip to the frame
+                Tooltip(btn_frame, tooltip)
                 
                 # Add right-click context menu for favorites
-                btn.bind("<Button-3>", lambda e, tid=page_id: self.show_tool_context_menu(e, tid))
+                btn_frame.bind("<Button-3>", lambda e, tid=page_id: self.show_tool_context_menu(e, tid))
                 
                 self.nav_buttons[page_id] = btn
                 category_buttons.append(page_id)
