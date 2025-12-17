@@ -48,8 +48,10 @@ class ComplianceReportPDF(FPDF):
         
     def bullet_point(self, text, indent=10):
         self.set_font('Helvetica', '', 10)
-        self.set_x(self.get_x() + indent)
-        self.multi_cell(0, 6, f"* {text}")
+        x_start = self.l_margin + indent
+        self.set_x(x_start)
+        available_width = self.w - x_start - self.r_margin
+        self.multi_cell(available_width, 6, f"- {text}")
         
     def status_box(self, status, text):
         if status == "OK":
