@@ -1151,15 +1151,9 @@ Actions:
         # Update favorite buttons if any
         if hasattr(self, 'favorites_buttons_frame'):
             for btn in self.favorites_buttons_frame.winfo_children():
-                btn_frame = getattr(btn, '_nav_frame', None)
-                icon_label = getattr(btn, '_icon_label', None)
-                text_label = getattr(btn, '_text_label', None)
-                if btn_frame:
-                    btn_frame.configure(width=220)
-                if icon_label:
-                    icon_label.place(x=12, y=0, relheight=1)
-                if text_label:
-                    text_label.place(x=48, y=0, relheight=1)
+                icon = getattr(btn, '_nav_icon', '•')
+                label = getattr(btn, '_nav_label', '')
+                btn.configure(text=f"  {icon}   {label}", anchor="w", width=220)
         
         # Show favorites label if exists and favorites are present
         if hasattr(self, 'favorites_label') and self.favorite_tools:
