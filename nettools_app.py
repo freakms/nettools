@@ -1088,7 +1088,7 @@ Actions:
         
         # Update nav buttons to show only icons (centered)
         for page_id, btn in self.nav_buttons.items():
-            icon = getattr(btn, '_nav_icon', '•')
+            icon = getattr(btn, '_nav_icon', '[?]')
             
             # Update button to icon-only mode
             if page_id == self.current_page:
@@ -1096,6 +1096,7 @@ Actions:
                     text=icon,
                     anchor="center",
                     width=48,
+                    font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
                     fg_color=COLORS['electric_violet'],
                     text_color="white"
                 )
@@ -1104,6 +1105,7 @@ Actions:
                     text=icon,
                     anchor="center",
                     width=48,
+                    font=ctk.CTkFont(family="Consolas", size=11),
                     fg_color="transparent",
                     text_color=COLORS['neon_cyan']
                 )
