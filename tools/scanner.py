@@ -12,6 +12,16 @@ import platform
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pythonping import ping
 
+# SNMP support for network devices (switches, routers, etc.)
+try:
+    from pysnmp.hlapi import (
+        getCmd, SnmpEngine, CommunityData, UdpTransportTarget,
+        ContextData, ObjectType, ObjectIdentity
+    )
+    SNMP_AVAILABLE = True
+except ImportError:
+    SNMP_AVAILABLE = False
+
 
 class IPv4Scanner:
     """IPv4 Network Scanner using ICMP ping with multi-method hostname resolution"""
