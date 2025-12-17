@@ -930,71 +930,69 @@ Actions:
             if self.first_category_label is None:
                 self.first_category_label = category_label
             
-            # Category items with icons - using frame-based layout for consistent alignment
+            # Category items with icons - using Frame-based compound widget for perfect alignment
             for page_id, icon, label, tooltip in filtered_items:
-                # Replace problematic emoji icons with simpler text icons
+                # Replace only the truly problematic multi-codepoint emojis
                 display_icon = icon
-                if icon == "#️⃣":  # Hash Generator - use simple #
-                    display_icon = "#"
-                elif icon == "🛤️":  # Traceroute - use arrow
-                    display_icon = "->"
-                elif icon == "🛡️":  # PAN-OS - use lock
-                    display_icon = "[S]"
-                elif icon == "📡":  # Scanner/API - keep or use text
-                    display_icon = "[~]"
-                elif icon == "🔌":  # Port Scanner
-                    display_icon = "[P]"
-                elif icon == "🔍":  # WHOIS/Search
-                    display_icon = "[?]"
-                elif icon == "🌐":  # DNS
-                    display_icon = "[D]"
-                elif icon == "🔒":  # SSL
-                    display_icon = "[L]"
-                elif icon == "🔢":  # Subnet
-                    display_icon = "[#]"
-                elif icon == "🔗":  # MAC
-                    display_icon = "[M]"
-                elif icon == "🔐":  # Password
-                    display_icon = "[K]"
-                elif icon == "🚀":  # Speedtest
-                    display_icon = "[>]"
-                elif icon == "📶":  # Bandwidth
-                    display_icon = "[B]"
-                elif icon == "⚖️":  # Compare
-                    display_icon = "[=]"
-                elif icon == "📁":  # Profiles
-                    display_icon = "[F]"
-                elif icon == "📦":  # phpIPAM
-                    display_icon = "[I]"
-                elif icon == "⚙️":  # Settings
-                    display_icon = "[*]"
-                elif icon == "🏠":  # Dashboard
-                    display_icon = "[H]"
-                elif icon == "📊":  # ARP/Dashboard
-                    display_icon = "[A]"
-                elif icon == "🧪":  # Testing  
-                    display_icon = "[T]"
+                if icon == "#️⃣":  # Hash Generator - compound emoji
+                    display_icon = "♯"
+                elif icon == "🛤️":  # Traceroute - compound emoji
+                    display_icon = "⤳"
+                elif icon == "🛡️":  # PAN-OS - compound emoji  
+                    display_icon = "⛨"
+                elif icon == "⚖️":  # Compare - compound emoji
+                    display_icon = "⇔"
+                elif icon == "⚙️":  # Settings - compound emoji
+                    display_icon = "✦"
                 
-                # Create button with consistent formatting using fixed-width icon placeholder
-                # Format: "  [X]  Label" where [X] is always 3 chars
-                icon_text = f"{display_icon:^5}"  # Center icon in 5-char field
-                btn_text = f"{icon_text} {label}"
-                
-                btn = ctk.CTkButton(
+                # Create a frame-based nav item for consistent alignment
+                btn_frame = ctk.CTkFrame(
                     self.nav_scroll,
-                    text=btn_text,
+                    fg_color="transparent",
+                    height=36,
+                    corner_radius=8
+                )
+                btn_frame.pack(fill="x", padx=8, pady=1)
+                btn_frame.pack_propagate(False)
+                
+                # Clickable button that fills the frame
+                btn = ctk.CTkButton(
+                    btn_frame,
+                    text="",
                     command=lambda p=page_id: self.switch_tool(p),
                     width=220,
                     height=36,
                     corner_radius=8,
-                    anchor="w",
-                    font=ctk.CTkFont(family="Consolas", size=12),  # Monospace for alignment
                     fg_color="transparent",
-                    text_color=COLORS['text_primary'],
                     hover_color=COLORS['dashboard_card_hover'],
                     border_width=0
                 )
-                btn.pack(fill="x", padx=8, pady=1)
+                btn.place(x=0, y=0, relwidth=1, relheight=1)
+                
+                # Icon label - fixed width for alignment (30px)
+                icon_label = ctk.CTkLabel(
+                    btn_frame,
+                    text=display_icon,
+                    width=30,
+                    font=ctk.CTkFont(size=14),
+                    text_color=COLORS['text_primary'],
+                    anchor="center"
+                )
+                icon_label.place(x=12, y=0, relheight=1)
+                
+                # Text label - starts at fixed position
+                text_label = ctk.CTkLabel(
+                    btn_frame,
+                    text=label,
+                    font=ctk.CTkFont(size=13),
+                    text_color=COLORS['text_primary'],
+                    anchor="w"
+                )
+                text_label.place(x=48, y=0, relheight=1)
+                
+                # Make labels click-through to the button
+                icon_label.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
+                text_label.bind("<Button-1>", lambda e, p=page_id: self.switch_tool(p))
                 
                 # Store references for expand/collapse
                 btn._nav_icon = display_icon  # Text-based icon like [H], [D], etc.
