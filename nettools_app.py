@@ -816,6 +816,7 @@ Actions:
             # ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),  # Temporarily disabled
             ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
             ("phpipam", "📦", "phpIPAM", ["ipam", "ip", "management", "inventory"]),
+            ("settings", "⚙️", "Settings", ["settings", "preferences", "config", "customize", "tools"]),
         ]
         
         self.command_palette = SmartCommandPalette(
