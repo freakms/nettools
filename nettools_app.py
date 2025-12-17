@@ -1014,10 +1014,12 @@ Actions:
             self.category_labels.append((category_label, cat_icon, category_name, category_buttons))
         
         # Update initial button state - highlight dashboard
-        self.nav_buttons["dashboard"].configure(
-            fg_color=COLORS['electric_violet'],
-            text_color="white"
-        )
+        dashboard_btn = self.nav_buttons["dashboard"]
+        dashboard_btn.configure(fg_color=COLORS['electric_violet'])
+        if hasattr(dashboard_btn, '_icon_label') and dashboard_btn._icon_label:
+            dashboard_btn._icon_label.configure(text_color="white")
+        if hasattr(dashboard_btn, '_text_label') and dashboard_btn._text_label:
+            dashboard_btn._text_label.configure(text_color="white")
         
         # Add some bottom padding to scroll area
         bottom_padding = ctk.CTkFrame(self.nav_scroll, fg_color="transparent", height=30)
