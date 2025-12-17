@@ -1114,14 +1114,16 @@ Actions:
         # Update favorite buttons if any - brighter icons
         if hasattr(self, 'favorites_buttons_frame'):
             for btn in self.favorites_buttons_frame.winfo_children():
-                icon = getattr(btn, '_nav_icon', '[?]')
-                btn.configure(
-                    text=icon, 
-                    anchor="center", 
-                    width=48,
-                    font=ctk.CTkFont(family="Consolas", size=11),
-                    text_color=COLORS['neon_cyan']
-                )
+                btn_frame = getattr(btn, '_nav_frame', None)
+                icon_label = getattr(btn, '_icon_label', None)
+                text_label = getattr(btn, '_text_label', None)
+                if text_label:
+                    text_label.place_forget()
+                if icon_label:
+                    icon_label.place(relx=0.5, rely=0.5, anchor="center")
+                    icon_label.configure(text_color=COLORS['neon_cyan'])
+                if btn_frame:
+                    btn_frame.configure(width=48)
         
         # Hide category labels completely
         for label, icon, name, buttons in self.category_labels:
