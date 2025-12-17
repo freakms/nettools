@@ -1254,6 +1254,8 @@ Actions:
                     APITesterUI(self, self.pages[page_id])
                 elif page_id == "arp":
                     ARPViewerUI(self, self.pages[page_id])
+                elif page_id == "settings":
+                    SettingsUI(self, self.pages[page_id])
                 
                 self.pages_loaded[page_id] = True
             
