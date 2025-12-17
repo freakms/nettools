@@ -899,10 +899,18 @@ Actions:
         # Store first category for positioning
         self.first_category_label = None
         
-        # Render navigation with categories
+        # Render navigation with categories (filtered by enabled tools)
         for idx, (category_name, cat_icon, items) in enumerate(nav_categories):
+            # Filter items by enabled tools
+            filtered_items = [(pid, icon, label, tip) for pid, icon, label, tip in items 
+                             if pid in self.enabled_tools]
+            
+            # Skip empty categories
+            if not filtered_items:
+                continue
+            
             # Store category data for rebuilding later
-            self.nav_categories_data.append((category_name, cat_icon, items))
+            self.nav_categories_data.append((category_name, cat_icon, filtered_items))
             
             # Category header
             category_label = ctk.CTkLabel(
@@ -918,11 +926,11 @@ Actions:
             category_buttons = []
             
             # Store reference to first category
-            if idx == 0:
+            if self.first_category_label is None:
                 self.first_category_label = category_label
             
             # Category items with icons - simple button with consistent text
-            for page_id, icon, label, tooltip in items:
+            for page_id, icon, label, tooltip in filtered_items:
                 # Replace problematic emoji icons with simpler ones
                 display_icon = icon
                 if icon == "#️⃣":  # Hash Generator - problematic
