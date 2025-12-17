@@ -615,10 +615,6 @@ class IPv4Scanner:
             hostname = self.resolve_snmp(ip, timeout=1)
             if hostname:
                 return hostname
-            # Try raw SNMP if pysnmp failed
-            hostname = self.resolve_snmp_fallback(ip, timeout=1)
-            if hostname:
-                return hostname
         
         # Method 3: ping -a on Windows (another way to do reverse DNS)
         if self.use_dns and is_windows:
