@@ -284,6 +284,173 @@ class IPv4Scanner:
         except Exception:
             return ""
     
+    def resolve_smb_hostname(self, ip, timeout=2):
+        """
+        Resolve hostname via SMB/CIFS on port 445.
+        This works even when NetBIOS is disabled.
+        Connects to SMB port and extracts hostname from negotiation.
+        """
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            sock.connect((ip, 445))
+            
+            # SMB Negotiate Protocol Request
+            # This is a minimal SMB1 negotiate request that will get a response with the server name
+            smb_negotiate = bytes([
+                # NetBIOS Session Service header
+                0x00,  # Message type: Session message
+                0x00, 0x00, 0x85,  # Length (133 bytes)
+                
+                # SMB Header
+                0xFF, 0x53, 0x4D, 0x42,  # Server Component: SMB
+                0x72,  # SMB Command: Negotiate Protocol (0x72)
+                0x00, 0x00, 0x00, 0x00,  # NT Status: Success
+                0x18,  # Flags
+                0x53, 0xC8,  # Flags2
+                0x00, 0x00,  # Process ID High
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  # Signature
+                0x00, 0x00,  # Reserved
+                0x00, 0x00,  # Tree ID
+                0x00, 0x00,  # Process ID
+                0x00, 0x00,  # User ID
+                0x00, 0x00,  # Multiplex ID
+                
+                # Negotiate Protocol Request
+                0x00,  # Word Count
+                0x62, 0x00,  # Byte Count (98 bytes)
+                
+                # Dialects
+                0x02, 0x50, 0x43, 0x20, 0x4E, 0x45, 0x54, 0x57,  # PC NETWORK PROGRAM 1.0
+                0x4F, 0x52, 0x4B, 0x20, 0x50, 0x52, 0x4F, 0x47,
+                0x52, 0x41, 0x4D, 0x20, 0x31, 0x2E, 0x30, 0x00,
+                0x02, 0x4C, 0x41, 0x4E, 0x4D, 0x41, 0x4E, 0x31,  # LANMAN1.0
+                0x2E, 0x30, 0x00,
+                0x02, 0x57, 0x69, 0x6E, 0x64, 0x6F, 0x77, 0x73,  # Windows for Workgroups 3.1a
+                0x20, 0x66, 0x6F, 0x72, 0x20, 0x57, 0x6F, 0x72,
+                0x6B, 0x67, 0x72, 0x6F, 0x75, 0x70, 0x73, 0x20,
+                0x33, 0x2E, 0x31, 0x61, 0x00,
+                0x02, 0x4C, 0x4D, 0x31, 0x2E, 0x32, 0x58, 0x30,  # LM1.2X002
+                0x30, 0x32, 0x00,
+                0x02, 0x4C, 0x41, 0x4E, 0x4D, 0x41, 0x4E, 0x32,  # LANMAN2.1
+                0x2E, 0x31, 0x00,
+                0x02, 0x4E, 0x54, 0x20, 0x4C, 0x4D, 0x20, 0x30,  # NT LM 0.12
+                0x2E, 0x31, 0x32, 0x00,
+            ])
+            
+            sock.send(smb_negotiate)
+            response = sock.recv(1024)
+            sock.close()
+            
+            # Parse SMB response for server name
+            # The server name is in the negotiate response, but it's complex to parse
+            # A simpler approach: the response often contains the hostname in plain text
+            if len(response) > 50:
+                # Look for readable hostname in response
+                try:
+                    # Try to find hostname pattern in response
+                    text = response.decode('utf-16-le', errors='ignore')
+                    # Look for sequences that look like hostnames
+                    import re
+                    matches = re.findall(r'([A-Za-z][A-Za-z0-9\-]{1,15})', text)
+                    for match in matches:
+                        if len(match) > 2 and match.upper() not in ('SMB', 'NTLM', 'LAN', 'WINDOWS'):
+                            return match.upper()
+                except Exception:
+                    pass
+            
+            return ""
+        except (socket.timeout, socket.error, ConnectionRefusedError):
+            return ""
+        except Exception:
+            return ""
+    
+    def resolve_net_view(self, ip, timeout=3):
+        """
+        Resolve hostname using 'net view' command (Windows).
+        This queries SMB shares and often returns the computer name.
+        """
+        if platform.system() != 'Windows':
+            return ""
+        
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
+            result = subprocess.run(
+                ['net', 'view', f'\\\\{ip}'],
+                capture_output=True,
+                timeout=timeout,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            # Even if net view fails, the error message often contains the hostname
+            output = ""
+            for encoding in ['utf-8', 'cp850', 'cp1252', 'latin-1']:
+                try:
+                    output = (result.stdout.decode(encoding) + result.stderr.decode(encoding)).strip()
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if output:
+                # Look for patterns like "Shared resources at \\HOSTNAME" or error with hostname
+                import re
+                # Pattern for shared resources
+                match = re.search(r'\\\\([A-Za-z0-9\-_]+)', output)
+                if match:
+                    hostname = match.group(1)
+                    if hostname and hostname != ip:
+                        return hostname
+            return ""
+        except Exception:
+            return ""
+    
+    def resolve_wmi(self, ip, timeout=5):
+        """
+        Resolve hostname using WMI (Windows Management Instrumentation).
+        Requires WMI access to the remote machine.
+        """
+        if platform.system() != 'Windows':
+            return ""
+        
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
+            # Use WMIC to query computer name
+            cmd = f'wmic /node:"{ip}" computersystem get name /value'
+            
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                capture_output=True,
+                timeout=timeout,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            output = ""
+            for encoding in ['utf-8', 'cp850', 'cp1252', 'latin-1']:
+                try:
+                    output = result.stdout.decode(encoding).strip()
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if output:
+                # Parse "Name=HOSTNAME" format
+                import re
+                match = re.search(r'Name=([A-Za-z0-9\-_]+)', output, re.IGNORECASE)
+                if match:
+                    return match.group(1)
+            return ""
+        except Exception:
+            return ""
+    
     def resolve_hostname(self, ip, timeout=1):
         """
         Resolve hostname using multiple methods (like Advanced IP Scanner):
