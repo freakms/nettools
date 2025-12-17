@@ -108,7 +108,7 @@ class IPv4Scanner:
                                 # Return workstation name (suffix 0x00) or server name (suffix 0x20)
                                 if suffix in (0x00, 0x20) and name and not name.startswith('\x00'):
                                     return name
-                            except:
+                            except (UnicodeDecodeError, AttributeError):
                                 pass
                             offset += 18
             return ""
