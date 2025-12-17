@@ -1307,6 +1307,8 @@ Actions:
             self.status_label.configure(text="Test REST APIs and HTTP endpoints")
         elif page_id == "arp":
             self.status_label.configure(text="View local ARP cache entries")
+        elif page_id == "settings":
+            self.status_label.configure(text="Customize tools and application preferences")
     
     
     def show_page(self, page_id):
