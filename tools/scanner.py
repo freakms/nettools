@@ -584,13 +584,14 @@ class IPv4Scanner:
         """
         Resolve hostname using multiple methods (like Advanced IP Scanner):
         1. Reverse DNS lookup (socket.gethostbyaddr)
-        2. Windows ping -a (reverse DNS via ping)
-        3. PowerShell Resolve-DnsName (Windows)
-        4. SMB hostname via port 445 (works without NetBIOS!)
-        5. net view command (Windows - SMB based)
-        6. NetBIOS Name Service (direct UDP query to port 137)
-        7. nbtstat command (Windows)
-        8. WMI query (Windows - requires admin access)
+        2. SNMP sysName query (for switches, routers, printers!)
+        3. Windows ping -a (reverse DNS via ping)
+        4. PowerShell Resolve-DnsName (Windows - can use LLMNR)
+        5. SMB hostname via port 445 (works without NetBIOS!)
+        6. net view command (Windows - SMB based)
+        7. NetBIOS Name Service (direct UDP query to port 137)
+        8. nbtstat command (Windows)
+        9. WMI query (Windows - requires admin access)
         """
         hostname = ""
         is_windows = platform.system() == 'Windows'
@@ -601,44 +602,54 @@ class IPv4Scanner:
             if hostname:
                 return hostname
         
-        # Method 2: ping -a on Windows (another way to do reverse DNS)
+        # Method 2: SNMP sysName - THIS IS KEY FOR SWITCHES/ROUTERS!
+        # Advanced IP Scanner uses this for network devices
+        if self.use_netbios:  # We reuse the netbios flag for "enhanced resolution"
+            hostname = self.resolve_snmp(ip, timeout=1)
+            if hostname:
+                return hostname
+            # Try raw SNMP if pysnmp failed
+            hostname = self.resolve_snmp_fallback(ip, timeout=1)
+            if hostname:
+                return hostname
+        
+        # Method 3: ping -a on Windows (another way to do reverse DNS)
         if self.use_dns and is_windows:
             hostname = self.resolve_ping_a(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 3: PowerShell Resolve-DnsName (Windows - can use LLMNR)
+        # Method 4: PowerShell Resolve-DnsName (Windows - can use LLMNR)
         if self.use_dns and is_windows:
             hostname = self.resolve_powershell_dns(ip, timeout=2)
             if hostname:
                 return hostname
         
-        # Method 4: SMB hostname via port 445 (works WITHOUT NetBIOS!)
+        # Method 5: SMB hostname via port 445 (works WITHOUT NetBIOS!)
         if self.use_netbios:
             hostname = self.resolve_smb_hostname(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 5: net view command (Windows - SMB based, often works)
+        # Method 6: net view command (Windows - SMB based, often works)
         if self.use_netbios and is_windows:
             hostname = self.resolve_net_view(ip, timeout=2)
             if hostname:
                 return hostname
         
-        # Method 6: NetBIOS Name Service (direct UDP query - requires NetBIOS enabled)
+        # Method 7: NetBIOS Name Service (direct UDP query - requires NetBIOS enabled)
         if self.use_netbios:
             hostname = self.resolve_netbios_raw(ip, timeout=1)
             if hostname:
                 return hostname
         
-        # Method 7: nbtstat command (Windows - requires NetBIOS)
+        # Method 8: nbtstat command (Windows - requires NetBIOS)
         if self.use_nbtstat and is_windows:
             hostname = self.resolve_nbtstat(ip, timeout=2)
             if hostname:
                 return hostname
         
-        # Method 8: WMI (Windows - requires admin/network access, slowest but powerful)
-        # Only try this if other methods failed
+        # Method 9: WMI (Windows - requires admin/network access, slowest but powerful)
         if self.use_netbios and is_windows:
             hostname = self.resolve_wmi(ip, timeout=3)
             if hostname:
