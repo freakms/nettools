@@ -349,6 +349,53 @@ class NetToolsApp(ctk.CTk):
             print(f"Could not load favorites: {e}")
         return set()
     
+    def get_enabled_tools(self):
+        """Get set of enabled tools from config"""
+        # Default all tools enabled
+        all_tools = {
+            'dashboard', 'scanner', 'portscan', 'dns', 'traceroute', 'arp',
+            'subnet', 'mac', 'whois', 'ssl', 'hash', 'api', 'password', 'speedtest',
+            'compare', 'profiles', 'bandwidth', 'panos', 'phpipam', 'settings'
+        }
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    enabled = config.get('enabled_tools', None)
+                    if enabled is not None:
+                        # Always include dashboard and settings
+                        result = set(enabled)
+                        result.add('dashboard')
+                        result.add('settings')
+                        return result
+        except Exception as e:
+            print(f"Could not load enabled tools: {e}")
+        return all_tools
+    
+    def set_enabled_tools(self, enabled_tools):
+        """Save enabled tools to config"""
+        try:
+            config = {}
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            
+            # Always include dashboard and settings
+            enabled_tools = set(enabled_tools)
+            enabled_tools.add('dashboard')
+            enabled_tools.add('settings')
+            
+            config['enabled_tools'] = list(enabled_tools)
+            
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            self.enabled_tools = enabled_tools
+            return True
+        except Exception as e:
+            print(f"Could not save enabled tools: {e}")
+            return False
+    
     def load_scan_profiles(self):
         """Load saved scan profiles"""
         try:
