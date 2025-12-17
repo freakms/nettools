@@ -996,9 +996,10 @@ Actions:
                 )
                 btn.pack(fill="x", padx=8, pady=1)
                 
-                # Store references
-                btn._nav_icon = display_icon
+                # Store references for expand/collapse
+                btn._nav_icon = display_icon  # Text-based icon like [H], [D], etc.
                 btn._nav_label = label
+                btn._nav_original_emoji = icon  # Original emoji for reference
                 
                 # Add tooltip
                 Tooltip(btn, tooltip)
