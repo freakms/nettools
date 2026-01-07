@@ -859,20 +859,16 @@ Actions:
                 ("ssl", "🔒", "SSL Checker", "Check SSL certificates"),
                 ("subnet", "🔢", "Subnet Calculator", "Calculate subnet info"),
                 ("mac", "🔗", "MAC Formatter", "Format MAC addresses"),
-                ("hash", "#️⃣", "Hash Generator", "Generate MD5/SHA hashes"),
                 ("password", "🔐", "Password Generator", "Generate secure passwords"),
             ]),
             ("TESTING", "🧪", [
-                ("api", "📡", "API Tester", "Test REST APIs"),
                 ("bandwidth", "📶", "Bandwidth Test", "Test with iPerf3"),
-                ("speedtest", "🚀", "Speedtest", "Internet speed test"),
-                ("compare", "⚖️", "Scan Comparison", "Compare scan results"),
+                ("compare", "⇔", "Scan Comparison", "Compare scan results"),
             ]),
             ("ADVANCED", "⚙️", [
                 ("profiles", "📁", "Network Profiles", "Manage network configs"),
-                ("panos", "🛡️", "PAN-OS Generator", "Generate PAN-OS CLI"),
-                ("phpipam", "📦", "phpIPAM", "IP address management"),
-                ("settings", "⚙️", "Settings", "Customize tools & preferences"),
+                ("panos", "⛨", "PAN-OS Generator", "Generate PAN-OS CLI"),
+                ("settings", "✦", "Settings", "Customize tools & preferences"),
             ]),
         ]
         
