@@ -1272,15 +1272,13 @@ Actions:
             self.status_label.configure(text="Calculate subnet information from CIDR")
         elif page_id == "password":
             self.status_label.configure(text="Generate secure passwords and passphrases")
-        elif page_id == "whois":
-            self.status_label.configure(text="Query domain and IP ownership information")
         elif page_id == "ssl":
             self.status_label.configure(text="Check SSL/TLS certificate validity and details")
         elif page_id == "arp":
             self.status_label.configure(text="View local ARP cache entries")
         elif page_id == "settings":
             self.status_label.configure(text="Customize tools and application preferences")
-        # MINIMAL: Removed phpipam, speedtest, hash, api status labels
+        # MINIMAL: Removed phpipam, speedtest, hash, api, whois, bandwidth status labels
     
     
     def show_page(self, page_id):
