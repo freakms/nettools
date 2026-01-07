@@ -86,20 +86,11 @@ from tools.subnet_calculator import SubnetCalculator
 from tools.traceroute import Traceroute
 from tools.traceroute_manager import TracerouteManager
 from tools.comparison_history import ComparisonHistory
-from tools.phpipam_tool import PHPIPAMTool
-
-# phpIPAM integration
-try:
-    from phpipam_config import PHPIPAMConfig
-    from phpipam_client import PHPIPAMClient
-    PHPIPAM_AVAILABLE = True
-except ImportError:
-    PHPIPAM_AVAILABLE = False
-    print("phpIPAM modules not found. Integration will be disabled.")
+# MINIMAL: Removed phpIPAM integration
 
 # Application metadata
-APP_NAME = "NetTools Suite"
-APP_VERSION = "1.11.0"
+APP_NAME = "NetTools Minimal"
+APP_VERSION = "1.0.0"
 APP_COMPANY = "freakms - ich schwöre feierlich ich bin ein tunichtgut"
 
 # Configure CustomTkinter
