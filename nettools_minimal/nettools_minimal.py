@@ -775,14 +775,14 @@ Actions:
         separator.pack(fill="x", padx=16, pady=8)
         
         # Smart Command Palette - Search bar in sidebar
-        # Define tools for the command palette with keywords (organized by category)
+        # MINIMAL: Reduced tool set - removed hash, api, speedtest, phpipam
         self.command_palette_tools = [
             # Dashboard
             ("dashboard", "🏠", "Dashboard", ["home", "overview", "start", "main"]),
             # Scanning
             ("scanner", "📡", "IPv4 Scanner", ["scan", "network", "ip", "ping", "hosts", "discover"]),
             ("portscan", "🔌", "Port Scanner", ["port", "service", "open", "tcp", "udp"]),
-            ("traceroute", "🛤️", "Traceroute", ["trace", "route", "path", "hop", "latency"]),
+            ("traceroute", "⤳", "Traceroute", ["trace", "route", "path", "hop", "latency"]),
             ("arp", "📊", "ARP Table", ["arp", "cache", "mac", "address", "neighbor"]),
             # Tools
             ("dns", "🌐", "DNS Lookup", ["dns", "resolve", "domain", "hostname", "mx", "ns"]),
@@ -790,19 +790,14 @@ Actions:
             ("ssl", "🔒", "SSL Checker", ["ssl", "certificate", "https", "tls", "expiry"]),
             ("subnet", "🔢", "Subnet Calculator", ["subnet", "cidr", "mask", "calculate", "ip"]),
             ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor", "format"]),
-            ("hash", "#️⃣", "Hash Generator", ["hash", "md5", "sha", "sha256", "checksum"]),
             ("password", "🔐", "Password Generator", ["password", "passphrase", "generate", "secure", "random"]),
             # Testing
-            ("api", "📡", "API Tester", ["api", "http", "rest", "postman", "request", "curl"]),
             ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput", "test"]),
-            ("speedtest", "🚀", "Speedtest", ["speed", "internet", "download", "upload"]),
-            ("compare", "⚖️", "Scan Comparison", ["compare", "diff", "history", "changes"]),
+            ("compare", "⇔", "Scan Comparison", ["compare", "diff", "history", "changes"]),
             # Advanced
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
-            # ("remote", "🖥️", "Remote Tools", ["psexec", "iperf", "remote", "command", "execute"]),  # Temporarily disabled
-            ("panos", "🛡️", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
-            ("phpipam", "📦", "phpIPAM", ["ipam", "ip", "management", "inventory"]),
-            ("settings", "⚙️", "Settings", ["settings", "preferences", "config", "customize", "tools"]),
+            ("panos", "⛨", "PAN-OS Generator", ["palo", "alto", "firewall", "cli", "config"]),
+            ("settings", "✦", "Settings", ["settings", "preferences", "config", "customize", "tools"]),
         ]
         
         self.command_palette = SmartCommandPalette(
