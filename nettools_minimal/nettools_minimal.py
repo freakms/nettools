@@ -30,15 +30,10 @@ from ui.mac_ui import MACFormatterUI
 from ui.traceroute_ui import TracerouteUI
 from ui.panos_ui import PANOSUI
 from ui.bandwidth_ui import BandwidthUI
-from ui.phpipam_ui import PhpipamUI
-# Remote Tools temporarily disabled
-# from ui.remote_tools_ui import RemoteToolsUI
-from ui.speedtest_ui import SpeedtestUI
+# MINIMAL: Removed - phpipam_ui, speedtest_ui, hash_generator_ui, api_tester_ui
 from ui.password_generator_ui import PasswordGeneratorUI
 from ui.whois_ui import WhoisUI
 from ui.ssl_checker_ui import SSLCheckerUI
-from ui.hash_generator_ui import HashGeneratorUI
-from ui.api_tester_ui import APITesterUI
 from ui.arp_viewer_ui import ARPViewerUI
 from ui.settings_ui import SettingsUI
 try:
