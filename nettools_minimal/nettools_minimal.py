@@ -1229,19 +1229,15 @@ Actions:
                     PANOSUI(self, self.pages[page_id])
                 elif page_id == "subnet":
                     self.create_subnet_content(self.pages[page_id])
-                elif page_id == "bandwidth":
-                    BandwidthUI(self, self.pages[page_id])
                 elif page_id == "password":
                     PasswordGeneratorUI(self, self.pages[page_id])
-                elif page_id == "whois":
-                    WhoisUI(self, self.pages[page_id])
                 elif page_id == "ssl":
                     SSLCheckerUI(self, self.pages[page_id])
                 elif page_id == "arp":
                     ARPViewerUI(self, self.pages[page_id])
                 elif page_id == "settings":
                     SettingsUI(self, self.pages[page_id])
-                # MINIMAL: Removed phpipam, speedtest, hash, api
+                # MINIMAL: Removed phpipam, speedtest, hash, api, whois, bandwidth
                 
                 self.pages_loaded[page_id] = True
             
