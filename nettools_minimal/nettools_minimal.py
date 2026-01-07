@@ -851,14 +851,12 @@ Actions:
             ]),
             ("TOOLS", "🛠️", [
                 ("dns", "🌐", "DNS Lookup", "Resolve hostnames and IPs"),
-                ("whois", "🔍", "WHOIS Lookup", "Domain/IP ownership info"),
                 ("ssl", "🔒", "SSL Checker", "Check SSL certificates"),
                 ("subnet", "🔢", "Subnet Calculator", "Calculate subnet info"),
                 ("mac", "🔗", "MAC Formatter", "Format MAC addresses"),
                 ("password", "🔐", "Password Generator", "Generate secure passwords"),
             ]),
             ("TESTING", "🧪", [
-                ("bandwidth", "📶", "Bandwidth Test", "Test with iPerf3"),
                 ("compare", "⇔", "Scan Comparison", "Compare scan results"),
             ]),
             ("ADVANCED", "⚙️", [
