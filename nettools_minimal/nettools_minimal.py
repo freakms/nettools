@@ -1347,8 +1347,6 @@ Actions:
             "mac": "mac",
             "trace": "traceroute",
             "traceroute": "traceroute",
-            "bandwidth": "bandwidth",
-            "speed": "bandwidth",
             "dashboard": "dashboard",
             "home": "dashboard",
             "compare": "compare",
