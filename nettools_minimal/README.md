@@ -12,8 +12,10 @@ Eine reduzierte Version der NetTools Suite ohne externe API-Abhängigkeiten.
 | Speedtest | Externe Server-Abhängigkeit |
 | Hash Generator | Nicht Netzwerk-relevant |
 | API Tester | Für Minimal-Version nicht nötig |
+| WHOIS Lookup | Externe Abhängigkeit |
+| Bandwidth Test (iPerf) | Server-Abhängigkeit |
 
-## Enthaltene Tools
+## Enthaltene Tools (11 Tools)
 
 ### Scanning
 - ✅ IPv4 Scanner (mit SNMP für Switches)
@@ -23,7 +25,6 @@ Eine reduzierte Version der NetTools Suite ohne externe API-Abhängigkeiten.
 
 ### Netzwerk-Tools
 - ✅ DNS Lookup (lokal)
-- ✅ WHOIS Lookup
 - ✅ SSL Checker
 - ✅ Subnet Calculator
 - ✅ MAC Formatter
@@ -31,13 +32,10 @@ Eine reduzierte Version der NetTools Suite ohne externe API-Abhängigkeiten.
 ### Sicherheit
 - ✅ Password Generator
 
-### Testing
-- ✅ Bandwidth Test (iPerf3)
-- ✅ Scan Comparison
-
 ### Advanced
 - ✅ Network Profiles
 - ✅ PAN-OS Generator
+- ✅ Scan Comparison
 - ✅ Settings
 
 ## Installation
@@ -56,4 +54,4 @@ python build_exe_minimal.py
 
 ## Dateigröße
 
-Die Minimal-Version ist ca. 30-40% kleiner als die Vollversion, da weniger Dependencies eingebunden werden.
+Die Minimal-Version ist ca. 40-50% kleiner als die Vollversion, da weniger Dependencies eingebunden werden.
