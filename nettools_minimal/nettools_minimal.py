@@ -338,11 +338,11 @@ class NetToolsApp(ctk.CTk):
     
     def get_enabled_tools(self):
         """Get set of enabled tools from config"""
-        # MINIMAL: Reduced tool set - removed hash, api, speedtest, phpipam
+        # MINIMAL: Reduced tool set - removed hash, api, speedtest, phpipam, whois, bandwidth
         all_tools = {
             'dashboard', 'scanner', 'portscan', 'dns', 'traceroute', 'arp',
-            'subnet', 'mac', 'whois', 'ssl', 'password',
-            'compare', 'profiles', 'bandwidth', 'panos', 'settings'
+            'subnet', 'mac', 'ssl', 'password',
+            'compare', 'profiles', 'panos', 'settings'
         }
         try:
             if self.config_file.exists():
