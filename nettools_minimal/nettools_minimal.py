@@ -4333,20 +4333,22 @@ Actions:
                 self.favorites_label.pack(anchor="w", pady=(5, 5))
                 self.favorites_buttons_frame.pack(fill="x")
                 
-                # Tool names and icons mapping
+                # Tool names and icons mapping - MINIMAL version
                 tool_info = {
                     "scanner": ("📡", "IPv4 Scanner"),
                     "portscan": ("🔌", "Port Scanner"),
-                    "traceroute": ("🛤️", "Traceroute"),
+                    "traceroute": ("⤳", "Traceroute"),
                     "bandwidth": ("📶", "Bandwidth Test"),
                     "dns": ("🌐", "DNS Lookup"),
                     "subnet": ("🔢", "Subnet Calculator"),
                     "mac": ("🔗", "MAC Formatter"),
-                    "compare": ("⚖️", "Scan Comparison"),
+                    "compare": ("⇔", "Scan Comparison"),
                     "profiles": ("📁", "Network Profiles"),
-                    "panos": ("🛡️", "PAN-OS Generator"),
-                    "phpipam": ("📊", "phpIPAM"),
-                    # "remote": ("🖥️", "Remote Tools"),  # Temporarily disabled
+                    "panos": ("⛨", "PAN-OS Generator"),
+                    "whois": ("🔍", "WHOIS Lookup"),
+                    "ssl": ("🔒", "SSL Checker"),
+                    "password": ("🔐", "Password Generator"),
+                    "arp": ("📊", "ARP Table"),
                 }
                 
                 for tool_id in sorted(self.favorite_tools):
