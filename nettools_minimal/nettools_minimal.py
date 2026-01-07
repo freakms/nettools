@@ -773,7 +773,7 @@ Actions:
         separator.pack(fill="x", padx=16, pady=8)
         
         # Smart Command Palette - Search bar in sidebar
-        # MINIMAL: Reduced tool set - removed hash, api, speedtest, phpipam
+        # MINIMAL: Reduced tool set - removed hash, api, speedtest, phpipam, whois, bandwidth
         self.command_palette_tools = [
             # Dashboard
             ("dashboard", "🏠", "Dashboard", ["home", "overview", "start", "main"]),
@@ -784,13 +784,11 @@ Actions:
             ("arp", "📊", "ARP Table", ["arp", "cache", "mac", "address", "neighbor"]),
             # Tools
             ("dns", "🌐", "DNS Lookup", ["dns", "resolve", "domain", "hostname", "mx", "ns"]),
-            ("whois", "🔍", "WHOIS Lookup", ["whois", "domain", "owner", "registrar", "ip"]),
             ("ssl", "🔒", "SSL Checker", ["ssl", "certificate", "https", "tls", "expiry"]),
             ("subnet", "🔢", "Subnet Calculator", ["subnet", "cidr", "mask", "calculate", "ip"]),
             ("mac", "🔗", "MAC Formatter", ["mac", "address", "oui", "vendor", "format"]),
             ("password", "🔐", "Password Generator", ["password", "passphrase", "generate", "secure", "random"]),
             # Testing
-            ("bandwidth", "📶", "Bandwidth Test", ["speed", "iperf", "throughput", "test"]),
             ("compare", "⇔", "Scan Comparison", ["compare", "diff", "history", "changes"]),
             # Advanced
             ("profiles", "📁", "Network Profiles", ["profile", "config", "interface", "static", "dhcp"]),
