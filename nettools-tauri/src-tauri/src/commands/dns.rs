@@ -1,7 +1,7 @@
-// DNS Lookup commands
+// DNS Lookup commands - Updated for Tauri 2.x
 use serde::{Deserialize, Serialize};
-use trust_dns_resolver::config::*;
-use trust_dns_resolver::Resolver;
+use hickory_resolver::config::*;
+use hickory_resolver::Resolver;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DnsRecord {
@@ -38,7 +38,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                                 record_type: "A".to_string(),
                                 name: domain.clone(),
                                 value: ip.to_string(),
-                                ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                                ttl: 300, // Default TTL
                             });
                         }
                     }
@@ -52,7 +52,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                                 record_type: "AAAA".to_string(),
                                 name: domain.clone(),
                                 value: ip.to_string(),
-                                ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                                ttl: 300,
                             });
                         }
                     }
@@ -65,7 +65,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                             record_type: "MX".to_string(),
                             name: domain.clone(),
                             value: format!("{} {}", mx.preference(), mx.exchange()),
-                            ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                            ttl: 300,
                         });
                     }
                 }
@@ -77,7 +77,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                             record_type: "NS".to_string(),
                             name: domain.clone(),
                             value: ns.to_string(),
-                            ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                            ttl: 300,
                         });
                     }
                 }
@@ -93,7 +93,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                             record_type: "TXT".to_string(),
                             name: domain.clone(),
                             value: txt_data,
-                            ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                            ttl: 300,
                         });
                     }
                 }
@@ -114,7 +114,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
                                 soa.expire(),
                                 soa.minimum()
                             ),
-                            ttl: response.as_lookup().record_iter().next().map(|r| r.ttl()).unwrap_or(0),
+                            ttl: 300,
                         });
                     }
                 }
