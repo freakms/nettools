@@ -1,5 +1,4 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle, Alert } from '@/components/ui'
+import { Card, CardContent, Alert } from '@/components/ui'
 import { Construction } from 'lucide-react'
 
 interface PlaceholderPageProps {
