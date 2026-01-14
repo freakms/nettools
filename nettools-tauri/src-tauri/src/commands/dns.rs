@@ -1,7 +1,6 @@
-// DNS Lookup commands - Updated for Tauri 2.x
+// DNS Lookup commands - Simplified version using system commands
 use serde::{Deserialize, Serialize};
-use hickory_resolver::config::*;
-use hickory_resolver::Resolver;
+use std::process::Command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DnsRecord {
@@ -18,108 +17,74 @@ pub struct DnsResult {
     pub duration_ms: u64,
 }
 
-/// Perform DNS lookup for a domain
+/// Perform DNS lookup for a domain using nslookup
 #[tauri::command]
 pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<DnsResult, String> {
     let start = std::time::Instant::now();
-    
-    let resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default())
-        .map_err(|e| format!("Failed to create resolver: {}", e))?;
-    
     let mut records = Vec::new();
     
     for record_type in &record_types {
-        match record_type.as_str() {
-            "A" => {
-                if let Ok(response) = resolver.lookup_ip(&domain) {
-                    for ip in response.iter() {
-                        if ip.is_ipv4() {
-                            records.push(DnsRecord {
-                                record_type: "A".to_string(),
-                                name: domain.clone(),
-                                value: ip.to_string(),
-                                ttl: 300, // Default TTL
-                            });
-                        }
-                    }
-                }
-            }
-            "AAAA" => {
-                if let Ok(response) = resolver.lookup_ip(&domain) {
-                    for ip in response.iter() {
-                        if ip.is_ipv6() {
-                            records.push(DnsRecord {
-                                record_type: "AAAA".to_string(),
-                                name: domain.clone(),
-                                value: ip.to_string(),
-                                ttl: 300,
-                            });
-                        }
-                    }
-                }
-            }
-            "MX" => {
-                if let Ok(response) = resolver.mx_lookup(&domain) {
-                    for mx in response.iter() {
+        let output = Command::new("nslookup")
+            .args(["-type=".to_string() + record_type, domain.clone()])
+            .output()
+            .map_err(|e| format!("Failed to execute nslookup: {}", e))?;
+        
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        
+        // Parse nslookup output
+        for line in stdout.lines() {
+            let line = line.trim();
+            
+            // Parse A records
+            if record_type == "A" && line.starts_with("Address:") && !line.contains("#") {
+                if let Some(ip) = line.split(':').nth(1) {
+                    let ip = ip.trim();
+                    if !ip.contains("::") { // Skip IPv6
                         records.push(DnsRecord {
-                            record_type: "MX".to_string(),
+                            record_type: "A".to_string(),
                             name: domain.clone(),
-                            value: format!("{} {}", mx.preference(), mx.exchange()),
+                            value: ip.to_string(),
                             ttl: 300,
                         });
                     }
                 }
             }
-            "NS" => {
-                if let Ok(response) = resolver.ns_lookup(&domain) {
-                    for ns in response.iter() {
-                        records.push(DnsRecord {
-                            record_type: "NS".to_string(),
-                            name: domain.clone(),
-                            value: ns.to_string(),
-                            ttl: 300,
-                        });
-                    }
+            
+            // Parse MX records
+            if record_type == "MX" && line.contains("mail exchanger") {
+                if let Some(mx) = line.split('=').nth(1) {
+                    records.push(DnsRecord {
+                        record_type: "MX".to_string(),
+                        name: domain.clone(),
+                        value: mx.trim().to_string(),
+                        ttl: 300,
+                    });
                 }
             }
-            "TXT" => {
-                if let Ok(response) = resolver.txt_lookup(&domain) {
-                    for txt in response.iter() {
-                        let txt_data: String = txt.iter()
-                            .map(|d| String::from_utf8_lossy(d).to_string())
-                            .collect::<Vec<_>>()
-                            .join("");
-                        records.push(DnsRecord {
-                            record_type: "TXT".to_string(),
-                            name: domain.clone(),
-                            value: txt_data,
-                            ttl: 300,
-                        });
-                    }
+            
+            // Parse NS records
+            if record_type == "NS" && line.contains("nameserver") {
+                if let Some(ns) = line.split('=').nth(1) {
+                    records.push(DnsRecord {
+                        record_type: "NS".to_string(),
+                        name: domain.clone(),
+                        value: ns.trim().to_string(),
+                        ttl: 300,
+                    });
                 }
             }
-            "SOA" => {
-                if let Ok(response) = resolver.soa_lookup(&domain) {
-                    for soa in response.iter() {
-                        records.push(DnsRecord {
-                            record_type: "SOA".to_string(),
-                            name: domain.clone(),
-                            value: format!(
-                                "{} {} {} {} {} {} {}",
-                                soa.mname(),
-                                soa.rname(),
-                                soa.serial(),
-                                soa.refresh(),
-                                soa.retry(),
-                                soa.expire(),
-                                soa.minimum()
-                            ),
-                            ttl: 300,
-                        });
-                    }
+            
+            // Parse TXT records
+            if record_type == "TXT" && line.contains("text") {
+                if let Some(txt) = line.split('=').nth(1) {
+                    records.push(DnsRecord {
+                        record_type: "TXT".to_string(),
+                        name: domain.clone(),
+                        value: txt.trim().trim_matches('"').to_string(),
+                        ttl: 300,
+                    });
                 }
             }
-            _ => {}
         }
     }
     
@@ -135,20 +100,20 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
 /// Perform reverse DNS lookup
 #[tauri::command]
 pub async fn reverse_lookup(ip: String) -> Result<String, String> {
-    let resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default())
-        .map_err(|e| format!("Failed to create resolver: {}", e))?;
+    let output = Command::new("nslookup")
+        .arg(&ip)
+        .output()
+        .map_err(|e| format!("Failed to execute nslookup: {}", e))?;
     
-    let ip_addr: std::net::IpAddr = ip
-        .parse()
-        .map_err(|_| "Invalid IP address".to_string())?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
     
-    let response = resolver
-        .reverse_lookup(ip_addr)
-        .map_err(|e| format!("Reverse lookup failed: {}", e))?;
+    for line in stdout.lines() {
+        if line.contains("Name:") || line.contains("name =") {
+            if let Some(name) = line.split(&[':', '='][..]).last() {
+                return Ok(name.trim().to_string());
+            }
+        }
+    }
     
-    response
-        .iter()
-        .next()
-        .map(|name| name.to_string())
-        .ok_or_else(|| "No PTR record found".to_string())
+    Err("No PTR record found".to_string())
 }
