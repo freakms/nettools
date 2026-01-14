@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar, Header, CommandPalette } from '@/components/layout'
 import { ToastContainer } from '@/components/ui'
 import { DashboardPage, SettingsPage, PlaceholderPage } from '@/pages'
@@ -29,7 +29,7 @@ function App() {
 
   // Render the active tool page
   const renderPage = () => {
-    const tool = getToolById(activeTool)
+    // Tool info available via getToolById(activeTool) if needed
     
     switch (activeTool) {
       case 'dashboard':
@@ -176,7 +176,7 @@ function App() {
       />
 
       {/* Toast Notifications */}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <ToastContainer toasts={toasts.map(t => ({...t, onClose: removeToast}))} onClose={removeToast} />
     </div>
   )
 }

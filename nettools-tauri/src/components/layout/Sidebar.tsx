@@ -1,14 +1,23 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/store'
-import { TOOLS, TOOL_CATEGORIES, type ToolId } from '@/types/tools'
-import { Star, ChevronDown, ChevronRight } from 'lucide-react'
-import * as Icons from 'lucide-react'
+import { TOOLS, TOOL_CATEGORIES } from '@/types/tools'
+import { 
+  Star, ChevronDown, ChevronRight,
+  LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings
+} from 'lucide-react'
+
+// Icon map
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings,
+}
 
 // Dynamic icon component
 function DynamicIcon({ name, className }: { name: string; className?: string }) {
-  const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[name]
-  if (!IconComponent) return null
+  const IconComponent = iconMap[name]
+  if (!IconComponent) return <Radar className={className} />
   return <IconComponent className={className} />
 }
 

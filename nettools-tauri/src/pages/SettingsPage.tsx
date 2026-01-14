@@ -2,19 +2,27 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Checkbox, Button, Alert } from '@/components/ui'
 import { useStore } from '@/store'
 import { TOOLS, TOOL_CATEGORIES } from '@/types/tools'
-import { Settings, Save, RotateCcw, Info } from 'lucide-react'
-import * as Icons from 'lucide-react'
+import { 
+  Settings, Info,
+  LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield
+} from 'lucide-react'
+
+// Icon map
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings,
+}
 
 // Dynamic icon component
 function DynamicIcon({ name, className }: { name: string; className?: string }) {
-  const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[name]
-  if (!IconComponent) return null
+  const IconComponent = iconMap[name]
+  if (!IconComponent) return <Radar className={className} />
   return <IconComponent className={className} />
 }
 
 export function SettingsPage() {
   const { enabledTools, toggleTool, setEnabledTools } = useStore()
-  const [hasChanges, setHasChanges] = React.useState(false)
 
   const toolsByCategory = TOOL_CATEGORIES.filter(
     cat => cat.id !== 'dashboard' && cat.id !== 'settings'
@@ -29,17 +37,14 @@ export function SettingsPage() {
 
   const handleToggle = (toolId: string) => {
     toggleTool(toolId as never)
-    setHasChanges(true)
   }
 
   const handleSelectAll = () => {
     setEnabledTools(allToolIds as never)
-    setHasChanges(true)
   }
 
   const handleDeselectAll = () => {
     setEnabledTools([])
-    setHasChanges(true)
   }
 
   return (
