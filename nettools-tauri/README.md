@@ -1,4 +1,4 @@
-# NetTools Suite - Tauri Edition
+# NetTools Suite - Tauri 2.x Edition
 
 Eine professionelle Sammlung von Netzwerk-Utilities für Windows, entwickelt mit Rust und React.
 
@@ -27,6 +27,9 @@ Eine professionelle Sammlung von Netzwerk-Utilities für Windows, entwickelt mit
 ### Projekt starten
 
 ```powershell
+# In den Projektordner wechseln
+cd nettools-tauri
+
 # Dependencies installieren
 npm install
 
@@ -44,7 +47,9 @@ nettools-tauri/
 ├── src-tauri/              # Rust Backend
 │   ├── src/
 │   │   ├── main.rs         # Entry Point
+│   │   ├── lib.rs          # Library (Tauri 2.x)
 │   │   └── commands/       # Tauri Commands
+│   ├── capabilities/       # Tauri 2.x Permissions
 │   ├── Cargo.toml          # Rust Dependencies
 │   └── tauri.conf.json     # Tauri Konfiguration
 │
@@ -58,6 +63,14 @@ nettools-tauri/
 └── tailwind.config.js      # Tailwind CSS
 ```
 
+## 🔧 Wichtige Hinweise für Tauri 2.x
+
+Diese Version verwendet **Tauri 2.x**, das einige Unterschiede zu Tauri 1.x aufweist:
+
+- **Capabilities statt Allowlist**: Berechtigungen werden über `src-tauri/capabilities/` konfiguriert
+- **Plugins**: Shell, FS, Dialog etc. sind jetzt separate Plugins
+- **API Import**: Frontend importiert von `@tauri-apps/plugin-*` statt `@tauri-apps/api`
+
 ## 🎨 Design-System
 
 - **Theme:** Dark Mode
@@ -68,7 +81,7 @@ nettools-tauri/
 ## 🔧 Implementierte Features
 
 ### Phase 1: Infrastruktur ✅
-- [x] Projekt-Setup
+- [x] Projekt-Setup (Tauri 2.x)
 - [x] Design-System
 - [x] Sidebar-Navigation
 - [x] Command Palette (Ctrl+K)
@@ -88,31 +101,6 @@ nettools-tauri/
 - [x] Hash Generator
 - [x] Password Generator
 
-## 🛠️ Entwicklung
-
-### Frontend testen (ohne Rust)
-```powershell
-npm run dev
-```
-Öffnet http://localhost:1420 im Browser.
-
-### Vollständige App testen
-```powershell
-npm run tauri dev
-```
-
-### Production Build
-```powershell
-npm run tauri build
-```
-Erzeugt Installer in `src-tauri/target/release/bundle/`.
-
-## 📦 Deployment
-
-Nach `npm run tauri build` finden Sie:
-- **MSI-Installer:** `src-tauri/target/release/bundle/msi/`
-- **NSIS-Installer:** `src-tauri/target/release/bundle/nsis/`
-
 ## 🔑 Tastenkürzel
 
 | Kürzel | Aktion |
@@ -124,7 +112,32 @@ Nach `npm run tauri build` finden Sie:
 | Ctrl+4 | DNS Lookup |
 | Ctrl+5 | Traceroute |
 | Ctrl+, | Einstellungen |
-| Ctrl+Q | Beenden |
+
+## 📦 Build für Windows
+
+```powershell
+npm run tauri build
+```
+
+Nach dem Build finden Sie die Installer unter:
+- `src-tauri/target/release/bundle/msi/` - MSI Installer
+- `src-tauri/target/release/bundle/nsis/` - NSIS Installer
+
+## 🐛 Troubleshooting
+
+### "tauri command not found"
+```powershell
+npm install @tauri-apps/cli@latest
+```
+
+### Rust Compilation Fehler
+```powershell
+rustup update
+```
+
+### WebView2 nicht installiert
+Windows 10/11 sollte WebView2 vorinstalliert haben. Falls nicht:
+https://developer.microsoft.com/en-us/microsoft-edge/webview2/
 
 ## 📝 Lizenz
 
