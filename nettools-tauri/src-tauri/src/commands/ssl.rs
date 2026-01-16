@@ -1,8 +1,7 @@
-// SSL Checker command - Using native-tls (no cmake needed)
+// SSL Checker command - Simplified version
 use serde::{Deserialize, Serialize};
 use native_tls::TlsConnector;
 use std::net::TcpStream;
-use std::time::SystemTime;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SslCertificate {
@@ -54,37 +53,67 @@ fn check_ssl_sync(host: &str, port: u16) -> Result<SslCheckResult, String> {
         .map_err(|e| format!("TLS handshake failed: {}", e))?;
 
     // Get peer certificate
-    if let Some(cert) = tls_stream.peer_certificate()
+    if let Some(cert) = tls_stream
+        .peer_certificate()
         .map_err(|e| format!("Failed to get certificate: {}", e))? 
     {
         let cert_der = cert.to_der()
             .map_err(|e| format!("Failed to encode certificate: {}", e))?;
 
-        // Basic certificate info extraction
-        let subject = extract_subject(&cert_der);
-        let issuer = "Certificate Issuer".to_string();
+        // Parse with x509-parser
+        let (_, parsed) = x509_parser::parse_x509_certificate(&cert_der)
+            .map_err(|e| format!("Failed to parse certificate: {:?}", e))?;
+
+        let subject = parsed.subject().to_string();
+        let issuer = parsed.issuer().to_string();
         
-        // Calculate approximate validity (native-tls doesn't expose dates easily)
-        let now = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
+        let valid_from = parsed.validity().not_before.to_rfc2822()
+            .unwrap_or_else(|_| "Unknown".to_string());
+        let valid_to = parsed.validity().not_after.to_rfc2822()
+            .unwrap_or_else(|_| "Unknown".to_string());
+        
+        // Serial as hex string
+        let serial = parsed.raw_serial()
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join(":");
+        
+        // Calculate days until expiry
+        let not_after = parsed.validity().not_after.timestamp();
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::SystemTime::UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
+        let days_until_expiry = (not_after - now) / 86400;
         
-        // Assume 1 year validity if we can't parse
-        let days_until_expiry = 365;
+        let is_valid = parsed.validity().is_valid();
         
+        // Extract SANs
+        let mut san = Vec::new();
+        if let Ok(Some(ext)) = parsed.subject_alternative_name() {
+            for name in ext.value.general_names.iter() {
+                match name {
+                    x509_parser::prelude::GeneralName::DNSName(dns) => {
+                        san.push(dns.to_string())
+                    },
+                    _ => {}
+                }
+            }
+        }
+
         return Ok(SslCheckResult {
             host: host.to_string(),
             port,
             certificate: Some(SslCertificate {
                 subject,
                 issuer,
-                valid_from: "N/A".to_string(),
-                valid_to: "N/A".to_string(),
-                serial_number: "N/A".to_string(),
-                is_valid: true, // If we got here, handshake succeeded
+                valid_from,
+                valid_to,
+                serial_number: serial,
+                is_valid,
                 days_until_expiry,
-                san: vec![host.to_string()],
+                san,
             }),
             error: None,
             protocol_version: Some("TLS 1.2+".to_string()),
@@ -98,17 +127,4 @@ fn check_ssl_sync(host: &str, port: u16) -> Result<SslCheckResult, String> {
         error: Some("No certificate found".to_string()),
         protocol_version: None,
     })
-}
-
-fn extract_subject(der: &[u8]) -> String {
-    // Simple extraction - look for common name in DER
-    let s = String::from_utf8_lossy(der);
-    if let Some(start) = s.find("CN=") {
-        let rest = &s[start + 3..];
-        if let Some(end) = rest.find(&[',', '\0'][..]) {
-            return rest[..end].to_string();
-        }
-        return rest.chars().take(50).collect();
-    }
-    "Unknown".to_string()
 }
