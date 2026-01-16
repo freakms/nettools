@@ -1,6 +1,5 @@
 // WHOIS Lookup command
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WhoisResult {
@@ -16,10 +15,8 @@ pub struct WhoisResult {
 /// Perform WHOIS lookup for a domain
 #[tauri::command]
 pub async fn lookup_whois(domain: String) -> Result<WhoisResult, String> {
-    // Use whois command or library
-    // For Windows, we'll use a simple TCP connection to whois server
-    
     let whois_server = determine_whois_server(&domain);
+    let domain_clone = domain.clone();
     
     let output = tokio::task::spawn_blocking(move || {
         use std::io::{Read, Write};
@@ -32,7 +29,7 @@ pub async fn lookup_whois(domain: String) -> Result<WhoisResult, String> {
         stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
         stream.set_write_timeout(Some(Duration::from_secs(5))).ok();
         
-        stream.write_all(format!("{}\r\n", domain).as_bytes())
+        stream.write_all(format!("{}\r\n", domain_clone).as_bytes())
             .map_err(|e| format!("Failed to send query: {}", e))?;
         
         let mut response = String::new();
@@ -44,7 +41,6 @@ pub async fn lookup_whois(domain: String) -> Result<WhoisResult, String> {
     .await
     .map_err(|e| format!("Task error: {}", e))??;
 
-    // Parse the WHOIS output
     let result = parse_whois_output(&domain, &output);
     
     Ok(result)
