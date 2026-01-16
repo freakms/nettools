@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Sidebar, Header, CommandPalette } from '@/components/layout'
 import { ToastContainer } from '@/components/ui'
-import { DashboardPage, SettingsPage, PlaceholderPage } from '@/pages'
-import { useStore } from '@/store'
-import { getToolById } from '@/types/tools'
 import { 
-  Radar, Network, Globe, Route, Table2, Calculator, 
-  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield 
+  DashboardPage, SettingsPage, PlaceholderPage,
+  ScannerPage, PortScanPage, DnsPage, TraceroutePage,
+  SubnetPage, HashPage, PasswordPage
+} from '@/pages'
+import { useStore } from '@/store'
+import { 
+  Table2, Gauge, Search, ShieldCheck, Fingerprint, Send, Shield 
 } from 'lucide-react'
 
 function App() {
@@ -16,7 +18,6 @@ function App() {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K - Open command palette
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault()
         setCommandPaletteOpen(true)
@@ -27,61 +28,32 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Render the active tool page
   const renderPage = () => {
-    // Tool info available via getToolById(activeTool) if needed
-    
     switch (activeTool) {
       case 'dashboard':
         return <DashboardPage />
       case 'settings':
         return <SettingsPage />
       case 'scanner':
-        return (
-          <PlaceholderPage 
-            title="IPv4 Scanner" 
-            description="Scannen Sie Ihr Netzwerk nach aktiven Hosts"
-            icon={<Radar className="w-16 h-16 text-accent-blue" />}
-          />
-        )
+        return <ScannerPage />
       case 'portscan':
-        return (
-          <PlaceholderPage 
-            title="Port Scanner" 
-            description="Finden Sie offene Ports auf Zielsystemen"
-            icon={<Network className="w-16 h-16 text-accent-blue" />}
-          />
-        )
+        return <PortScanPage />
       case 'dns':
-        return (
-          <PlaceholderPage 
-            title="DNS Lookup" 
-            description="Fragen Sie DNS-Einträge ab"
-            icon={<Globe className="w-16 h-16 text-accent-green" />}
-          />
-        )
+        return <DnsPage />
       case 'traceroute':
-        return (
-          <PlaceholderPage 
-            title="Traceroute" 
-            description="Verfolgen Sie den Netzwerkpfad zu einem Ziel"
-            icon={<Route className="w-16 h-16 text-accent-green" />}
-          />
-        )
+        return <TraceroutePage />
+      case 'subnet':
+        return <SubnetPage />
+      case 'hash':
+        return <HashPage />
+      case 'password':
+        return <PasswordPage />
       case 'arp':
         return (
           <PlaceholderPage 
             title="ARP Viewer" 
             description="Zeigen Sie die ARP-Tabelle an"
             icon={<Table2 className="w-16 h-16 text-accent-green" />}
-          />
-        )
-      case 'subnet':
-        return (
-          <PlaceholderPage 
-            title="Subnet Calculator" 
-            description="Berechnen Sie Subnetz-Informationen"
-            icon={<Calculator className="w-16 h-16 text-accent-green" />}
           />
         )
       case 'bandwidth':
@@ -116,22 +88,6 @@ function App() {
             icon={<Fingerprint className="w-16 h-16 text-accent-purple" />}
           />
         )
-      case 'hash':
-        return (
-          <PlaceholderPage 
-            title="Hash Generator" 
-            description="Erzeugen Sie Hash-Werte für Text und Dateien"
-            icon={<Hash className="w-16 h-16 text-accent-yellow" />}
-          />
-        )
-      case 'password':
-        return (
-          <PlaceholderPage 
-            title="Password Generator" 
-            description="Generieren Sie sichere Passwörter"
-            icon={<Key className="w-16 h-16 text-accent-yellow" />}
-          />
-        )
       case 'api-tester':
         return (
           <PlaceholderPage 
@@ -155,13 +111,11 @@ function App() {
 
   return (
     <div className="flex h-screen bg-bg-primary overflow-hidden">
-      {/* Sidebar */}
       <Sidebar 
         collapsed={sidebarCollapsed} 
         onToggle={toggleSidebar} 
       />
       
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
         <main className="flex-1 overflow-hidden bg-bg-primary">
@@ -169,13 +123,11 @@ function App() {
         </main>
       </div>
 
-      {/* Command Palette */}
       <CommandPalette 
         isOpen={commandPaletteOpen} 
         onClose={() => setCommandPaletteOpen(false)} 
       />
 
-      {/* Toast Notifications */}
       <ToastContainer toasts={toasts.map(t => ({...t, onClose: removeToast}))} onClose={removeToast} />
     </div>
   )
