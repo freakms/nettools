@@ -15,6 +15,7 @@ export type ToolId =
   | 'password'
   | 'api-tester'
   | 'panos'
+  | 'live-monitor'
   | 'settings'
 
 export interface Tool {
@@ -34,6 +35,14 @@ export const TOOLS: Tool[] = [
     icon: 'LayoutDashboard',
     category: 'dashboard',
     shortcut: 'Ctrl+1',
+  },
+  {
+    id: 'live-monitor',
+    name: 'Live Monitor',
+    description: 'Echtzeit-Ping-Überwachung',
+    icon: 'Activity',
+    category: 'scanning',
+    shortcut: 'Ctrl+L',
   },
   {
     id: 'scanner',
