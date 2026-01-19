@@ -45,6 +45,8 @@ pub fn run() {
             password::generate_password,
             // MAC commands
             mac::format_mac,
+            // API Tester commands
+            api_tester::send_http_request,
             // Utility commands
             utils::get_system_info,
         ])
