@@ -5,14 +5,15 @@ import { Globe, Search, ExternalLink, Copy, Check } from 'lucide-react'
 
 interface DnsRecord {
   record_type: string
+  name: string
   value: string
-  ttl: number | null
+  ttl: number
 }
 
 interface DnsResult {
-  query: string
+  domain: string
   records: DnsRecord[]
-  server: string
+  duration_ms: number
 }
 
 type DnsServer = 'system' | 'google' | 'cloudflare' | 'quad9' | 'opendns' | 'custom'
@@ -27,7 +28,7 @@ const DNS_SERVERS: Record<DnsServer, string> = {
 }
 
 export function DnsPage() {
-  const [query, setQuery] = useState('')
+  const [domain, setDomain] = useState('')
   const [selectedServer, setSelectedServer] = useState<DnsServer>('system')
   const [customServer, setCustomServer] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -36,7 +37,7 @@ export function DnsPage() {
   const [copiedValue, setCopiedValue] = useState<string | null>(null)
 
   const lookup = async () => {
-    if (!query.trim()) {
+    if (!domain.trim()) {
       setError('Bitte geben Sie einen Hostnamen oder eine IP-Adresse ein')
       return
     }
@@ -46,12 +47,31 @@ export function DnsPage() {
     setResults(null)
 
     try {
-      const server = selectedServer === 'custom' ? customServer : DNS_SERVERS[selectedServer]
-      const result = await invoke<DnsResult>('lookup_dns', { 
-        query: query.trim(),
-        server: server || null,
-      })
-      setResults(result)
+      // Check if it's an IP for reverse lookup
+      const isIp = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(domain.trim())
+      
+      if (isIp) {
+        // Reverse lookup
+        const hostname = await invoke<string>('reverse_lookup', { ip: domain.trim() })
+        setResults({
+          domain: domain.trim(),
+          records: [{
+            record_type: 'PTR',
+            name: domain.trim(),
+            value: hostname,
+            ttl: 300,
+          }],
+          duration_ms: 0,
+        })
+      } else {
+        // Forward lookup with multiple record types
+        const recordTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME']
+        const result = await invoke<DnsResult>('lookup_dns', { 
+          domain: domain.trim(),
+          recordTypes,
+        })
+        setResults(result)
+      }
     } catch (e) {
       setError(String(e))
     } finally {
@@ -60,8 +80,8 @@ export function DnsPage() {
   }
 
   const openMXToolbox = () => {
-    if (!query.trim()) return
-    window.open(`https://mxtoolbox.com/SuperTool.aspx?action=dns%3a${encodeURIComponent(query)}`, '_blank')
+    if (!domain.trim()) return
+    window.open(`https://mxtoolbox.com/SuperTool.aspx?action=dns%3a${encodeURIComponent(domain)}`, '_blank')
   }
 
   const openDNSDumpster = () => {
@@ -110,8 +130,8 @@ export function DnsPage() {
               Examples: google.com, 8.8.8.8, github.com, 192.168.1.1
             </p>
             <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
               placeholder="google.com or 8.8.8.8"
               onKeyDown={(e) => e.key === 'Enter' && lookup()}
             />
@@ -232,8 +252,8 @@ export function DnsPage() {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-4 text-sm text-text-secondary">
-                <span>Query: <strong className="text-text-primary">{results.query}</strong></span>
-                {results.server && <span>Server: <strong className="text-text-primary">{results.server}</strong></span>}
+                <span>Query: <strong className="text-text-primary">{results.domain}</strong></span>
+                {results.duration_ms > 0 && <span>Duration: <strong className="text-text-primary">{results.duration_ms}ms</strong></span>}
               </div>
 
               {results.records.length === 0 ? (
