@@ -29,9 +29,10 @@ pub async fn ping_host(ip: String, timeout_ms: u32) -> Result<PingResult, String
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     
-    let status = if output.status.success() && stdout.contains("TTL=") {
+    // Support German and English Windows
+    let status = if output.status.success() && (stdout.contains("TTL=") || stdout.contains("Antwort von") || stdout.contains("Reply from")) {
         "online"
-    } else if stdout.contains("Request timed out") || stdout.contains("100% loss") {
+    } else if stdout.contains("Zeitüberschreitung") || stdout.contains("Request timed out") || stdout.contains("100% Verlust") || stdout.contains("100% loss") {
         "timeout"
     } else {
         "offline"
