@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react'
 import { Sidebar, Header, CommandPalette } from '@/components/layout'
 import { ToastContainer } from '@/components/ui'
 import { 
-  DashboardPage, SettingsPage, PlaceholderPage,
+  DashboardPage, SettingsPage,
   ScannerPage, PortScanPage, DnsPage, TraceroutePage,
-  SubnetPage, HashPage, PasswordPage, ArpPage, MacPage, PanosPage
+  SubnetPage, HashPage, PasswordPage, ArpPage, MacPage, PanosPage,
+  WhoisPage, SslPage, BandwidthPage, ApiTesterPage
 } from '@/pages'
 import { useStore } from '@/store'
-import { 
-  Gauge, Search, ShieldCheck, Send
-} from 'lucide-react'
 
 function App() {
   const { activeTool, sidebarCollapsed, toggleSidebar, toasts, removeToast } = useStore()
@@ -54,38 +52,14 @@ function App() {
         return <MacPage />
       case 'panos':
         return <PanosPage />
-      case 'bandwidth':
-        return (
-          <PlaceholderPage 
-            title="Bandwidth Test" 
-            description="Messen Sie die Netzwerk-Bandbreite mit iperf3"
-            icon={<Gauge className="w-16 h-16 text-accent-cyan" />}
-          />
-        )
       case 'whois':
-        return (
-          <PlaceholderPage 
-            title="WHOIS Lookup" 
-            description="Rufen Sie Domain-Registrierungsinformationen ab"
-            icon={<Search className="w-16 h-16 text-accent-purple" />}
-          />
-        )
+        return <WhoisPage />
       case 'ssl':
-        return (
-          <PlaceholderPage 
-            title="SSL Checker" 
-            description="Überprüfen Sie SSL-Zertifikate"
-            icon={<ShieldCheck className="w-16 h-16 text-accent-green" />}
-          />
-        )
+        return <SslPage />
+      case 'bandwidth':
+        return <BandwidthPage />
       case 'api-tester':
-        return (
-          <PlaceholderPage 
-            title="API Tester" 
-            description="Testen Sie HTTP-Requests"
-            icon={<Send className="w-16 h-16 text-accent-blue" />}
-          />
-        )
+        return <ApiTesterPage />
       default:
         return <DashboardPage />
     }
