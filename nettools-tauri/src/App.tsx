@@ -4,11 +4,11 @@ import { ToastContainer } from '@/components/ui'
 import { 
   DashboardPage, SettingsPage, PlaceholderPage,
   ScannerPage, PortScanPage, DnsPage, TraceroutePage,
-  SubnetPage, HashPage, PasswordPage
+  SubnetPage, HashPage, PasswordPage, ArpPage, MacPage, PanosPage
 } from '@/pages'
 import { useStore } from '@/store'
 import { 
-  Table2, Gauge, Search, ShieldCheck, Fingerprint, Send, Shield 
+  Gauge, Search, ShieldCheck, Send
 } from 'lucide-react'
 
 function App() {
@@ -49,13 +49,11 @@ function App() {
       case 'password':
         return <PasswordPage />
       case 'arp':
-        return (
-          <PlaceholderPage 
-            title="ARP Viewer" 
-            description="Zeigen Sie die ARP-Tabelle an"
-            icon={<Table2 className="w-16 h-16 text-accent-green" />}
-          />
-        )
+        return <ArpPage />
+      case 'mac':
+        return <MacPage />
+      case 'panos':
+        return <PanosPage />
       case 'bandwidth':
         return (
           <PlaceholderPage 
@@ -80,28 +78,12 @@ function App() {
             icon={<ShieldCheck className="w-16 h-16 text-accent-green" />}
           />
         )
-      case 'mac':
-        return (
-          <PlaceholderPage 
-            title="MAC Formatter" 
-            description="Formatieren Sie MAC-Adressen und schauen Sie OUI nach"
-            icon={<Fingerprint className="w-16 h-16 text-accent-purple" />}
-          />
-        )
       case 'api-tester':
         return (
           <PlaceholderPage 
             title="API Tester" 
             description="Testen Sie HTTP-Requests"
             icon={<Send className="w-16 h-16 text-accent-blue" />}
-          />
-        )
-      case 'panos':
-        return (
-          <PlaceholderPage 
-            title="PAN-OS Generator" 
-            description="Generieren Sie Palo Alto Firewall-Konfigurationen"
-            icon={<Shield className="w-16 h-16 text-accent-red" />}
           />
         )
       default:
