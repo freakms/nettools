@@ -47,6 +47,11 @@ pub fn run() {
             mac::format_mac,
             // API Tester commands
             api_tester::send_http_request,
+            // Live Monitor commands
+            live_monitor::monitor_init_hosts,
+            live_monitor::monitor_ping_host,
+            live_monitor::monitor_resolve_hostname,
+            live_monitor::monitor_export_data,
             // Utility commands
             utils::get_system_info,
         ])
