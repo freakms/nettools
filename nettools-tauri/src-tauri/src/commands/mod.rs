@@ -8,4 +8,5 @@ pub mod whois;
 pub mod ssl;
 pub mod hash;
 pub mod password;
+pub mod mac;
 pub mod utils;
