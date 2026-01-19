@@ -10,4 +10,5 @@ pub mod hash;
 pub mod password;
 pub mod mac;
 pub mod api_tester;
+pub mod live_monitor;
 pub mod utils;
