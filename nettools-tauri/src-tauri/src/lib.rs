@@ -43,6 +43,8 @@ pub fn run() {
             hash::hash_file,
             // Password commands
             password::generate_password,
+            // MAC commands
+            mac::format_mac,
             // Utility commands
             utils::get_system_info,
         ])
