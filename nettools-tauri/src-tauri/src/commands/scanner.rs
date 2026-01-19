@@ -147,17 +147,35 @@ fn parse_target(target: &str) -> Result<Vec<String>, String> {
 }
 
 fn extract_rtt(output: &str) -> Option<f64> {
+    // German Windows: "Zeit=" or "Zeit<"
+    // English Windows: "time=" or "time<"
     for line in output.lines() {
-        if let Some(idx) = line.find("time=") {
+        // German format
+        if let Some(idx) = line.find("Zeit=").or_else(|| line.find("Zeit<")) {
             let rest = &line[idx + 5..];
-            if let Some(end) = rest.find("ms") {
-                if let Ok(rtt) = rest[..end].parse::<f64>() {
-                    return Some(rtt);
-                }
+            let rtt_str: String = rest.chars()
+                .skip_while(|c| *c == '<')
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect();
+            if let Ok(rtt) = rtt_str.parse::<f64>() {
+                return Some(rtt);
             }
-        } else if line.contains("time<1ms") {
-            return Some(0.5);
         }
+        // English format
+        if let Some(idx) = line.find("time=").or_else(|| line.find("time<")) {
+            let rest = &line[idx + 5..];
+            let rtt_str: String = rest.chars()
+                .skip_while(|c| *c == '<')
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect();
+            if let Ok(rtt) = rtt_str.parse::<f64>() {
+                return Some(rtt);
+            }
+        }
+    }
+    // Fallback for "time<1ms" or "Zeit<1ms"
+    if output.contains("time<1ms") || output.contains("Zeit<1ms") {
+        return Some(0.5);
     }
     None
 }
