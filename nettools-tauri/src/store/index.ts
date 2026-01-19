@@ -32,6 +32,7 @@ interface AppState {
 }
 
 const defaultEnabledTools: ToolId[] = [
+  'live-monitor',
   'scanner',
   'portscan',
   'dns',
