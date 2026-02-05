@@ -95,7 +95,7 @@ pub async fn scan_network(
 /// Get the local machine's IP address
 #[tauri::command]
 pub fn get_local_ip() -> Result<String, String> {
-    let output = Command::new("ipconfig")
+    let output = create_hidden_command("ipconfig")
         .output()
         .map_err(|e| format!("Failed to execute ipconfig: {}", e))?;
 
