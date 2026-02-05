@@ -1,6 +1,6 @@
 // Scanner commands for network host discovery
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use super::utils::create_hidden_command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PingResult {
@@ -22,7 +22,7 @@ pub struct ScanResult {
 /// Ping a single host
 #[tauri::command]
 pub async fn ping_host(ip: String, timeout_ms: u32) -> Result<PingResult, String> {
-    let output = Command::new("ping")
+    let output = create_hidden_command("ping")
         .args(["-n", "1", "-w", &timeout_ms.to_string(), &ip])
         .output()
         .map_err(|e| format!("Failed to execute ping: {}", e))?;
