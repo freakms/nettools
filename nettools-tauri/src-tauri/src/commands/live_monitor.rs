@@ -254,7 +254,7 @@ fn resolve_hostname(ip: &str) -> Option<String> {
         // Use system command for reverse DNS
         #[cfg(target_os = "windows")]
         {
-            if let Ok(output) = Command::new("nslookup")
+            if let Ok(output) = create_hidden_command("nslookup")
                 .arg(ip)
                 .output()
             {
@@ -272,7 +272,7 @@ fn resolve_hostname(ip: &str) -> Option<String> {
         
         #[cfg(not(target_os = "windows"))]
         {
-            if let Ok(output) = Command::new("host")
+            if let Ok(output) = create_hidden_command("host")
                 .arg(ip)
                 .output()
             {
