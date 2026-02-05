@@ -29,7 +29,7 @@ export function LiveMonitorPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const hostsRef = useRef<Map<string, HostStats>>(new Map())
 
   // Keep hostsRef in sync with hosts state
