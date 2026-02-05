@@ -195,7 +195,7 @@ fn extract_ttl(output: &str) -> Option<u8> {
 }
 
 fn get_hostname(ip: &str) -> Result<String, String> {
-    let output = Command::new("nslookup")
+    let output = create_hidden_command("nslookup")
         .arg(ip)
         .output()
         .map_err(|e| format!("nslookup failed: {}", e))?;
