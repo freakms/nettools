@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Checkbox, Alert } from '@/components/ui'
-import { Key, RefreshCw, Copy, Check } from 'lucide-react'
+import { Key, RefreshCw, Copy, Check, Settings } from 'lucide-react'
 
 interface PasswordResult {
   password: string
@@ -15,8 +15,11 @@ interface PasswordOptions {
   lowercase: boolean
   numbers: boolean
   symbols: boolean
+  custom_symbols: string
   exclude_ambiguous: boolean
 }
+
+const DEFAULT_SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
 export function PasswordPage() {
   const [options, setOptions] = useState<PasswordOptions>({
@@ -25,12 +28,14 @@ export function PasswordPage() {
     lowercase: true,
     numbers: true,
     symbols: true,
+    custom_symbols: DEFAULT_SYMBOLS,
     exclude_ambiguous: false,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<PasswordResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [showCustomSymbols, setShowCustomSymbols] = useState(false)
 
   const generate = async () => {
     setIsLoading(true)
@@ -66,6 +71,15 @@ export function PasswordPage() {
       default: return 'text-accent-red'
     }
   }
+
+  // Quick symbol presets
+  const symbolPresets = [
+    { label: 'Standard', value: '!@#$%^&*()_+-=[]{}|;:,.<>?' },
+    { label: 'Einfach', value: '!@#$%&*' },
+    { label: 'Sicher', value: '!@#$%^&*()-_=+' },
+    { label: 'Kompatibel', value: '!@#$_-' },
+    { label: 'Minimal', value: '_-.' },
+  ]
 
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
@@ -118,7 +132,7 @@ export function PasswordPage() {
                 onChange={(e) => updateOption('numbers', e.target.checked)}
               />
               <Checkbox
-                label="Symbole (!@#$...)"
+                label="Symbole"
                 checked={options.symbols}
                 onChange={(e) => updateOption('symbols', e.target.checked)}
               />
@@ -128,6 +142,66 @@ export function PasswordPage() {
                 onChange={(e) => updateOption('exclude_ambiguous', e.target.checked)}
               />
             </div>
+
+            {/* Custom Symbols Section */}
+            {options.symbols && (
+              <div className="mt-4 p-4 bg-bg-tertiary rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-text-secondary">Sonderzeichen anpassen</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowCustomSymbols(!showCustomSymbols)}
+                    icon={<Settings className="w-4 h-4" />}
+                  >
+                    {showCustomSymbols ? 'Schließen' : 'Anpassen'}
+                  </Button>
+                </div>
+
+                {showCustomSymbols && (
+                  <>
+                    {/* Presets */}
+                    <div className="flex flex-wrap gap-2">
+                      {symbolPresets.map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => updateOption('custom_symbols', preset.value)}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                            options.custom_symbols === preset.value
+                              ? 'bg-accent-yellow text-bg-primary'
+                              : 'bg-bg-secondary text-text-secondary hover:bg-bg-hover'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom Input */}
+                    <div>
+                      <label className="block text-xs text-text-muted mb-1">
+                        Eigene Sonderzeichen:
+                      </label>
+                      <Input
+                        value={options.custom_symbols}
+                        onChange={(e) => updateOption('custom_symbols', e.target.value)}
+                        placeholder="z.B. !@#$%"
+                        className="font-mono"
+                      />
+                    </div>
+
+                    {/* Preview */}
+                    <div className="text-xs text-text-muted">
+                      <span className="font-medium">Aktive Zeichen:</span>{' '}
+                      <code className="bg-bg-secondary px-2 py-1 rounded font-mono">
+                        {options.custom_symbols || 'Keine'}
+                      </code>
+                      <span className="ml-2">({options.custom_symbols.length} Zeichen)</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <Button onClick={generate} disabled={isLoading} loading={isLoading} icon={<RefreshCw className="w-4 h-4" />}>
               Generieren
