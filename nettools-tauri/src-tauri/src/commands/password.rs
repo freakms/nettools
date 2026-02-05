@@ -10,7 +10,13 @@ pub struct PasswordOptions {
     pub lowercase: bool,
     pub numbers: bool,
     pub symbols: bool,
+    #[serde(default = "default_symbols")]
+    pub custom_symbols: String,
     pub exclude_ambiguous: bool, // Exclude 0, O, l, 1, etc.
+}
+
+fn default_symbols() -> String {
+    "!@#$%^&*()_+-=[]{}|;:,.<>?".to_string()
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,7 +29,6 @@ pub struct PasswordResult {
 const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
 const NUMBERS: &str = "0123456789";
-const SYMBOLS: &str = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 const AMBIGUOUS: &str = "0O1lI";
 
 /// Generate a secure password
@@ -70,10 +75,17 @@ pub fn generate_password(options: PasswordOptions) -> Result<PasswordResult, Str
     }
     
     if options.symbols {
-        if let Some(c) = SYMBOLS.chars().collect::<Vec<_>>().choose(&mut rng) {
+        // Use custom symbols if provided, otherwise use default
+        let symbols = if options.custom_symbols.is_empty() {
+            default_symbols()
+        } else {
+            options.custom_symbols.clone()
+        };
+        
+        if let Some(c) = symbols.chars().collect::<Vec<_>>().choose(&mut rng) {
             required_chars.push(*c);
         }
-        charset.push_str(SYMBOLS);
+        charset.push_str(&symbols);
     }
     
     if charset.is_empty() {
