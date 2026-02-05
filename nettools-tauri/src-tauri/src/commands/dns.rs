@@ -69,7 +69,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
 /// Perform reverse DNS lookup
 #[tauri::command]
 pub async fn reverse_lookup(ip: String) -> Result<String, String> {
-    let output = Command::new("nslookup")
+    let output = create_hidden_command("nslookup")
         .arg(&ip)
         .output()
         .map_err(|e| format!("Failed to execute nslookup: {}", e))?;
