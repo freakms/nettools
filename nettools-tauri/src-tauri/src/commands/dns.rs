@@ -29,7 +29,7 @@ pub async fn lookup_dns(domain: String, record_types: Vec<String>) -> Result<Dns
             domain.clone(),
         ];
         
-        let output = Command::new("nslookup")
+        let output = create_hidden_command("nslookup")
             .args(&args)
             .output()
             .map_err(|e| format!("Failed to execute nslookup: {}", e))?;
