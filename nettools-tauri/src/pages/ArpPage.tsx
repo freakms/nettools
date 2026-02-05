@@ -131,7 +131,7 @@ export function ArpPage() {
                         <td className="py-2 px-3 font-mono text-sm text-accent-blue">{entry.mac}</td>
                         <td className="py-2 px-3 text-sm text-text-secondary">{entry.interface}</td>
                         <td className="py-2 px-3">
-                          <Badge variant={entry.entry_type === 'dynamic' ? 'info' : 'secondary'}>
+                          <Badge variant={entry.entry_type === 'dynamic' ? 'info' : 'default'}>
                             {entry.entry_type}
                           </Badge>
                         </td>

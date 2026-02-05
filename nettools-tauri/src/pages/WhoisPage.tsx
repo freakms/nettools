@@ -128,7 +128,7 @@ export function WhoisPage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {results.name_servers.map((ns, idx) => (
-                      <Badge key={idx} variant="secondary">{ns}</Badge>
+                      <Badge key={idx} variant="default">{ns}</Badge>
                     ))}
                   </div>
                 </div>
