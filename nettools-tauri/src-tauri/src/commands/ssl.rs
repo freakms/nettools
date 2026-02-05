@@ -1,6 +1,9 @@
 // SSL Checker command - Simplified version without x509-parser
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use super::utils::create_hidden_command;
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SslCertificate {
