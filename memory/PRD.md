@@ -1,9 +1,9 @@
 # NetTools Suite - Product Requirements Document
 
-## Projektstatus: Phase 1 Abgeschlossen ✅
+## Projektstatus: Phase 2 In Arbeit 🔄
 
 **Copyright:** frekms  
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Technologie:** Rust + Tauri + React + TypeScript  
 **Zielplattform:** Windows 10/11  
 
@@ -33,73 +33,63 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 - [x] Projekt-Setup mit Vite
 - [x] Tailwind CSS Design-System
 - [x] Dark Theme (gemäß Guidelines)
-- [x] UI-Komponenten:
-  - Button, Card, Input, Select, Checkbox
-  - Toast Notifications
-  - DataTable mit Pagination
-  - Badge, Alert, Dropdown
-  - CopyButton, CodeBlock
-- [x] Layout-Komponenten:
-  - Sidebar mit Kategorien & Favoriten
-  - Header mit Schnellsuche
-  - Command Palette (Ctrl+K)
-- [x] Seiten:
-  - Dashboard mit Statistiken & Schnellzugriff
-  - Einstellungen (Tool-Sichtbarkeit)
-  - Placeholder-Seiten für alle Tools
+- [x] UI-Komponenten (Button, Card, Input, etc.)
+- [x] Layout-Komponenten (Sidebar, Header)
+- [x] Alle 14 Tool-Seiten implementiert
 - [x] State Management (Zustand)
 - [x] Persistente Einstellungen
 
 #### Backend (Rust)
 - [x] Tauri-Konfiguration
-- [x] Command-Module implementiert:
-  - Scanner (Ping, Netzwerk-Scan)
-  - Port Scanner
-  - DNS Lookup
-  - Traceroute
-  - ARP Viewer
-  - Subnet Calculator
-  - WHOIS Lookup
-  - SSL Checker
-  - Hash Generator
-  - Password Generator
-  - Utility Commands
+- [x] Alle Command-Module implementiert
+
+### Phase 2: Erweiterte Features (In Arbeit)
+
+#### Dezember 2025 Updates:
+- [x] **Live Ping Monitor** - Echtzeit-Ping mit Multi-Host-Support (CIDR, Ranges)
+- [x] **Scanner** - History, Vergleich, Profile, Statistiken
+- [x] **Port Scanner** - History, Vergleich, Port-Presets
+- [x] **DNS Lookup** - Server-Auswahl, externe Lookup-Services
+- [x] **MAC Formatter** - Switch-Commands für verschiedene Hersteller
+- [x] **Deutsche OS-Kompatibilität** - Parsing für deutsche Windows-Ausgaben
+
+#### Dezember 2025 - Bugfixes:
+- [x] **Konsolenfenster-Bug behoben** - `CREATE_NO_WINDOW` Flag implementiert
+  - Scanner, DNS, Traceroute, SSL Checker, Live Monitor, ARP
+  - Keine Pop-up Konsolen mehr bei CIDR/Range-Scans
+- [x] **MAC Formatter - Huawei Format** - 3er Blöcke mit Bindestrich (aabb-ccdd-eeff)
+- [x] **TypeScript Build-Fehler** - Badge variants, NodeJS.Timeout type fixes
+
+#### Dezember 2025 - Neue Features:
+- [x] **Passwort Generator** - Eigene Sonderzeichen definierbar
+  - Preset-Auswahl (Standard, Einfach, Sicher, Kompatibel, Minimal)
+  - Benutzerdefinierte Zeichenliste
+- [x] **PAN-OS Generator** - Erweiterte Optionen
+  - Shared Objects Option (Default: aktiviert)
+  - Namensformat-Auswahl (IP_Name, Name_IP, Custom Prefix, Nur IP)
+  - Vorschau des generierten Objektnamens
 
 ---
 
-## 📋 Ausstehende Phasen
+## 📋 Ausstehende Aufgaben
 
-### Phase 2: Tool-Frontend Implementation
-- [ ] IPv4 Scanner UI mit Live-Monitoring
-- [ ] Port Scanner UI
-- [ ] Scan-Profile speichern/laden
-- [ ] Export (CSV, JSON)
-- [ ] Scan-Vergleich
+### P1 - Hohe Priorität
+- [ ] User-Verifizierung: DNS Lookup Fix
+- [ ] Traceroute Tool erweitern (History, Vergleich, Profile)
+- [ ] Weitere Tools mit History/Vergleich ausstatten
 
-### Phase 3: Netzwerk-Tools UI
-- [ ] DNS Lookup UI mit Vergleich
-- [ ] Traceroute UI mit Vergleich
-- [ ] ARP Viewer UI
-- [ ] Subnet Calculator UI
-- [ ] Bandwidth Test UI (iperf3)
+### P2 - Mittlere Priorität
+- [ ] Favoriten-System (Tools als Favoriten markieren)
+- [ ] Theme-Einstellungen (Akzentfarben anpassen)
+- [ ] Keyboard Shortcuts (Ctrl+1 für erstes Tool, etc.)
+- [ ] Tool Ein-/Ausblenden aus Sidebar
 
-### Phase 4: Lookup-Tools UI
-- [ ] WHOIS Lookup UI
-- [ ] SSL Checker UI
-- [ ] MAC Formatter & OUI Lookup UI
-
-### Phase 5: Utilities UI
-- [ ] Hash Generator UI
-- [ ] Password Generator UI
-- [ ] API/HTTP Tester UI
-
-### Phase 6: Palo Alto Integration
-- [ ] PAN-OS Config Generator UI
-
-### Phase 7: Polish & Release
-- [ ] Windows Installer (MSI/NSIS)
-- [ ] Auto-Updater
-- [ ] Optimierungen
+### P3 - Niedrige Priorität
+- [ ] Production Build erstellen (.exe / .msi Installer)
+- [ ] Custom App Icon
+- [ ] Remote Tools (PSExec/SSH)
+- [ ] Rust Code aufräumen (unused imports)
+- [ ] Bandwidth Test implementieren (iperf3)
 
 ---
 
@@ -109,31 +99,49 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 ```
 /app/nettools-tauri/src/
 ├── components/
-│   ├── ui/          # Button, Card, Input, etc.
-│   └── layout/      # Sidebar, Header, CommandPalette
-├── pages/           # Dashboard, Settings, Tools
+│   ├── ui/          # Button, Card, Input, Badge, etc.
+│   └── layout/      # Sidebar, Header
+├── pages/           # Alle Tool-Seiten
 ├── store/           # Zustand State
-├── styles/          # Global CSS
-├── types/           # TypeScript Types
-└── lib/             # Utilities
+└── types/           # TypeScript Types
 ```
 
 ### Backend
 ```
 /app/nettools-tauri/src-tauri/src/
-├── main.rs          # Entry Point
-└── commands/        # Tauri Commands
-    ├── scanner.rs
+├── main.rs
+├── lib.rs
+└── commands/
+    ├── scanner.rs       # Netzwerk-Scan mit create_hidden_command
     ├── port_scanner.rs
-    ├── dns.rs
-    ├── traceroute.rs
-    ├── arp.rs
+    ├── dns.rs           # DNS Lookup mit create_hidden_command
+    ├── traceroute.rs    # Traceroute mit create_hidden_command
+    ├── arp.rs           # ARP mit create_hidden_command
     ├── subnet.rs
-    ├── whois.rs
-    ├── ssl.rs
+    ├── whois.rs         # Direkter TCP Socket
+    ├── ssl.rs           # PowerShell mit create_hidden_command
     ├── hash.rs
-    ├── password.rs
-    └── utils.rs
+    ├── password.rs      # Mit custom_symbols Support
+    ├── mac.rs
+    ├── api_tester.rs
+    ├── live_monitor.rs  # Mit create_hidden_command
+    └── utils.rs         # create_hidden_command Helper
+```
+
+### Wichtige Implementierungsdetails
+
+#### CREATE_NO_WINDOW (Konsolenfenster-Fix)
+```rust
+// In utils.rs:
+#[cfg(target_os = "windows")]
+pub const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+pub fn create_hidden_command(program: &str) -> Command {
+    let mut cmd = Command::new(program);
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
 ```
 
 ---
@@ -154,16 +162,6 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 
 ---
 
-## ⌨️ Tastenkürzel
-
-| Kürzel | Aktion |
-|--------|--------|
-| Ctrl+K | Schnellsuche |
-| Ctrl+1-9 | Tool wechseln |
-| Ctrl+, | Einstellungen |
-
----
-
 ## 🚫 Ausgeschlossene Features
 
 - DNSDumpster API
@@ -173,12 +171,11 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 
 ---
 
-## 📝 Nächste Schritte
+## 📝 Bekannte Einschränkungen
 
-1. **User-Test:** Benutzer kann Frontend auf Emergent testen (http://localhost:1420 während dev)
-2. **Windows-Build:** Benutzer lädt Projekt herunter und kompiliert auf Windows-PC
-3. **Phase 2-6:** Schrittweise Tool-UIs implementieren
-4. **Release:** Windows Installer erstellen
+- **Build-Umgebung:** Der Benutzer muss lokal kompilieren (Rust + VS Build Tools erforderlich)
+- **Bandwidth Test:** Aktuell nur UI-Platzhalter, benötigt iperf3-Integration
+- **Fragile Build-Umgebung:** Windows-Build kann bei neuen Rust-Dependencies fehlschlagen
 
 ---
 
@@ -187,3 +184,4 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 - `/app/nettools-tauri/` - Hauptprojekt
 - `/app/nettools-tauri/README.md` - Build-Anleitung
 - `/app/nettools-tauri/DEVELOPMENT_PLAN.md` - Entwicklungsplan
+- `/app/memory/PRD.md` - Dieses Dokument
