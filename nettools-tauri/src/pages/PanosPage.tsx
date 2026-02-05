@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Checkbox } from '@/components/ui'
-import { Shield, Copy, Check, Plus, Trash2, Download } from 'lucide-react'
+import { Shield, Copy, Check, Download } from 'lucide-react'
 
 interface AddressObject {
   name: string
@@ -28,9 +28,18 @@ interface SecurityRule {
   log_end: boolean
 }
 
+type NameFormat = 'ipaddress_name' | 'name_ipaddress' | 'custom_prefix' | 'ip_only'
+
 export function PanosPage() {
   const [activeTab, setActiveTab] = useState<'address' | 'service' | 'rule'>('address')
   const [copied, setCopied] = useState(false)
+  
+  // Shared Objects (default: true)
+  const [isShared, setIsShared] = useState(true)
+  
+  // Name Format
+  const [nameFormat, setNameFormat] = useState<NameFormat>('ipaddress_name')
+  const [customPrefix, setCustomPrefix] = useState('')
   
   // Address Object State
   const [addressObj, setAddressObj] = useState<AddressObject>({
@@ -63,37 +72,76 @@ export function PanosPage() {
 
   const [generatedConfig, setGeneratedConfig] = useState('')
 
-  const generateAddressConfig = () => {
-    if (!addressObj.name || !addressObj.value) return
+  // Generate name based on format
+  const generateObjectName = (value: string, customName?: string): string => {
+    const cleanValue = value.replace(/\//g, '_').replace(/\./g, '-')
     
-    const config = `set address "${addressObj.name}" ${addressObj.type} "${addressObj.value}"${addressObj.description ? `\nset address "${addressObj.name}" description "${addressObj.description}"` : ''}`
+    switch (nameFormat) {
+      case 'ipaddress_name':
+        return customName ? `${cleanValue}_${customName}` : cleanValue
+      case 'name_ipaddress':
+        return customName ? `${customName}_${cleanValue}` : cleanValue
+      case 'custom_prefix':
+        return customPrefix ? `${customPrefix}_${cleanValue}` : cleanValue
+      case 'ip_only':
+        return cleanValue
+      default:
+        return cleanValue
+    }
+  }
+
+  const generateAddressConfig = () => {
+    if (!addressObj.value) return
+    
+    const objectName = addressObj.name 
+      ? generateObjectName(addressObj.value, addressObj.name)
+      : generateObjectName(addressObj.value)
+    
+    // Build command based on shared or device-specific
+    const prefix = isShared ? 'set shared address' : 'set address'
+    
+    let config = `${prefix} "${objectName}" ${addressObj.type} "${addressObj.value}"`
+    if (addressObj.description) {
+      config += `\n${prefix} "${objectName}" description "${addressObj.description}"`
+    }
+    
     setGeneratedConfig(config)
   }
 
   const generateServiceConfig = () => {
     if (!serviceObj.name || !serviceObj.port) return
     
-    const config = `set service "${serviceObj.name}" protocol ${serviceObj.protocol} port ${serviceObj.port}${serviceObj.description ? `\nset service "${serviceObj.name}" description "${serviceObj.description}"` : ''}`
+    const prefix = isShared ? 'set shared service' : 'set service'
+    
+    let config = `${prefix} "${serviceObj.name}" protocol ${serviceObj.protocol} port ${serviceObj.port}`
+    if (serviceObj.description) {
+      config += `\n${prefix} "${serviceObj.name}" description "${serviceObj.description}"`
+    }
+    
     setGeneratedConfig(config)
   }
 
   const generateRuleConfig = () => {
     if (!rule.name) return
     
+    const prefix = isShared 
+      ? 'set shared pre-rulebase security rules'
+      : 'set rulebase security rules'
+    
     const lines = [
-      `set rulebase security rules "${rule.name}" from "${rule.source_zone}"`,
-      `set rulebase security rules "${rule.name}" to "${rule.dest_zone}"`,
-      `set rulebase security rules "${rule.name}" source [ ${rule.source_addresses.map(a => `"${a}"`).join(' ')} ]`,
-      `set rulebase security rules "${rule.name}" destination [ ${rule.dest_addresses.map(a => `"${a}"`).join(' ')} ]`,
-      `set rulebase security rules "${rule.name}" service [ ${rule.services.map(s => `"${s}"`).join(' ')} ]`,
-      `set rulebase security rules "${rule.name}" action ${rule.action}`,
+      `${prefix} "${rule.name}" from "${rule.source_zone}"`,
+      `${prefix} "${rule.name}" to "${rule.dest_zone}"`,
+      `${prefix} "${rule.name}" source [ ${rule.source_addresses.map(a => `"${a}"`).join(' ')} ]`,
+      `${prefix} "${rule.name}" destination [ ${rule.dest_addresses.map(a => `"${a}"`).join(' ')} ]`,
+      `${prefix} "${rule.name}" service [ ${rule.services.map(s => `"${s}"`).join(' ')} ]`,
+      `${prefix} "${rule.name}" action ${rule.action}`,
     ]
     
     if (rule.log_start) {
-      lines.push(`set rulebase security rules "${rule.name}" log-start yes`)
+      lines.push(`${prefix} "${rule.name}" log-start yes`)
     }
     if (rule.log_end) {
-      lines.push(`set rulebase security rules "${rule.name}" log-end yes`)
+      lines.push(`${prefix} "${rule.name}" log-end yes`)
     }
     
     setGeneratedConfig(lines.join('\n'))
@@ -137,6 +185,42 @@ export function PanosPage() {
         </div>
       </div>
 
+      {/* Global Settings */}
+      <Card variant="bordered">
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap items-center gap-6">
+            <Checkbox
+              label="Shared Objects (Panorama)"
+              checked={isShared}
+              onChange={(e) => setIsShared(e.target.checked)}
+            />
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-text-secondary">Namensformat:</span>
+              <select
+                value={nameFormat}
+                onChange={(e) => setNameFormat(e.target.value as NameFormat)}
+                className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-red"
+              >
+                <option value="ipaddress_name">IP_Name</option>
+                <option value="name_ipaddress">Name_IP</option>
+                <option value="custom_prefix">Eigener Prefix</option>
+                <option value="ip_only">Nur IP</option>
+              </select>
+            </div>
+
+            {nameFormat === 'custom_prefix' && (
+              <Input
+                value={customPrefix}
+                onChange={(e) => setCustomPrefix(e.target.value)}
+                placeholder="Prefix eingeben"
+                className="w-40"
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Tabs */}
       <div className="flex gap-2">
         <TabButton id="address" label="Address Objects" />
@@ -153,7 +237,7 @@ export function PanosPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Name"
+                label="Name (optional - wird automatisch generiert)"
                 value={addressObj.name}
                 onChange={(e) => setAddressObj(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="z.B. WebServer-01"
@@ -183,6 +267,19 @@ export function PanosPage() {
                 placeholder="Webserver im DMZ"
               />
             </div>
+            
+            {/* Preview */}
+            {addressObj.value && (
+              <div className="mt-4 p-3 bg-bg-tertiary rounded-lg">
+                <span className="text-xs text-text-muted">Vorschau Objektname: </span>
+                <code className="text-sm text-accent-red">
+                  {addressObj.name 
+                    ? generateObjectName(addressObj.value, addressObj.name)
+                    : generateObjectName(addressObj.value)}
+                </code>
+              </div>
+            )}
+            
             <div className="mt-4">
               <Button onClick={generateAddressConfig} icon={<Shield className="w-4 h-4" />}>
                 Konfiguration generieren
@@ -355,6 +452,9 @@ export function PanosPage() {
       <Alert variant="info" title="Hinweis">
         Die generierte Konfiguration kann direkt in die PAN-OS CLI eingefügt werden. 
         Vergessen Sie nicht, nach dem Einfügen <code className="bg-bg-tertiary px-1 rounded">commit</code> auszuführen.
+        {isShared && (
+          <> Shared Objects werden im Panorama-Kontext erstellt.</>
+        )}
       </Alert>
     </div>
   )
