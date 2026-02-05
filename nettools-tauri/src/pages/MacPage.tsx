@@ -183,7 +183,7 @@ export function MacPage() {
           <CardContent>
             <FormatRow label="Format 1 (Plain)" value={results.formats.no_separator} format="plain" />
             <FormatRow label="Format 2 (Colon)" value={results.formats.colon_upper} format="colon" />
-            <FormatRow label="Format 3 (Dash-4)" value={results.formats.cisco.toUpperCase()} format="dash4" />
+            <FormatRow label="Format 3 (Huawei)" value={results.formats.no_separator.toLowerCase().match(/.{1,4}/g)?.join('-').toUpperCase() || ''} format="huawei" />
             <FormatRow label="Format 4 (Dash-2)" value={results.formats.hyphen_upper} format="dash2" />
             <FormatRow label="Cisco Format" value={results.formats.cisco} format="cisco" />
             <FormatRow label="Lowercase Colon" value={results.formats.colon_lower} format="colon_lower" />
