@@ -68,13 +68,14 @@ export function MacPage() {
     
     const plain = results.formats.no_separator.toLowerCase()
     const colonLower = results.formats.colon_lower
-    const hyphenLower = results.formats.hyphen_lower
+    // Huawei Format: 3 Blöcke mit Bindestrich (aabb-ccdd-eeff)
+    const huaweiFormat = plain.match(/.{1,4}/g)?.join('-') || ''
     const cisco = results.formats.cisco
     
     return {
       extreme: `show fdb ${colonLower}`,
-      huawei: `display mac-address ${hyphenLower}`,
-      huaweiAccessUser: `display access-user mac-address ${hyphenLower}`,
+      huawei: `display mac-address ${huaweiFormat}`,
+      huaweiAccessUser: `display access-user mac-address ${huaweiFormat}`,
       dell: `show mac address-table address ${colonLower}`,
       cisco: `show mac address-table address ${cisco}`,
       juniper: `show ethernet-switching table | match ${colonLower}`,
