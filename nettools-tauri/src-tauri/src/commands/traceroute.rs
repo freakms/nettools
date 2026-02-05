@@ -25,7 +25,7 @@ pub async fn run_traceroute(target: String, max_hops: u8) -> Result<TracerouteRe
     let start = std::time::Instant::now();
     
     // Use Windows tracert command
-    let output = Command::new("tracert")
+    let output = create_hidden_command("tracert")
         .args(["-h", &max_hops.to_string(), "-w", "1000", &target])
         .output()
         .map_err(|e| format!("Failed to execute tracert: {}", e))?;
