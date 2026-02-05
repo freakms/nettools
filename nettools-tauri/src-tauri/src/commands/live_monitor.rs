@@ -192,12 +192,12 @@ fn parse_ip_input(input: &str) -> Vec<String> {
 /// Single ping to a host
 fn ping_host(ip: &str) -> (bool, Option<f64>) {
     #[cfg(target_os = "windows")]
-    let output = Command::new("ping")
+    let output = create_hidden_command("ping")
         .args(["-n", "1", "-w", "1000", ip])
         .output();
 
     #[cfg(not(target_os = "windows"))]
-    let output = Command::new("ping")
+    let output = create_hidden_command("ping")
         .args(["-c", "1", "-W", "1", ip])
         .output();
 
