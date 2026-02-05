@@ -69,7 +69,8 @@ fn check_ssl_powershell(host: &str, port: u16) -> Result<SslCheckResult, String>
         host, port, host
     );
 
-    let output = Command::new("powershell")
+    let mut cmd = create_hidden_command("powershell");
+    let output = cmd
         .args(["-NoProfile", "-Command", &script])
         .output()
         .map_err(|e| format!("Failed to execute PowerShell: {}", e))?;
