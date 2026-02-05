@@ -1,6 +1,6 @@
 // DNS Lookup commands - Using Windows nslookup command
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use super::utils::create_hidden_command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DnsRecord {
