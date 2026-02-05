@@ -1,6 +1,6 @@
 // ARP Viewer command
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use super::utils::create_hidden_command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArpEntry {
@@ -19,7 +19,7 @@ pub struct ArpResult {
 /// Get the ARP table
 #[tauri::command]
 pub async fn get_arp_table() -> Result<ArpResult, String> {
-    let output = Command::new("arp")
+    let output = create_hidden_command("arp")
         .arg("-a")
         .output()
         .map_err(|e| format!("Failed to execute arp: {}", e))?;
