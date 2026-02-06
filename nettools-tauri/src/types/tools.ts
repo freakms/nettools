@@ -16,6 +16,7 @@ export type ToolId =
   | 'api-tester'
   | 'panos'
   | 'live-monitor'
+  | 'network-profile'
   | 'settings'
 
 export interface Tool {
@@ -59,6 +60,14 @@ export const TOOLS: Tool[] = [
     icon: 'Network',
     category: 'scanning',
     shortcut: 'Ctrl+3',
+  },
+  {
+    id: 'network-profile',
+    name: 'Netzwerk-Profile',
+    description: 'Adapter & Profile verwalten',
+    icon: 'Settings2',
+    category: 'network',
+    shortcut: 'Ctrl+N',
   },
   {
     id: 'dns',
