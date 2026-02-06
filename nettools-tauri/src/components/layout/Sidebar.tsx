@@ -5,13 +5,13 @@ import { TOOLS, TOOL_CATEGORIES } from '@/types/tools'
 import { 
   Star, ChevronDown, ChevronRight,
   LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
-  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings, Activity
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings, Activity, Settings2
 } from 'lucide-react'
 
 // Icon map
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Radar, Network, Globe, Route, Table2, Calculator,
-  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings, Activity,
+  Gauge, Search, ShieldCheck, Fingerprint, Hash, Key, Send, Shield, Settings, Activity, Settings2,
 }
 
 // Dynamic icon component
