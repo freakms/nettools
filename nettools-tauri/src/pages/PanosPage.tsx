@@ -174,12 +174,30 @@ export function PanosPage() {
     const prefix = getPrefix('service')
     const lines: string[] = []
     
-    lines.push(`${prefix} "${serviceName}" protocol ${protocol} port ${port}`)
-    if (serviceDescription) {
-      lines.push(`${prefix} "${serviceName}" description "${serviceDescription}"`)
-    }
-    if (defaultTag) {
-      lines.push(`${prefix} "${serviceName}" tag [ "${defaultTag}" ]`)
+    if (protocol === 'tcp/udp') {
+      // Generate both TCP and UDP services
+      lines.push(`${prefix} "${serviceName}-tcp" protocol tcp port ${port}`)
+      if (serviceDescription) {
+        lines.push(`${prefix} "${serviceName}-tcp" description "${serviceDescription}"`)
+      }
+      if (defaultTag) {
+        lines.push(`${prefix} "${serviceName}-tcp" tag [ "${defaultTag}" ]`)
+      }
+      lines.push(`${prefix} "${serviceName}-udp" protocol udp port ${port}`)
+      if (serviceDescription) {
+        lines.push(`${prefix} "${serviceName}-udp" description "${serviceDescription}"`)
+      }
+      if (defaultTag) {
+        lines.push(`${prefix} "${serviceName}-udp" tag [ "${defaultTag}" ]`)
+      }
+    } else {
+      lines.push(`${prefix} "${serviceName}" protocol ${protocol} port ${port}`)
+      if (serviceDescription) {
+        lines.push(`${prefix} "${serviceName}" description "${serviceDescription}"`)
+      }
+      if (defaultTag) {
+        lines.push(`${prefix} "${serviceName}" tag [ "${defaultTag}" ]`)
+      }
     }
     
     setGeneratedConfig(lines.join('\n'))
@@ -207,9 +225,21 @@ export function PanosPage() {
       
       if (!name || !portVal) continue
       
-      lines.push(`${prefix} "${name}" protocol ${bulkProtocol} port ${portVal}`)
-      if (defaultTag) {
-        lines.push(`${prefix} "${name}" tag [ "${defaultTag}" ]`)
+      if (bulkProtocol === 'tcp/udp') {
+        // Generate both TCP and UDP
+        lines.push(`${prefix} "${name}-tcp" protocol tcp port ${portVal}`)
+        if (defaultTag) {
+          lines.push(`${prefix} "${name}-tcp" tag [ "${defaultTag}" ]`)
+        }
+        lines.push(`${prefix} "${name}-udp" protocol udp port ${portVal}`)
+        if (defaultTag) {
+          lines.push(`${prefix} "${name}-udp" tag [ "${defaultTag}" ]`)
+        }
+      } else {
+        lines.push(`${prefix} "${name}" protocol ${bulkProtocol} port ${portVal}`)
+        if (defaultTag) {
+          lines.push(`${prefix} "${name}" tag [ "${defaultTag}" ]`)
+        }
       }
     }
     
