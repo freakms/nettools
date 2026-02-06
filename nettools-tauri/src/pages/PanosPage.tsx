@@ -1,18 +1,41 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Checkbox } from '@/components/ui'
-import { Shield, Copy, Check, Download } from 'lucide-react'
+import { Shield, Copy, Check, Download, Plus, Trash2, Upload, Tag } from 'lucide-react'
 
+// Types
 interface AddressObject {
   name: string
   type: 'ip-netmask' | 'ip-range' | 'fqdn'
   value: string
   description: string
+  tag: string
+}
+
+interface AddressGroup {
+  name: string
+  members: string[]
+  description: string
+  tag: string
 }
 
 interface ServiceObject {
   name: string
-  protocol: 'tcp' | 'udp'
+  protocol: 'tcp' | 'udp' | 'sctp'
   port: string
+  description: string
+  tag: string
+}
+
+interface NatRule {
+  name: string
+  nat_type: 'source' | 'destination'
+  source_zone: string
+  dest_zone: string
+  source_address: string
+  dest_address: string
+  service: string
+  translated_address: string
+  translated_port: string
   description: string
 }
 
@@ -23,58 +46,68 @@ interface SecurityRule {
   source_addresses: string[]
   dest_addresses: string[]
   services: string[]
+  applications: string[]
   action: 'allow' | 'deny' | 'drop'
   log_start: boolean
   log_end: boolean
+  tag: string
+  description: string
 }
 
 type NameFormat = 'ipaddress_name' | 'name_ipaddress' | 'custom_prefix' | 'ip_only'
+type ActiveTab = 'address' | 'group' | 'service' | 'nat' | 'rule' | 'bulk'
 
 export function PanosPage() {
-  const [activeTab, setActiveTab] = useState<'address' | 'service' | 'rule'>('address')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('address')
   const [copied, setCopied] = useState(false)
   
-  // Shared Objects (default: true)
+  // Global Settings
   const [isShared, setIsShared] = useState(true)
-  
-  // Name Format
   const [nameFormat, setNameFormat] = useState<NameFormat>('ipaddress_name')
   const [customPrefix, setCustomPrefix] = useState('')
+  const [defaultTag, setDefaultTag] = useState('')
   
   // Address Object State
   const [addressObj, setAddressObj] = useState<AddressObject>({
-    name: '',
-    type: 'ip-netmask',
-    value: '',
-    description: ''
+    name: '', type: 'ip-netmask', value: '', description: '', tag: ''
   })
+  
+  // Address Group State
+  const [addressGroup, setAddressGroup] = useState<AddressGroup>({
+    name: '', members: [], description: '', tag: ''
+  })
+  const [newMember, setNewMember] = useState('')
   
   // Service Object State
   const [serviceObj, setServiceObj] = useState<ServiceObject>({
-    name: '',
-    protocol: 'tcp',
-    port: '',
-    description: ''
+    name: '', protocol: 'tcp', port: '', description: '', tag: ''
+  })
+  
+  // NAT Rule State
+  const [natRule, setNatRule] = useState<NatRule>({
+    name: '', nat_type: 'source', source_zone: 'trust', dest_zone: 'untrust',
+    source_address: 'any', dest_address: 'any', service: 'any',
+    translated_address: '', translated_port: '', description: ''
   })
   
   // Security Rule State
-  const [rule, setRule] = useState<SecurityRule>({
-    name: '',
-    source_zone: 'trust',
-    dest_zone: 'untrust',
-    source_addresses: ['any'],
-    dest_addresses: ['any'],
-    services: ['application-default'],
-    action: 'allow',
-    log_start: false,
-    log_end: true
+  const [secRule, setSecRule] = useState<SecurityRule>({
+    name: '', source_zone: 'trust', dest_zone: 'untrust',
+    source_addresses: ['any'], dest_addresses: ['any'],
+    services: ['application-default'], applications: ['any'],
+    action: 'allow', log_start: false, log_end: true,
+    tag: '', description: ''
   })
+  
+  // Bulk Import State
+  const [bulkInput, setBulkInput] = useState('')
+  const [bulkType, setBulkType] = useState<'ip-netmask' | 'fqdn'>('ip-netmask')
 
   const [generatedConfig, setGeneratedConfig] = useState('')
 
-  // Generate name based on format
+  // Helper: Generate name based on format
   const generateObjectName = (value: string, customName?: string): string => {
-    const cleanValue = value.replace(/\//g, '_').replace(/\./g, '-')
+    const cleanValue = value.replace(/\//g, '_').replace(/\./g, '-').replace(/:/g, '-')
     
     switch (nameFormat) {
       case 'ipaddress_name':
@@ -90,6 +123,12 @@ export function PanosPage() {
     }
   }
 
+  // Get command prefix based on shared setting
+  const getPrefix = (objectType: string) => {
+    return isShared ? `set shared ${objectType}` : `set ${objectType}`
+  }
+
+  // Generate Address Object Config
   const generateAddressConfig = () => {
     if (!addressObj.value) return
     
@@ -97,54 +136,173 @@ export function PanosPage() {
       ? generateObjectName(addressObj.value, addressObj.name)
       : generateObjectName(addressObj.value)
     
-    // Build command based on shared or device-specific
-    const prefix = isShared ? 'set shared address' : 'set address'
+    const prefix = getPrefix('address')
+    const tag = addressObj.tag || defaultTag
     
-    let config = `${prefix} "${objectName}" ${addressObj.type} "${addressObj.value}"`
+    const lines: string[] = []
+    lines.push(`${prefix} "${objectName}" ${addressObj.type} "${addressObj.value}"`)
     if (addressObj.description) {
-      config += `\n${prefix} "${objectName}" description "${addressObj.description}"`
+      lines.push(`${prefix} "${objectName}" description "${addressObj.description}"`)
     }
-    
-    setGeneratedConfig(config)
-  }
-
-  const generateServiceConfig = () => {
-    if (!serviceObj.name || !serviceObj.port) return
-    
-    const prefix = isShared ? 'set shared service' : 'set service'
-    
-    let config = `${prefix} "${serviceObj.name}" protocol ${serviceObj.protocol} port ${serviceObj.port}`
-    if (serviceObj.description) {
-      config += `\n${prefix} "${serviceObj.name}" description "${serviceObj.description}"`
-    }
-    
-    setGeneratedConfig(config)
-  }
-
-  const generateRuleConfig = () => {
-    if (!rule.name) return
-    
-    const prefix = isShared 
-      ? 'set shared pre-rulebase security rules'
-      : 'set rulebase security rules'
-    
-    const lines = [
-      `${prefix} "${rule.name}" from "${rule.source_zone}"`,
-      `${prefix} "${rule.name}" to "${rule.dest_zone}"`,
-      `${prefix} "${rule.name}" source [ ${rule.source_addresses.map(a => `"${a}"`).join(' ')} ]`,
-      `${prefix} "${rule.name}" destination [ ${rule.dest_addresses.map(a => `"${a}"`).join(' ')} ]`,
-      `${prefix} "${rule.name}" service [ ${rule.services.map(s => `"${s}"`).join(' ')} ]`,
-      `${prefix} "${rule.name}" action ${rule.action}`,
-    ]
-    
-    if (rule.log_start) {
-      lines.push(`${prefix} "${rule.name}" log-start yes`)
-    }
-    if (rule.log_end) {
-      lines.push(`${prefix} "${rule.name}" log-end yes`)
+    if (tag) {
+      lines.push(`${prefix} "${objectName}" tag [ "${tag}" ]`)
     }
     
     setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Generate Address Group Config
+  const generateGroupConfig = () => {
+    if (!addressGroup.name || addressGroup.members.length === 0) return
+    
+    const prefix = getPrefix('address-group')
+    const tag = addressGroup.tag || defaultTag
+    
+    const lines: string[] = []
+    const membersStr = addressGroup.members.map(m => `"${m}"`).join(' ')
+    lines.push(`${prefix} "${addressGroup.name}" static [ ${membersStr} ]`)
+    if (addressGroup.description) {
+      lines.push(`${prefix} "${addressGroup.name}" description "${addressGroup.description}"`)
+    }
+    if (tag) {
+      lines.push(`${prefix} "${addressGroup.name}" tag [ "${tag}" ]`)
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Generate Service Object Config
+  const generateServiceConfig = () => {
+    if (!serviceObj.name || !serviceObj.port) return
+    
+    const prefix = getPrefix('service')
+    const tag = serviceObj.tag || defaultTag
+    
+    const lines: string[] = []
+    lines.push(`${prefix} "${serviceObj.name}" protocol ${serviceObj.protocol} port ${serviceObj.port}`)
+    if (serviceObj.description) {
+      lines.push(`${prefix} "${serviceObj.name}" description "${serviceObj.description}"`)
+    }
+    if (tag) {
+      lines.push(`${prefix} "${serviceObj.name}" tag [ "${tag}" ]`)
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Generate NAT Rule Config
+  const generateNatConfig = () => {
+    if (!natRule.name || !natRule.translated_address) return
+    
+    const prefix = isShared 
+      ? `set shared pre-rulebase nat rules`
+      : `set rulebase nat rules`
+    
+    const lines: string[] = []
+    lines.push(`${prefix} "${natRule.name}" from "${natRule.source_zone}"`)
+    lines.push(`${prefix} "${natRule.name}" to "${natRule.dest_zone}"`)
+    lines.push(`${prefix} "${natRule.name}" source "${natRule.source_address}"`)
+    lines.push(`${prefix} "${natRule.name}" destination "${natRule.dest_address}"`)
+    lines.push(`${prefix} "${natRule.name}" service "${natRule.service}"`)
+    
+    if (natRule.nat_type === 'source') {
+      lines.push(`${prefix} "${natRule.name}" source-translation dynamic-ip-and-port translated-address "${natRule.translated_address}"`)
+    } else {
+      lines.push(`${prefix} "${natRule.name}" destination-translation translated-address "${natRule.translated_address}"`)
+      if (natRule.translated_port) {
+        lines.push(`${prefix} "${natRule.name}" destination-translation translated-port ${natRule.translated_port}`)
+      }
+    }
+    
+    if (natRule.description) {
+      lines.push(`${prefix} "${natRule.name}" description "${natRule.description}"`)
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Generate Security Rule Config
+  const generateSecurityConfig = () => {
+    if (!secRule.name) return
+    
+    const prefix = isShared 
+      ? `set shared pre-rulebase security rules`
+      : `set rulebase security rules`
+    
+    const tag = secRule.tag || defaultTag
+    
+    const lines: string[] = []
+    lines.push(`${prefix} "${secRule.name}" from "${secRule.source_zone}"`)
+    lines.push(`${prefix} "${secRule.name}" to "${secRule.dest_zone}"`)
+    lines.push(`${prefix} "${secRule.name}" source [ ${secRule.source_addresses.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${secRule.name}" destination [ ${secRule.dest_addresses.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${secRule.name}" service [ ${secRule.services.map(s => `"${s}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${secRule.name}" application [ ${secRule.applications.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${secRule.name}" action ${secRule.action}`)
+    
+    if (secRule.log_start) {
+      lines.push(`${prefix} "${secRule.name}" log-start yes`)
+    }
+    if (secRule.log_end) {
+      lines.push(`${prefix} "${secRule.name}" log-end yes`)
+    }
+    if (tag) {
+      lines.push(`${prefix} "${secRule.name}" tag [ "${tag}" ]`)
+    }
+    if (secRule.description) {
+      lines.push(`${prefix} "${secRule.name}" description "${secRule.description}"`)
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Generate Bulk Import Config
+  const generateBulkConfig = () => {
+    if (!bulkInput.trim()) return
+    
+    const prefix = getPrefix('address')
+    const tag = defaultTag
+    const lines: string[] = []
+    
+    // Parse input: one entry per line, format: "value" or "value,name" or "value,name,description"
+    const entries = bulkInput.split('\n').filter(line => line.trim())
+    
+    for (const entry of entries) {
+      const parts = entry.split(',').map(p => p.trim())
+      const value = parts[0]
+      const customName = parts[1] || ''
+      const description = parts[2] || ''
+      
+      if (!value) continue
+      
+      const objectName = customName 
+        ? generateObjectName(value, customName)
+        : generateObjectName(value)
+      
+      lines.push(`${prefix} "${objectName}" ${bulkType} "${value}"`)
+      if (description) {
+        lines.push(`${prefix} "${objectName}" description "${description}"`)
+      }
+      if (tag) {
+        lines.push(`${prefix} "${objectName}" tag [ "${tag}" ]`)
+      }
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+  }
+
+  // Bulk Import from File
+  const importFromFile = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.txt,.csv'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+      const text = await file.text()
+      setBulkInput(text)
+    }
+    input.click()
   }
 
   const copyConfig = async () => {
@@ -162,7 +320,25 @@ export function PanosPage() {
     a.click()
   }
 
-  const TabButton = ({ id, label }: { id: typeof activeTab; label: string }) => (
+  // Add member to address group
+  const addGroupMember = () => {
+    if (!newMember.trim()) return
+    if (addressGroup.members.includes(newMember.trim())) return
+    setAddressGroup(prev => ({
+      ...prev,
+      members: [...prev.members, newMember.trim()]
+    }))
+    setNewMember('')
+  }
+
+  const removeGroupMember = (member: string) => {
+    setAddressGroup(prev => ({
+      ...prev,
+      members: prev.members.filter(m => m !== member)
+    }))
+  }
+
+  const TabButton = ({ id, label }: { id: ActiveTab; label: string }) => (
     <button
       onClick={() => { setActiveTab(id); setGeneratedConfig('') }}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -217,27 +393,38 @@ export function PanosPage() {
                 className="w-40"
               />
             )}
+
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-text-muted" />
+              <Input
+                value={defaultTag}
+                onChange={(e) => setDefaultTag(e.target.value)}
+                placeholder="Standard-Tag (optional)"
+                className="w-48"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <TabButton id="address" label="Address Objects" />
-        <TabButton id="service" label="Service Objects" />
+        <TabButton id="group" label="Address Groups" />
+        <TabButton id="service" label="Services" />
+        <TabButton id="nat" label="NAT Rules" />
         <TabButton id="rule" label="Security Rules" />
+        <TabButton id="bulk" label="Bulk Import" />
       </div>
 
       {/* Address Object Form */}
       {activeTab === 'address' && (
         <Card variant="bordered">
-          <CardHeader>
-            <CardTitle>Address Object erstellen</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Address Object erstellen</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Name (optional - wird automatisch generiert)"
+                label="Name (optional)"
                 value={addressObj.name}
                 onChange={(e) => setAddressObj(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="z.B. WebServer-01"
@@ -261,27 +448,93 @@ export function PanosPage() {
                 placeholder={addressObj.type === 'ip-netmask' ? '192.168.1.0/24' : addressObj.type === 'ip-range' ? '192.168.1.1-192.168.1.10' : 'example.com'}
               />
               <Input
+                label="Tag (optional)"
+                value={addressObj.tag}
+                onChange={(e) => setAddressObj(prev => ({ ...prev, tag: e.target.value }))}
+                placeholder="z.B. Production"
+              />
+              <Input
                 label="Beschreibung (optional)"
                 value={addressObj.description}
                 onChange={(e) => setAddressObj(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Webserver im DMZ"
+                className="md:col-span-2"
               />
             </div>
-            
-            {/* Preview */}
             {addressObj.value && (
               <div className="mt-4 p-3 bg-bg-tertiary rounded-lg">
                 <span className="text-xs text-text-muted">Vorschau Objektname: </span>
                 <code className="text-sm text-accent-red">
-                  {addressObj.name 
-                    ? generateObjectName(addressObj.value, addressObj.name)
-                    : generateObjectName(addressObj.value)}
+                  {addressObj.name ? generateObjectName(addressObj.value, addressObj.name) : generateObjectName(addressObj.value)}
                 </code>
               </div>
             )}
-            
             <div className="mt-4">
               <Button onClick={generateAddressConfig} icon={<Shield className="w-4 h-4" />}>
+                Konfiguration generieren
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Address Group Form */}
+      {activeTab === 'group' && (
+        <Card variant="bordered">
+          <CardHeader><CardTitle>Address Group erstellen</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Gruppenname"
+                value={addressGroup.name}
+                onChange={(e) => setAddressGroup(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="z.B. WebServers"
+              />
+              <Input
+                label="Tag (optional)"
+                value={addressGroup.tag}
+                onChange={(e) => setAddressGroup(prev => ({ ...prev, tag: e.target.value }))}
+                placeholder="z.B. Production"
+              />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">Mitglieder</label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={newMember}
+                    onChange={(e) => setNewMember(e.target.value)}
+                    placeholder="Objektname hinzufügen"
+                    onKeyDown={(e) => e.key === 'Enter' && addGroupMember()}
+                    className="flex-1"
+                  />
+                  <Button onClick={addGroupMember} icon={<Plus className="w-4 h-4" />}>
+                    Hinzufügen
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-bg-tertiary rounded-lg">
+                  {addressGroup.members.length === 0 ? (
+                    <span className="text-text-muted text-sm">Keine Mitglieder</span>
+                  ) : (
+                    addressGroup.members.map(member => (
+                      <span key={member} className="inline-flex items-center gap-1 px-2 py-1 bg-accent-red/20 text-accent-red rounded text-sm">
+                        {member}
+                        <button onClick={() => removeGroupMember(member)} className="hover:text-white">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+              <Input
+                label="Beschreibung (optional)"
+                value={addressGroup.description}
+                onChange={(e) => setAddressGroup(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Alle Webserver"
+                className="md:col-span-2"
+              />
+            </div>
+            <div className="mt-4">
+              <Button onClick={generateGroupConfig} disabled={addressGroup.members.length === 0} icon={<Shield className="w-4 h-4" />}>
                 Konfiguration generieren
               </Button>
             </div>
@@ -292,9 +545,7 @@ export function PanosPage() {
       {/* Service Object Form */}
       {activeTab === 'service' && (
         <Card variant="bordered">
-          <CardHeader>
-            <CardTitle>Service Object erstellen</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Service Object erstellen</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -307,11 +558,12 @@ export function PanosPage() {
                 <label className="block text-sm font-medium text-text-secondary mb-2">Protokoll</label>
                 <select
                   value={serviceObj.protocol}
-                  onChange={(e) => setServiceObj(prev => ({ ...prev, protocol: e.target.value as 'tcp' | 'udp' }))}
+                  onChange={(e) => setServiceObj(prev => ({ ...prev, protocol: e.target.value as ServiceObject['protocol'] }))}
                   className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
                 >
                   <option value="tcp">TCP</option>
                   <option value="udp">UDP</option>
+                  <option value="sctp">SCTP</option>
                 </select>
               </div>
               <Input
@@ -321,10 +573,17 @@ export function PanosPage() {
                 placeholder="443 oder 8000-8100"
               />
               <Input
+                label="Tag (optional)"
+                value={serviceObj.tag}
+                onChange={(e) => setServiceObj(prev => ({ ...prev, tag: e.target.value }))}
+                placeholder="z.B. Web"
+              />
+              <Input
                 label="Beschreibung (optional)"
                 value={serviceObj.description}
                 onChange={(e) => setServiceObj(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Custom HTTPS Port"
+                className="md:col-span-2"
               />
             </div>
             <div className="mt-4">
@@ -336,25 +595,107 @@ export function PanosPage() {
         </Card>
       )}
 
-      {/* Security Rule Form */}
-      {activeTab === 'rule' && (
+      {/* NAT Rule Form */}
+      {activeTab === 'nat' && (
         <Card variant="bordered">
-          <CardHeader>
-            <CardTitle>Security Rule erstellen</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>NAT Rule erstellen</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Regel-Name"
-                value={rule.name}
-                onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
+                value={natRule.name}
+                onChange={(e) => setNatRule(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="z.B. SNAT-Internal"
+              />
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">NAT Typ</label>
+                <select
+                  value={natRule.nat_type}
+                  onChange={(e) => setNatRule(prev => ({ ...prev, nat_type: e.target.value as NatRule['nat_type'] }))}
+                  className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
+                >
+                  <option value="source">Source NAT (SNAT)</option>
+                  <option value="destination">Destination NAT (DNAT)</option>
+                </select>
+              </div>
+              <Input
+                label="Source Zone"
+                value={natRule.source_zone}
+                onChange={(e) => setNatRule(prev => ({ ...prev, source_zone: e.target.value }))}
+                placeholder="trust"
+              />
+              <Input
+                label="Destination Zone"
+                value={natRule.dest_zone}
+                onChange={(e) => setNatRule(prev => ({ ...prev, dest_zone: e.target.value }))}
+                placeholder="untrust"
+              />
+              <Input
+                label="Source Address"
+                value={natRule.source_address}
+                onChange={(e) => setNatRule(prev => ({ ...prev, source_address: e.target.value }))}
+                placeholder="any oder Objektname"
+              />
+              <Input
+                label="Destination Address"
+                value={natRule.dest_address}
+                onChange={(e) => setNatRule(prev => ({ ...prev, dest_address: e.target.value }))}
+                placeholder="any oder Objektname"
+              />
+              <Input
+                label="Service"
+                value={natRule.service}
+                onChange={(e) => setNatRule(prev => ({ ...prev, service: e.target.value }))}
+                placeholder="any oder Service-Name"
+              />
+              <Input
+                label="Translated Address"
+                value={natRule.translated_address}
+                onChange={(e) => setNatRule(prev => ({ ...prev, translated_address: e.target.value }))}
+                placeholder="Ziel-IP oder Objektname"
+              />
+              {natRule.nat_type === 'destination' && (
+                <Input
+                  label="Translated Port (optional)"
+                  value={natRule.translated_port}
+                  onChange={(e) => setNatRule(prev => ({ ...prev, translated_port: e.target.value }))}
+                  placeholder="z.B. 8080"
+                />
+              )}
+              <Input
+                label="Beschreibung (optional)"
+                value={natRule.description}
+                onChange={(e) => setNatRule(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="NAT für interne Server"
+                className="md:col-span-2"
+              />
+            </div>
+            <div className="mt-4">
+              <Button onClick={generateNatConfig} icon={<Shield className="w-4 h-4" />}>
+                Konfiguration generieren
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Security Rule Form */}
+      {activeTab === 'rule' && (
+        <Card variant="bordered">
+          <CardHeader><CardTitle>Security Rule erstellen</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Regel-Name"
+                value={secRule.name}
+                onChange={(e) => setSecRule(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="z.B. Allow-Web-Traffic"
               />
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">Aktion</label>
                 <select
-                  value={rule.action}
-                  onChange={(e) => setRule(prev => ({ ...prev, action: e.target.value as SecurityRule['action'] }))}
+                  value={secRule.action}
+                  onChange={(e) => setSecRule(prev => ({ ...prev, action: e.target.value as SecurityRule['action'] }))}
                   className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
                 >
                   <option value="allow">Allow</option>
@@ -364,49 +705,120 @@ export function PanosPage() {
               </div>
               <Input
                 label="Source Zone"
-                value={rule.source_zone}
-                onChange={(e) => setRule(prev => ({ ...prev, source_zone: e.target.value }))}
+                value={secRule.source_zone}
+                onChange={(e) => setSecRule(prev => ({ ...prev, source_zone: e.target.value }))}
                 placeholder="trust"
               />
               <Input
                 label="Destination Zone"
-                value={rule.dest_zone}
-                onChange={(e) => setRule(prev => ({ ...prev, dest_zone: e.target.value }))}
+                value={secRule.dest_zone}
+                onChange={(e) => setSecRule(prev => ({ ...prev, dest_zone: e.target.value }))}
                 placeholder="untrust"
               />
               <Input
                 label="Source Addresses (kommagetrennt)"
-                value={rule.source_addresses.join(', ')}
-                onChange={(e) => setRule(prev => ({ ...prev, source_addresses: e.target.value.split(',').map(s => s.trim()) }))}
+                value={secRule.source_addresses.join(', ')}
+                onChange={(e) => setSecRule(prev => ({ ...prev, source_addresses: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
                 placeholder="any"
               />
               <Input
                 label="Destination Addresses (kommagetrennt)"
-                value={rule.dest_addresses.join(', ')}
-                onChange={(e) => setRule(prev => ({ ...prev, dest_addresses: e.target.value.split(',').map(s => s.trim()) }))}
+                value={secRule.dest_addresses.join(', ')}
+                onChange={(e) => setSecRule(prev => ({ ...prev, dest_addresses: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
                 placeholder="any"
               />
               <Input
                 label="Services (kommagetrennt)"
-                value={rule.services.join(', ')}
-                onChange={(e) => setRule(prev => ({ ...prev, services: e.target.value.split(',').map(s => s.trim()) }))}
+                value={secRule.services.join(', ')}
+                onChange={(e) => setSecRule(prev => ({ ...prev, services: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
                 placeholder="application-default"
+              />
+              <Input
+                label="Applications (kommagetrennt)"
+                value={secRule.applications.join(', ')}
+                onChange={(e) => setSecRule(prev => ({ ...prev, applications: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
+                placeholder="any"
+              />
+              <Input
+                label="Tag (optional)"
+                value={secRule.tag}
+                onChange={(e) => setSecRule(prev => ({ ...prev, tag: e.target.value }))}
+                placeholder="z.B. Web-Rules"
               />
               <div className="flex gap-4 items-end">
                 <Checkbox
                   label="Log Start"
-                  checked={rule.log_start}
-                  onChange={(e) => setRule(prev => ({ ...prev, log_start: e.target.checked }))}
+                  checked={secRule.log_start}
+                  onChange={(e) => setSecRule(prev => ({ ...prev, log_start: e.target.checked }))}
                 />
                 <Checkbox
                   label="Log End"
-                  checked={rule.log_end}
-                  onChange={(e) => setRule(prev => ({ ...prev, log_end: e.target.checked }))}
+                  checked={secRule.log_end}
+                  onChange={(e) => setSecRule(prev => ({ ...prev, log_end: e.target.checked }))}
                 />
               </div>
+              <Input
+                label="Beschreibung (optional)"
+                value={secRule.description}
+                onChange={(e) => setSecRule(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Regel-Beschreibung"
+                className="md:col-span-2"
+              />
             </div>
             <div className="mt-4">
-              <Button onClick={generateRuleConfig} icon={<Shield className="w-4 h-4" />}>
+              <Button onClick={generateSecurityConfig} icon={<Shield className="w-4 h-4" />}>
+                Konfiguration generieren
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bulk Import Form */}
+      {activeTab === 'bulk' && (
+        <Card variant="bordered">
+          <CardHeader><CardTitle>Bulk Import</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Typ</label>
+                  <select
+                    value={bulkType}
+                    onChange={(e) => setBulkType(e.target.value as 'ip-netmask' | 'fqdn')}
+                    className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
+                  >
+                    <option value="ip-netmask">IP/Netmask</option>
+                    <option value="fqdn">FQDN</option>
+                  </select>
+                </div>
+                <Button variant="secondary" onClick={importFromFile} icon={<Upload className="w-4 h-4" />}>
+                  Aus Datei importieren
+                </Button>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Adressen eingeben (eine pro Zeile)
+                </label>
+                <p className="text-xs text-text-muted mb-2">
+                  Format: <code className="bg-bg-tertiary px-1 rounded">wert</code> oder{' '}
+                  <code className="bg-bg-tertiary px-1 rounded">wert,name</code> oder{' '}
+                  <code className="bg-bg-tertiary px-1 rounded">wert,name,beschreibung</code>
+                </p>
+                <textarea
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                  placeholder={`192.168.1.0/24\n10.0.0.1/32,Server1\n172.16.0.0/16,Network,Internes Netzwerk`}
+                  className="w-full h-48 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-blue resize-none"
+                />
+              </div>
+              
+              <div className="text-sm text-text-muted">
+                {bulkInput.split('\n').filter(l => l.trim()).length} Einträge erkannt
+              </div>
+              
+              <Button onClick={generateBulkConfig} icon={<Shield className="w-4 h-4" />}>
                 Konfiguration generieren
               </Button>
             </div>
@@ -441,7 +853,7 @@ export function PanosPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <pre className="bg-bg-tertiary p-4 rounded-lg overflow-x-auto text-sm font-mono text-accent-green whitespace-pre-wrap">
+            <pre className="bg-bg-tertiary p-4 rounded-lg overflow-x-auto text-sm font-mono text-accent-green whitespace-pre-wrap max-h-96">
               {generatedConfig}
             </pre>
           </CardContent>
