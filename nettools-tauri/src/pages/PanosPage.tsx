@@ -1,308 +1,255 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Checkbox } from '@/components/ui'
-import { Shield, Copy, Check, Download, Plus, Trash2, Upload, Tag } from 'lucide-react'
+import { Shield, Copy, Check, Download, Trash2, RefreshCw, FileText, Tag, Settings } from 'lucide-react'
 
-// Types
-interface AddressObject {
-  name: string
-  type: 'ip-netmask' | 'ip-range' | 'fqdn'
-  value: string
-  description: string
-  tag: string
-}
-
-interface AddressGroup {
-  name: string
-  members: string[]
-  description: string
-  tag: string
-}
-
-interface ServiceObject {
-  name: string
-  protocol: 'tcp' | 'udp' | 'sctp'
-  port: string
-  description: string
-  tag: string
-}
-
-interface NatRule {
-  name: string
-  nat_type: 'source' | 'destination'
-  source_zone: string
-  dest_zone: string
-  source_address: string
-  dest_address: string
-  service: string
-  translated_address: string
-  translated_port: string
-  description: string
-}
-
-interface SecurityRule {
-  name: string
-  source_zone: string
-  dest_zone: string
-  source_addresses: string[]
-  dest_addresses: string[]
-  services: string[]
-  applications: string[]
-  action: 'allow' | 'deny' | 'drop'
-  log_start: boolean
-  log_end: boolean
-  tag: string
-  description: string
-}
-
-type NameFormat = 'ipaddress_name' | 'name_ipaddress' | 'custom_prefix' | 'ip_only'
-type ActiveTab = 'address' | 'group' | 'service' | 'nat' | 'rule' | 'bulk'
+type ActiveTab = 'addresses' | 'policies' | 'services' | 'schedule' | 'appfilter' | 'urlcategory'
+type NameFormat = 'name_ip' | 'ip_name' | 'name_only' | 'ip_only'
+type Separator = '_' | '-' | '.'
 
 export function PanosPage() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('address')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('addresses')
   const [copied, setCopied] = useState(false)
   
   // Global Settings
   const [isShared, setIsShared] = useState(true)
-  const [nameFormat, setNameFormat] = useState<NameFormat>('ipaddress_name')
-  const [customPrefix, setCustomPrefix] = useState('')
+  const [nameFormat, setNameFormat] = useState<NameFormat>('name_ip')
+  const [separator, setSeparator] = useState<Separator>('_')
   const [defaultTag, setDefaultTag] = useState('')
   
-  // Address Object State
-  const [addressObj, setAddressObj] = useState<AddressObject>({
-    name: '', type: 'ip-netmask', value: '', description: '', tag: ''
-  })
+  // Address Generator State - Two Windows
+  const [baseNames, setBaseNames] = useState('')
+  const [ipAddresses, setIpAddresses] = useState('')
+  const [addressType, setAddressType] = useState<'ip-netmask' | 'fqdn'>('ip-netmask')
   
-  // Address Group State
-  const [addressGroup, setAddressGroup] = useState<AddressGroup>({
-    name: '', members: [], description: '', tag: ''
-  })
-  const [newMember, setNewMember] = useState('')
+  // Security Policy State
+  const [policyName, setPolicyName] = useState('')
+  const [sourceZone, setSourceZone] = useState('trust')
+  const [destZone, setDestZone] = useState('untrust')
+  const [sourceAddresses, setSourceAddresses] = useState('')
+  const [destAddresses, setDestAddresses] = useState('')
+  const [services, setServices] = useState('application-default')
+  const [applications, setApplications] = useState('any')
+  const [action, setAction] = useState<'allow' | 'deny' | 'drop'>('allow')
+  const [logStart, setLogStart] = useState(false)
+  const [logEnd, setLogEnd] = useState(true)
   
   // Service Object State
-  const [serviceObj, setServiceObj] = useState<ServiceObject>({
-    name: '', protocol: 'tcp', port: '', description: '', tag: ''
-  })
+  const [serviceName, setServiceName] = useState('')
+  const [protocol, setProtocol] = useState<'tcp' | 'udp' | 'sctp'>('tcp')
+  const [port, setPort] = useState('')
+  const [serviceDescription, setServiceDescription] = useState('')
+
+  // Schedule State
+  const [scheduleName, setScheduleName] = useState('')
+  const [scheduleType, setScheduleType] = useState<'recurring' | 'non-recurring'>('recurring')
+  const [scheduleDays, setScheduleDays] = useState<string[]>(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+  const [scheduleTimeStart, setScheduleTimeStart] = useState('08:00')
+  const [scheduleTimeEnd, setScheduleTimeEnd] = useState('18:00')
+
+  // App Filter State
+  const [appFilterName, setAppFilterName] = useState('')
+  const [appCategories, setAppCategories] = useState('')
+  const [appRisk, setAppRisk] = useState<string[]>([])
   
-  // NAT Rule State
-  const [natRule, setNatRule] = useState<NatRule>({
-    name: '', nat_type: 'source', source_zone: 'trust', dest_zone: 'untrust',
-    source_address: 'any', dest_address: 'any', service: 'any',
-    translated_address: '', translated_port: '', description: ''
-  })
-  
-  // Security Rule State
-  const [secRule, setSecRule] = useState<SecurityRule>({
-    name: '', source_zone: 'trust', dest_zone: 'untrust',
-    source_addresses: ['any'], dest_addresses: ['any'],
-    services: ['application-default'], applications: ['any'],
-    action: 'allow', log_start: false, log_end: true,
-    tag: '', description: ''
-  })
-  
-  // Bulk Import State
-  const [bulkInput, setBulkInput] = useState('')
-  const [bulkType, setBulkType] = useState<'ip-netmask' | 'fqdn'>('ip-netmask')
+  // URL Category State
+  const [urlCategoryName, setUrlCategoryName] = useState('')
+  const [urlList, setUrlList] = useState('')
 
   const [generatedConfig, setGeneratedConfig] = useState('')
+  const [commandCount, setCommandCount] = useState(0)
 
-  // Helper: Generate name based on format
-  const generateObjectName = (value: string, customName?: string): string => {
-    const cleanValue = value.replace(/\//g, '_').replace(/\./g, '-').replace(/:/g, '-')
-    
-    switch (nameFormat) {
-      case 'ipaddress_name':
-        return customName ? `${cleanValue}_${customName}` : cleanValue
-      case 'name_ipaddress':
-        return customName ? `${customName}_${cleanValue}` : cleanValue
-      case 'custom_prefix':
-        return customPrefix ? `${customPrefix}_${cleanValue}` : cleanValue
-      case 'ip_only':
-        return cleanValue
-      default:
-        return cleanValue
-    }
-  }
-
-  // Get command prefix based on shared setting
+  // Helper: Get command prefix
   const getPrefix = (objectType: string) => {
     return isShared ? `set shared ${objectType}` : `set ${objectType}`
   }
 
-  // Generate Address Object Config
+  // Generate object name based on format
+  const generateObjectName = (name: string, ip: string): string => {
+    const cleanIp = ip.replace(/\//g, '_').replace(/\./g, '-')
+    const cleanName = name.trim()
+    
+    switch (nameFormat) {
+      case 'name_ip':
+        return cleanName ? `${cleanName}${separator}${cleanIp}` : cleanIp
+      case 'ip_name':
+        return cleanName ? `${cleanIp}${separator}${cleanName}` : cleanIp
+      case 'name_only':
+        return cleanName || cleanIp
+      case 'ip_only':
+        return cleanIp
+      default:
+        return cleanIp
+    }
+  }
+
+  // Generate Address Objects from two lists
   const generateAddressConfig = () => {
-    if (!addressObj.value) return
+    const names = baseNames.split('\n').map(n => n.trim()).filter(n => n)
+    const ips = ipAddresses.split('\n').map(ip => ip.trim()).filter(ip => ip)
     
-    const objectName = addressObj.name 
-      ? generateObjectName(addressObj.value, addressObj.name)
-      : generateObjectName(addressObj.value)
-    
+    if (ips.length === 0) {
+      setGeneratedConfig('// Fehler: Keine IP-Adressen eingegeben')
+      setCommandCount(0)
+      return
+    }
+
     const prefix = getPrefix('address')
-    const tag = addressObj.tag || defaultTag
-    
     const lines: string[] = []
-    lines.push(`${prefix} "${objectName}" ${addressObj.type} "${addressObj.value}"`)
-    if (addressObj.description) {
-      lines.push(`${prefix} "${objectName}" description "${addressObj.description}"`)
-    }
-    if (tag) {
-      lines.push(`${prefix} "${objectName}" tag [ "${tag}" ]`)
-    }
     
-    setGeneratedConfig(lines.join('\n'))
-  }
-
-  // Generate Address Group Config
-  const generateGroupConfig = () => {
-    if (!addressGroup.name || addressGroup.members.length === 0) return
+    // Match names with IPs line by line
+    const maxLength = Math.max(names.length, ips.length)
     
-    const prefix = getPrefix('address-group')
-    const tag = addressGroup.tag || defaultTag
-    
-    const lines: string[] = []
-    const membersStr = addressGroup.members.map(m => `"${m}"`).join(' ')
-    lines.push(`${prefix} "${addressGroup.name}" static [ ${membersStr} ]`)
-    if (addressGroup.description) {
-      lines.push(`${prefix} "${addressGroup.name}" description "${addressGroup.description}"`)
-    }
-    if (tag) {
-      lines.push(`${prefix} "${addressGroup.name}" tag [ "${tag}" ]`)
-    }
-    
-    setGeneratedConfig(lines.join('\n'))
-  }
-
-  // Generate Service Object Config
-  const generateServiceConfig = () => {
-    if (!serviceObj.name || !serviceObj.port) return
-    
-    const prefix = getPrefix('service')
-    const tag = serviceObj.tag || defaultTag
-    
-    const lines: string[] = []
-    lines.push(`${prefix} "${serviceObj.name}" protocol ${serviceObj.protocol} port ${serviceObj.port}`)
-    if (serviceObj.description) {
-      lines.push(`${prefix} "${serviceObj.name}" description "${serviceObj.description}"`)
-    }
-    if (tag) {
-      lines.push(`${prefix} "${serviceObj.name}" tag [ "${tag}" ]`)
-    }
-    
-    setGeneratedConfig(lines.join('\n'))
-  }
-
-  // Generate NAT Rule Config
-  const generateNatConfig = () => {
-    if (!natRule.name || !natRule.translated_address) return
-    
-    const prefix = isShared 
-      ? `set shared pre-rulebase nat rules`
-      : `set rulebase nat rules`
-    
-    const lines: string[] = []
-    lines.push(`${prefix} "${natRule.name}" from "${natRule.source_zone}"`)
-    lines.push(`${prefix} "${natRule.name}" to "${natRule.dest_zone}"`)
-    lines.push(`${prefix} "${natRule.name}" source "${natRule.source_address}"`)
-    lines.push(`${prefix} "${natRule.name}" destination "${natRule.dest_address}"`)
-    lines.push(`${prefix} "${natRule.name}" service "${natRule.service}"`)
-    
-    if (natRule.nat_type === 'source') {
-      lines.push(`${prefix} "${natRule.name}" source-translation dynamic-ip-and-port translated-address "${natRule.translated_address}"`)
-    } else {
-      lines.push(`${prefix} "${natRule.name}" destination-translation translated-address "${natRule.translated_address}"`)
-      if (natRule.translated_port) {
-        lines.push(`${prefix} "${natRule.name}" destination-translation translated-port ${natRule.translated_port}`)
+    for (let i = 0; i < maxLength; i++) {
+      const ip = ips[i] || ips[ips.length - 1] // Use last IP if not enough
+      const name = names[i] || '' // Empty name if not enough
+      
+      if (!ip) continue
+      
+      const objectName = generateObjectName(name, ip)
+      
+      // Add /32 if no mask specified and type is ip-netmask
+      let ipValue = ip
+      if (addressType === 'ip-netmask' && !ip.includes('/')) {
+        ipValue = `${ip}/32`
+      }
+      
+      lines.push(`${prefix} "${objectName}" ${addressType} "${ipValue}"`)
+      
+      if (defaultTag) {
+        lines.push(`${prefix} "${objectName}" tag [ "${defaultTag}" ]`)
       }
     }
     
-    if (natRule.description) {
-      lines.push(`${prefix} "${natRule.name}" description "${natRule.description}"`)
-    }
-    
     setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
   }
 
-  // Generate Security Rule Config
-  const generateSecurityConfig = () => {
-    if (!secRule.name) return
-    
+  // Generate Security Policy
+  const generatePolicyConfig = () => {
+    if (!policyName) {
+      setGeneratedConfig('// Fehler: Kein Regel-Name eingegeben')
+      setCommandCount(0)
+      return
+    }
+
     const prefix = isShared 
       ? `set shared pre-rulebase security rules`
       : `set rulebase security rules`
     
-    const tag = secRule.tag || defaultTag
+    const srcAddrs = sourceAddresses.split(',').map(s => s.trim()).filter(s => s) || ['any']
+    const dstAddrs = destAddresses.split(',').map(s => s.trim()).filter(s => s) || ['any']
+    const svcList = services.split(',').map(s => s.trim()).filter(s => s) || ['application-default']
+    const appList = applications.split(',').map(s => s.trim()).filter(s => s) || ['any']
     
     const lines: string[] = []
-    lines.push(`${prefix} "${secRule.name}" from "${secRule.source_zone}"`)
-    lines.push(`${prefix} "${secRule.name}" to "${secRule.dest_zone}"`)
-    lines.push(`${prefix} "${secRule.name}" source [ ${secRule.source_addresses.map(a => `"${a}"`).join(' ')} ]`)
-    lines.push(`${prefix} "${secRule.name}" destination [ ${secRule.dest_addresses.map(a => `"${a}"`).join(' ')} ]`)
-    lines.push(`${prefix} "${secRule.name}" service [ ${secRule.services.map(s => `"${s}"`).join(' ')} ]`)
-    lines.push(`${prefix} "${secRule.name}" application [ ${secRule.applications.map(a => `"${a}"`).join(' ')} ]`)
-    lines.push(`${prefix} "${secRule.name}" action ${secRule.action}`)
+    lines.push(`${prefix} "${policyName}" from "${sourceZone}"`)
+    lines.push(`${prefix} "${policyName}" to "${destZone}"`)
+    lines.push(`${prefix} "${policyName}" source [ ${srcAddrs.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${policyName}" destination [ ${dstAddrs.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${policyName}" service [ ${svcList.map(s => `"${s}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${policyName}" application [ ${appList.map(a => `"${a}"`).join(' ')} ]`)
+    lines.push(`${prefix} "${policyName}" action ${action}`)
     
-    if (secRule.log_start) {
-      lines.push(`${prefix} "${secRule.name}" log-start yes`)
+    if (logStart) lines.push(`${prefix} "${policyName}" log-start yes`)
+    if (logEnd) lines.push(`${prefix} "${policyName}" log-end yes`)
+    if (defaultTag) lines.push(`${prefix} "${policyName}" tag [ "${defaultTag}" ]`)
+    
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
+  }
+
+  // Generate Service Object
+  const generateServiceConfig = () => {
+    if (!serviceName || !port) {
+      setGeneratedConfig('// Fehler: Name und Port erforderlich')
+      setCommandCount(0)
+      return
     }
-    if (secRule.log_end) {
-      lines.push(`${prefix} "${secRule.name}" log-end yes`)
+
+    const prefix = getPrefix('service')
+    const lines: string[] = []
+    
+    lines.push(`${prefix} "${serviceName}" protocol ${protocol} port ${port}`)
+    if (serviceDescription) {
+      lines.push(`${prefix} "${serviceName}" description "${serviceDescription}"`)
     }
-    if (tag) {
-      lines.push(`${prefix} "${secRule.name}" tag [ "${tag}" ]`)
-    }
-    if (secRule.description) {
-      lines.push(`${prefix} "${secRule.name}" description "${secRule.description}"`)
+    if (defaultTag) {
+      lines.push(`${prefix} "${serviceName}" tag [ "${defaultTag}" ]`)
     }
     
     setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
   }
 
-  // Generate Bulk Import Config
-  const generateBulkConfig = () => {
-    if (!bulkInput.trim()) return
-    
-    const prefix = getPrefix('address')
-    const tag = defaultTag
+  // Generate Schedule
+  const generateScheduleConfig = () => {
+    if (!scheduleName) {
+      setGeneratedConfig('// Fehler: Kein Schedule-Name eingegeben')
+      setCommandCount(0)
+      return
+    }
+
+    const prefix = getPrefix('schedule')
     const lines: string[] = []
     
-    // Parse input: one entry per line, format: "value" or "value,name" or "value,name,description"
-    const entries = bulkInput.split('\n').filter(line => line.trim())
-    
-    for (const entry of entries) {
-      const parts = entry.split(',').map(p => p.trim())
-      const value = parts[0]
-      const customName = parts[1] || ''
-      const description = parts[2] || ''
-      
-      if (!value) continue
-      
-      const objectName = customName 
-        ? generateObjectName(value, customName)
-        : generateObjectName(value)
-      
-      lines.push(`${prefix} "${objectName}" ${bulkType} "${value}"`)
-      if (description) {
-        lines.push(`${prefix} "${objectName}" description "${description}"`)
+    if (scheduleType === 'recurring') {
+      lines.push(`${prefix} "${scheduleName}" schedule-type recurring weekly`)
+      for (const day of scheduleDays) {
+        lines.push(`${prefix} "${scheduleName}" schedule-type recurring weekly ${day} [ "${scheduleTimeStart}-${scheduleTimeEnd}" ]`)
       }
-      if (tag) {
-        lines.push(`${prefix} "${objectName}" tag [ "${tag}" ]`)
-      }
+    } else {
+      lines.push(`${prefix} "${scheduleName}" schedule-type non-recurring [ "${scheduleTimeStart}-${scheduleTimeEnd}" ]`)
     }
     
     setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
   }
 
-  // Bulk Import from File
-  const importFromFile = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.txt,.csv'
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (!file) return
-      const text = await file.text()
-      setBulkInput(text)
+  // Generate App Filter
+  const generateAppFilterConfig = () => {
+    if (!appFilterName) {
+      setGeneratedConfig('// Fehler: Kein Filter-Name eingegeben')
+      setCommandCount(0)
+      return
     }
-    input.click()
+
+    const prefix = getPrefix('application-filter')
+    const lines: string[] = []
+    
+    lines.push(`${prefix} "${appFilterName}"`)
+    
+    if (appCategories) {
+      const cats = appCategories.split(',').map(c => c.trim()).filter(c => c)
+      if (cats.length > 0) {
+        lines.push(`${prefix} "${appFilterName}" category [ ${cats.map(c => `"${c}"`).join(' ')} ]`)
+      }
+    }
+    
+    if (appRisk.length > 0) {
+      lines.push(`${prefix} "${appFilterName}" risk [ ${appRisk.join(' ')} ]`)
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
+  }
+
+  // Generate URL Category
+  const generateUrlCategoryConfig = () => {
+    if (!urlCategoryName || !urlList.trim()) {
+      setGeneratedConfig('// Fehler: Name und URLs erforderlich')
+      setCommandCount(0)
+      return
+    }
+
+    const prefix = getPrefix('profiles custom-url-category')
+    const lines: string[] = []
+    const urls = urlList.split('\n').map(u => u.trim()).filter(u => u)
+    
+    lines.push(`${prefix} "${urlCategoryName}" type "URL List"`)
+    lines.push(`${prefix} "${urlCategoryName}" list [ ${urls.map(u => `"${u}"`).join(' ')} ]`)
+    
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
   }
 
   const copyConfig = async () => {
@@ -320,36 +267,28 @@ export function PanosPage() {
     a.click()
   }
 
-  // Add member to address group
-  const addGroupMember = () => {
-    if (!newMember.trim()) return
-    if (addressGroup.members.includes(newMember.trim())) return
-    setAddressGroup(prev => ({
-      ...prev,
-      members: [...prev.members, newMember.trim()]
-    }))
-    setNewMember('')
+  const clearAll = () => {
+    setGeneratedConfig('')
+    setCommandCount(0)
   }
 
-  const removeGroupMember = (member: string) => {
-    setAddressGroup(prev => ({
-      ...prev,
-      members: prev.members.filter(m => m !== member)
-    }))
-  }
-
-  const TabButton = ({ id, label }: { id: ActiveTab; label: string }) => (
+  const TabButton = ({ id, label, icon }: { id: ActiveTab; label: string; icon?: React.ReactNode }) => (
     <button
-      onClick={() => { setActiveTab(id); setGeneratedConfig('') }}
-      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+      onClick={() => { setActiveTab(id); setGeneratedConfig(''); setCommandCount(0) }}
+      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
         activeTab === id 
           ? 'bg-accent-red text-white' 
           : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
       }`}
     >
+      {icon}
       {label}
     </button>
   )
+
+  // Count lines in each textarea
+  const nameCount = baseNames.split('\n').filter(n => n.trim()).length
+  const ipCount = ipAddresses.split('\n').filter(n => n.trim()).length
 
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
@@ -372,35 +311,39 @@ export function PanosPage() {
             />
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-text-secondary">Namensformat:</span>
+              <span className="text-sm text-text-secondary">Separator:</span>
+              <select
+                value={separator}
+                onChange={(e) => setSeparator(e.target.value as Separator)}
+                className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-red"
+              >
+                <option value="_">_ (Underscore)</option>
+                <option value="-">- (Dash)</option>
+                <option value=".">. (Dot)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-text-secondary">Format:</span>
               <select
                 value={nameFormat}
                 onChange={(e) => setNameFormat(e.target.value as NameFormat)}
                 className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:border-accent-red"
               >
-                <option value="ipaddress_name">IP_Name</option>
-                <option value="name_ipaddress">Name_IP</option>
-                <option value="custom_prefix">Eigener Prefix</option>
+                <option value="name_ip">Name_IP</option>
+                <option value="ip_name">IP_Name</option>
+                <option value="name_only">Nur Name</option>
                 <option value="ip_only">Nur IP</option>
               </select>
             </div>
-
-            {nameFormat === 'custom_prefix' && (
-              <Input
-                value={customPrefix}
-                onChange={(e) => setCustomPrefix(e.target.value)}
-                placeholder="Prefix eingeben"
-                className="w-40"
-              />
-            )}
 
             <div className="flex items-center gap-2">
               <Tag className="w-4 h-4 text-text-muted" />
               <Input
                 value={defaultTag}
                 onChange={(e) => setDefaultTag(e.target.value)}
-                placeholder="Standard-Tag (optional)"
-                className="w-48"
+                placeholder="Standard-Tag"
+                className="w-36"
               />
             </div>
           </div>
@@ -409,464 +352,280 @@ export function PanosPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
-        <TabButton id="address" label="Address Objects" />
-        <TabButton id="group" label="Address Groups" />
-        <TabButton id="service" label="Services" />
-        <TabButton id="nat" label="NAT Rules" />
-        <TabButton id="rule" label="Security Rules" />
-        <TabButton id="bulk" label="Bulk Import" />
+        <TabButton id="addresses" label="Addresses" icon={<Shield className="w-4 h-4" />} />
+        <TabButton id="policies" label="Policies" />
+        <TabButton id="services" label="Services" />
+        <TabButton id="schedule" label="Schedule" />
+        <TabButton id="appfilter" label="App Filter" />
+        <TabButton id="urlcategory" label="URL Category" />
       </div>
 
-      {/* Address Object Form */}
-      {activeTab === 'address' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>Address Object erstellen</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Name (optional)"
-                value={addressObj.name}
-                onChange={(e) => setAddressObj(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="z.B. WebServer-01"
-              />
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Typ</label>
-                <select
-                  value={addressObj.type}
-                  onChange={(e) => setAddressObj(prev => ({ ...prev, type: e.target.value as AddressObject['type'] }))}
-                  className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
-                >
-                  <option value="ip-netmask">IP/Netmask</option>
-                  <option value="ip-range">IP Range</option>
-                  <option value="fqdn">FQDN</option>
-                </select>
-              </div>
-              <Input
-                label="Wert"
-                value={addressObj.value}
-                onChange={(e) => setAddressObj(prev => ({ ...prev, value: e.target.value }))}
-                placeholder={addressObj.type === 'ip-netmask' ? '192.168.1.0/24' : addressObj.type === 'ip-range' ? '192.168.1.1-192.168.1.10' : 'example.com'}
-              />
-              <Input
-                label="Tag (optional)"
-                value={addressObj.tag}
-                onChange={(e) => setAddressObj(prev => ({ ...prev, tag: e.target.value }))}
-                placeholder="z.B. Production"
-              />
-              <Input
-                label="Beschreibung (optional)"
-                value={addressObj.description}
-                onChange={(e) => setAddressObj(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Webserver im DMZ"
-                className="md:col-span-2"
-              />
-            </div>
-            {addressObj.value && (
-              <div className="mt-4 p-3 bg-bg-tertiary rounded-lg">
-                <span className="text-xs text-text-muted">Vorschau Objektname: </span>
-                <code className="text-sm text-accent-red">
-                  {addressObj.name ? generateObjectName(addressObj.value, addressObj.name) : generateObjectName(addressObj.value)}
-                </code>
-              </div>
-            )}
-            <div className="mt-4">
-              <Button onClick={generateAddressConfig} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Address Group Form */}
-      {activeTab === 'group' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>Address Group erstellen</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Gruppenname"
-                value={addressGroup.name}
-                onChange={(e) => setAddressGroup(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="z.B. WebServers"
-              />
-              <Input
-                label="Tag (optional)"
-                value={addressGroup.tag}
-                onChange={(e) => setAddressGroup(prev => ({ ...prev, tag: e.target.value }))}
-                placeholder="z.B. Production"
-              />
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-text-secondary mb-2">Mitglieder</label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={newMember}
-                    onChange={(e) => setNewMember(e.target.value)}
-                    placeholder="Objektname hinzufügen"
-                    onKeyDown={(e) => e.key === 'Enter' && addGroupMember()}
-                    className="flex-1"
-                  />
-                  <Button onClick={addGroupMember} icon={<Plus className="w-4 h-4" />}>
-                    Hinzufügen
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-bg-tertiary rounded-lg">
-                  {addressGroup.members.length === 0 ? (
-                    <span className="text-text-muted text-sm">Keine Mitglieder</span>
-                  ) : (
-                    addressGroup.members.map(member => (
-                      <span key={member} className="inline-flex items-center gap-1 px-2 py-1 bg-accent-red/20 text-accent-red rounded text-sm">
-                        {member}
-                        <button onClick={() => removeGroupMember(member)} className="hover:text-white">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-              <Input
-                label="Beschreibung (optional)"
-                value={addressGroup.description}
-                onChange={(e) => setAddressGroup(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Alle Webserver"
-                className="md:col-span-2"
-              />
-            </div>
-            <div className="mt-4">
-              <Button onClick={generateGroupConfig} disabled={addressGroup.members.length === 0} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Service Object Form */}
-      {activeTab === 'service' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>Service Object erstellen</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Name"
-                value={serviceObj.name}
-                onChange={(e) => setServiceObj(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="z.B. Custom-HTTPS"
-              />
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Protokoll</label>
-                <select
-                  value={serviceObj.protocol}
-                  onChange={(e) => setServiceObj(prev => ({ ...prev, protocol: e.target.value as ServiceObject['protocol'] }))}
-                  className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
-                >
-                  <option value="tcp">TCP</option>
-                  <option value="udp">UDP</option>
-                  <option value="sctp">SCTP</option>
-                </select>
-              </div>
-              <Input
-                label="Port(s)"
-                value={serviceObj.port}
-                onChange={(e) => setServiceObj(prev => ({ ...prev, port: e.target.value }))}
-                placeholder="443 oder 8000-8100"
-              />
-              <Input
-                label="Tag (optional)"
-                value={serviceObj.tag}
-                onChange={(e) => setServiceObj(prev => ({ ...prev, tag: e.target.value }))}
-                placeholder="z.B. Web"
-              />
-              <Input
-                label="Beschreibung (optional)"
-                value={serviceObj.description}
-                onChange={(e) => setServiceObj(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Custom HTTPS Port"
-                className="md:col-span-2"
-              />
-            </div>
-            <div className="mt-4">
-              <Button onClick={generateServiceConfig} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* NAT Rule Form */}
-      {activeTab === 'nat' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>NAT Rule erstellen</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Regel-Name"
-                value={natRule.name}
-                onChange={(e) => setNatRule(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="z.B. SNAT-Internal"
-              />
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">NAT Typ</label>
-                <select
-                  value={natRule.nat_type}
-                  onChange={(e) => setNatRule(prev => ({ ...prev, nat_type: e.target.value as NatRule['nat_type'] }))}
-                  className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
-                >
-                  <option value="source">Source NAT (SNAT)</option>
-                  <option value="destination">Destination NAT (DNAT)</option>
-                </select>
-              </div>
-              <Input
-                label="Source Zone"
-                value={natRule.source_zone}
-                onChange={(e) => setNatRule(prev => ({ ...prev, source_zone: e.target.value }))}
-                placeholder="trust"
-              />
-              <Input
-                label="Destination Zone"
-                value={natRule.dest_zone}
-                onChange={(e) => setNatRule(prev => ({ ...prev, dest_zone: e.target.value }))}
-                placeholder="untrust"
-              />
-              <Input
-                label="Source Address"
-                value={natRule.source_address}
-                onChange={(e) => setNatRule(prev => ({ ...prev, source_address: e.target.value }))}
-                placeholder="any oder Objektname"
-              />
-              <Input
-                label="Destination Address"
-                value={natRule.dest_address}
-                onChange={(e) => setNatRule(prev => ({ ...prev, dest_address: e.target.value }))}
-                placeholder="any oder Objektname"
-              />
-              <Input
-                label="Service"
-                value={natRule.service}
-                onChange={(e) => setNatRule(prev => ({ ...prev, service: e.target.value }))}
-                placeholder="any oder Service-Name"
-              />
-              <Input
-                label="Translated Address"
-                value={natRule.translated_address}
-                onChange={(e) => setNatRule(prev => ({ ...prev, translated_address: e.target.value }))}
-                placeholder="Ziel-IP oder Objektname"
-              />
-              {natRule.nat_type === 'destination' && (
-                <Input
-                  label="Translated Port (optional)"
-                  value={natRule.translated_port}
-                  onChange={(e) => setNatRule(prev => ({ ...prev, translated_port: e.target.value }))}
-                  placeholder="z.B. 8080"
-                />
-              )}
-              <Input
-                label="Beschreibung (optional)"
-                value={natRule.description}
-                onChange={(e) => setNatRule(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="NAT für interne Server"
-                className="md:col-span-2"
-              />
-            </div>
-            <div className="mt-4">
-              <Button onClick={generateNatConfig} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Security Rule Form */}
-      {activeTab === 'rule' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>Security Rule erstellen</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Regel-Name"
-                value={secRule.name}
-                onChange={(e) => setSecRule(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="z.B. Allow-Web-Traffic"
-              />
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Aktion</label>
-                <select
-                  value={secRule.action}
-                  onChange={(e) => setSecRule(prev => ({ ...prev, action: e.target.value as SecurityRule['action'] }))}
-                  className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
-                >
-                  <option value="allow">Allow</option>
-                  <option value="deny">Deny</option>
-                  <option value="drop">Drop</option>
-                </select>
-              </div>
-              <Input
-                label="Source Zone"
-                value={secRule.source_zone}
-                onChange={(e) => setSecRule(prev => ({ ...prev, source_zone: e.target.value }))}
-                placeholder="trust"
-              />
-              <Input
-                label="Destination Zone"
-                value={secRule.dest_zone}
-                onChange={(e) => setSecRule(prev => ({ ...prev, dest_zone: e.target.value }))}
-                placeholder="untrust"
-              />
-              <Input
-                label="Source Addresses (kommagetrennt)"
-                value={secRule.source_addresses.join(', ')}
-                onChange={(e) => setSecRule(prev => ({ ...prev, source_addresses: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
-                placeholder="any"
-              />
-              <Input
-                label="Destination Addresses (kommagetrennt)"
-                value={secRule.dest_addresses.join(', ')}
-                onChange={(e) => setSecRule(prev => ({ ...prev, dest_addresses: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
-                placeholder="any"
-              />
-              <Input
-                label="Services (kommagetrennt)"
-                value={secRule.services.join(', ')}
-                onChange={(e) => setSecRule(prev => ({ ...prev, services: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
-                placeholder="application-default"
-              />
-              <Input
-                label="Applications (kommagetrennt)"
-                value={secRule.applications.join(', ')}
-                onChange={(e) => setSecRule(prev => ({ ...prev, applications: e.target.value.split(',').map(s => s.trim()).filter(s => s) }))}
-                placeholder="any"
-              />
-              <Input
-                label="Tag (optional)"
-                value={secRule.tag}
-                onChange={(e) => setSecRule(prev => ({ ...prev, tag: e.target.value }))}
-                placeholder="z.B. Web-Rules"
-              />
-              <div className="flex gap-4 items-end">
-                <Checkbox
-                  label="Log Start"
-                  checked={secRule.log_start}
-                  onChange={(e) => setSecRule(prev => ({ ...prev, log_start: e.target.checked }))}
-                />
-                <Checkbox
-                  label="Log End"
-                  checked={secRule.log_end}
-                  onChange={(e) => setSecRule(prev => ({ ...prev, log_end: e.target.checked }))}
-                />
-              </div>
-              <Input
-                label="Beschreibung (optional)"
-                value={secRule.description}
-                onChange={(e) => setSecRule(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Regel-Beschreibung"
-                className="md:col-span-2"
-              />
-            </div>
-            <div className="mt-4">
-              <Button onClick={generateSecurityConfig} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Bulk Import Form */}
-      {activeTab === 'bulk' && (
-        <Card variant="bordered">
-          <CardHeader><CardTitle>Bulk Import</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">Typ</label>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Panel - Input Forms */}
+        <div className="space-y-4">
+          {/* Address Generator - Two Windows */}
+          {activeTab === 'addresses' && (
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="text-accent-purple">Address Name Generator</CardTitle>
+                <p className="text-sm text-text-muted">Generate address object names from base names and IPs, then create CLI commands</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4 mb-2">
+                  <span className="text-sm text-text-secondary">Typ:</span>
                   <select
-                    value={bulkType}
-                    onChange={(e) => setBulkType(e.target.value as 'ip-netmask' | 'fqdn')}
-                    className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-blue"
+                    value={addressType}
+                    onChange={(e) => setAddressType(e.target.value as 'ip-netmask' | 'fqdn')}
+                    className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary"
                   >
                     <option value="ip-netmask">IP/Netmask</option>
                     <option value="fqdn">FQDN</option>
                   </select>
                 </div>
-                <Button variant="secondary" onClick={importFromFile} icon={<Upload className="w-4 h-4" />}>
-                  Aus Datei importieren
-                </Button>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Adressen eingeben (eine pro Zeile)
-                </label>
-                <p className="text-xs text-text-muted mb-2">
-                  Format: <code className="bg-bg-tertiary px-1 rounded">wert</code> oder{' '}
-                  <code className="bg-bg-tertiary px-1 rounded">wert,name</code> oder{' '}
-                  <code className="bg-bg-tertiary px-1 rounded">wert,name,beschreibung</code>
-                </p>
-                <textarea
-                  value={bulkInput}
-                  onChange={(e) => setBulkInput(e.target.value)}
-                  placeholder={`192.168.1.0/24\n10.0.0.1/32,Server1\n172.16.0.0/16,Network,Internes Netzwerk`}
-                  className="w-full h-48 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-blue resize-none"
-                />
-              </div>
-              
-              <div className="text-sm text-text-muted">
-                {bulkInput.split('\n').filter(l => l.trim()).length} Einträge erkannt
-              </div>
-              
-              <Button onClick={generateBulkConfig} icon={<Shield className="w-4 h-4" />}>
-                Konfiguration generieren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Generated Config Output */}
-      {generatedConfig && (
-        <Card variant="bordered">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Base Names (one per line): <span className="text-text-muted">({nameCount} Einträge)</span>
+                  </label>
+                  <textarea
+                    value={baseNames}
+                    onChange={(e) => setBaseNames(e.target.value)}
+                    placeholder="Server1&#10;Server2&#10;WebServer"
+                    className="w-full h-40 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-red resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    IP Addresses/Netmasks (one per line): <span className="text-text-muted">({ipCount} Einträge)</span>
+                  </label>
+                  <textarea
+                    value={ipAddresses}
+                    onChange={(e) => setIpAddresses(e.target.value)}
+                    placeholder="192.168.1.10&#10;192.168.1.20&#10;10.0.0.10"
+                    className="w-full h-40 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-red resize-none"
+                  />
+                </div>
+
+                <div className="p-3 bg-accent-purple/10 rounded-lg text-sm">
+                  <p className="font-medium text-accent-purple mb-1">💡 How it Works:</p>
+                  <ul className="text-text-secondary space-y-1">
+                    <li>• Both lists must have the same number of lines</li>
+                    <li>• Each name pairs with corresponding IP (line 1 → line 1)</li>
+                    <li>• Empty names will use IP-only format</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={generateAddressConfig} icon={<RefreshCw className="w-4 h-4" />} className="flex-1">
+                    Generate Object Names
+                  </Button>
+                  <Button variant="secondary" onClick={() => { setBaseNames(''); setIpAddresses('') }} icon={<Trash2 className="w-4 h-4" />}>
+                    Reset
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Security Policy */}
+          {activeTab === 'policies' && (
+            <Card variant="bordered">
+              <CardHeader><CardTitle>Security Policy erstellen</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Regel-Name" value={policyName} onChange={(e) => setPolicyName(e.target.value)} placeholder="Allow-Web" />
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Aktion</label>
+                    <select value={action} onChange={(e) => setAction(e.target.value as typeof action)} className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
+                      <option value="allow">Allow</option>
+                      <option value="deny">Deny</option>
+                      <option value="drop">Drop</option>
+                    </select>
+                  </div>
+                  <Input label="Source Zone" value={sourceZone} onChange={(e) => setSourceZone(e.target.value)} />
+                  <Input label="Dest Zone" value={destZone} onChange={(e) => setDestZone(e.target.value)} />
+                  <Input label="Source Addresses (kommagetrennt)" value={sourceAddresses} onChange={(e) => setSourceAddresses(e.target.value)} placeholder="any" />
+                  <Input label="Dest Addresses (kommagetrennt)" value={destAddresses} onChange={(e) => setDestAddresses(e.target.value)} placeholder="any" />
+                  <Input label="Services" value={services} onChange={(e) => setServices(e.target.value)} />
+                  <Input label="Applications" value={applications} onChange={(e) => setApplications(e.target.value)} />
+                </div>
+                <div className="flex gap-4">
+                  <Checkbox label="Log Start" checked={logStart} onChange={(e) => setLogStart(e.target.checked)} />
+                  <Checkbox label="Log End" checked={logEnd} onChange={(e) => setLogEnd(e.target.checked)} />
+                </div>
+                <Button onClick={generatePolicyConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Services */}
+          {activeTab === 'services' && (
+            <Card variant="bordered">
+              <CardHeader><CardTitle>Service Object erstellen</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Service-Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} placeholder="Custom-HTTPS" />
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Protokoll</label>
+                    <select value={protocol} onChange={(e) => setProtocol(e.target.value as typeof protocol)} className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
+                      <option value="tcp">TCP</option>
+                      <option value="udp">UDP</option>
+                      <option value="sctp">SCTP</option>
+                    </select>
+                  </div>
+                  <Input label="Port(s)" value={port} onChange={(e) => setPort(e.target.value)} placeholder="443 oder 8000-8100" />
+                  <Input label="Beschreibung" value={serviceDescription} onChange={(e) => setServiceDescription(e.target.value)} />
+                </div>
+                <Button onClick={generateServiceConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Schedule */}
+          {activeTab === 'schedule' && (
+            <Card variant="bordered">
+              <CardHeader><CardTitle>Schedule erstellen</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <Input label="Schedule-Name" value={scheduleName} onChange={(e) => setScheduleName(e.target.value)} placeholder="Business-Hours" />
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Typ</label>
+                  <select value={scheduleType} onChange={(e) => setScheduleType(e.target.value as typeof scheduleType)} className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
+                    <option value="recurring">Recurring (Wöchentlich)</option>
+                    <option value="non-recurring">Non-Recurring (Einmalig)</option>
+                  </select>
+                </div>
+                {scheduleType === 'recurring' && (
+                  <div className="flex flex-wrap gap-2">
+                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                      <label key={day} className="flex items-center gap-1 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={scheduleDays.includes(day)}
+                          onChange={(e) => {
+                            if (e.target.checked) setScheduleDays([...scheduleDays, day])
+                            else setScheduleDays(scheduleDays.filter(d => d !== day))
+                          }}
+                          className="rounded"
+                        />
+                        {day.charAt(0).toUpperCase() + day.slice(1, 3)}
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="Start-Zeit" type="time" value={scheduleTimeStart} onChange={(e) => setScheduleTimeStart(e.target.value)} />
+                  <Input label="End-Zeit" type="time" value={scheduleTimeEnd} onChange={(e) => setScheduleTimeEnd(e.target.value)} />
+                </div>
+                <Button onClick={generateScheduleConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* App Filter */}
+          {activeTab === 'appfilter' && (
+            <Card variant="bordered">
+              <CardHeader><CardTitle>Application Filter erstellen</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <Input label="Filter-Name" value={appFilterName} onChange={(e) => setAppFilterName(e.target.value)} placeholder="High-Risk-Apps" />
+                <Input label="Categories (kommagetrennt)" value={appCategories} onChange={(e) => setAppCategories(e.target.value)} placeholder="social-networking, file-sharing" />
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Risk Level</label>
+                  <div className="flex gap-4">
+                    {['1', '2', '3', '4', '5'].map(risk => (
+                      <label key={risk} className="flex items-center gap-1 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={appRisk.includes(risk)}
+                          onChange={(e) => {
+                            if (e.target.checked) setAppRisk([...appRisk, risk])
+                            else setAppRisk(appRisk.filter(r => r !== risk))
+                          }}
+                          className="rounded"
+                        />
+                        {risk}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <Button onClick={generateAppFilterConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* URL Category */}
+          {activeTab === 'urlcategory' && (
+            <Card variant="bordered">
+              <CardHeader><CardTitle>Custom URL Category erstellen</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <Input label="Category-Name" value={urlCategoryName} onChange={(e) => setUrlCategoryName(e.target.value)} placeholder="Blocked-Sites" />
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">URLs (one per line)</label>
+                  <textarea
+                    value={urlList}
+                    onChange={(e) => setUrlList(e.target.value)}
+                    placeholder="example.com&#10;*.blocked-domain.com&#10;malware-site.net"
+                    className="w-full h-40 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-red resize-none"
+                  />
+                </div>
+                <Button onClick={generateUrlCategoryConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Right Panel - Command Output */}
+        <Card variant="bordered" className="h-fit sticky top-6">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Generierte PAN-OS CLI Konfiguration</CardTitle>
-              <div className="flex gap-2">
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  onClick={copyConfig}
-                  icon={copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
-                >
-                  {copied ? 'Kopiert!' : 'Kopieren'}
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  onClick={downloadConfig}
-                  icon={<Download className="w-4 h-4" />}
-                >
-                  Download
-                </Button>
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-accent-cyan" />
+                <CardTitle>Command Output</CardTitle>
               </div>
+              <Button variant="ghost" size="sm" onClick={clearAll} icon={<Trash2 className="w-4 h-4" />}>
+                Clear All
+              </Button>
             </div>
+            <p className="text-sm text-text-muted">{commandCount} commands generated</p>
           </CardHeader>
           <CardContent>
-            <pre className="bg-bg-tertiary p-4 rounded-lg overflow-x-auto text-sm font-mono text-accent-green whitespace-pre-wrap max-h-96">
-              {generatedConfig}
-            </pre>
+            {generatedConfig ? (
+              <>
+                <pre className="bg-bg-tertiary p-4 rounded-lg overflow-x-auto text-sm font-mono text-accent-green whitespace-pre-wrap max-h-[400px] overflow-y-auto mb-4">
+                  {generatedConfig}
+                </pre>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copyConfig}
+                    icon={copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
+                    className="flex-1"
+                  >
+                    {copied ? 'Kopiert!' : 'Kopieren'}
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    onClick={downloadConfig}
+                    icon={<Download className="w-4 h-4" />}
+                  >
+                    Download
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 text-text-muted">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No commands generated yet</p>
+                <p className="text-sm">Fill out the form to generate CLI commands</p>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Info Box */}
       <Alert variant="info" title="Hinweis">
         Die generierte Konfiguration kann direkt in die PAN-OS CLI eingefügt werden. 
         Vergessen Sie nicht, nach dem Einfügen <code className="bg-bg-tertiary px-1 rounded">commit</code> auszuführen.
-        {isShared && (
-          <> Shared Objects werden im Panorama-Kontext erstellt.</>
-        )}
       </Alert>
     </div>
   )
