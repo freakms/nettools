@@ -35,6 +35,7 @@ const defaultEnabledTools: ToolId[] = [
   'live-monitor',
   'scanner',
   'portscan',
+  'network-profile',
   'dns',
   'traceroute',
   'arp',
