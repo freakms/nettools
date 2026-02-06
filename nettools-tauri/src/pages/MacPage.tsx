@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert } from '@/components/ui'
-import { Fingerprint, Copy, Check, RefreshCw } from 'lucide-react'
+import { Fingerprint, Copy, Check, RefreshCw, AlertCircle } from 'lucide-react'
 
 interface MacResult {
   original: string
@@ -19,16 +19,76 @@ interface MacResult {
   is_valid: boolean
 }
 
+// MAC-Adresse Validierung
+const validateMacInput = (input: string): { isValid: boolean; error: string | null; cleanMac: string } => {
+  if (!input.trim()) {
+    return { isValid: false, error: null, cleanMac: '' }
+  }
+
+  // Entferne alle Separatoren und konvertiere zu Großbuchstaben
+  const cleanMac = input.replace(/[:\-.\s]/g, '').toUpperCase()
+  
+  // Prüfe auf ungültige Zeichen (nur 0-9 und A-F erlaubt)
+  const invalidChars = cleanMac.match(/[^0-9A-F]/g)
+  if (invalidChars) {
+    const uniqueInvalid = [...new Set(invalidChars)].join(', ')
+    return { 
+      isValid: false, 
+      error: `Ungültige Zeichen: ${uniqueInvalid} (nur 0-9 und A-F erlaubt)`,
+      cleanMac
+    }
+  }
+
+  // Prüfe Länge (muss genau 12 Hex-Zeichen sein)
+  if (cleanMac.length < 12) {
+    return { 
+      isValid: false, 
+      error: `Zu kurz: ${cleanMac.length}/12 Zeichen`,
+      cleanMac
+    }
+  }
+
+  if (cleanMac.length > 12) {
+    return { 
+      isValid: false, 
+      error: `Zu lang: ${cleanMac.length}/12 Zeichen`,
+      cleanMac
+    }
+  }
+
+  return { isValid: true, error: null, cleanMac }
+}
+
 export function MacPage() {
   const [mac, setMac] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [results, setResults] = useState<MacResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
+  const [validation, setValidation] = useState<{ isValid: boolean; error: string | null }>({ isValid: false, error: null })
+
+  // Echtzeit-Validierung bei Eingabe
+  useEffect(() => {
+    const result = validateMacInput(mac)
+    setValidation({ isValid: result.isValid, error: result.error })
+    
+    // Wenn gültig, automatisch formatieren
+    if (result.isValid && mac.trim()) {
+      formatMac()
+    } else if (!mac.trim()) {
+      setResults(null)
+    }
+  }, [mac])
 
   const formatMac = async () => {
     if (!mac.trim()) {
       setError('Bitte geben Sie eine MAC-Adresse ein')
+      return
+    }
+
+    const validationResult = validateMacInput(mac)
+    if (!validationResult.isValid) {
+      setResults(null)
       return
     }
 
@@ -143,9 +203,23 @@ export function MacPage() {
                 onChange={(e) => setMac(e.target.value)}
                 placeholder="e.g., AA:BB:CC:DD:EE:FF or AABBCCDDEEFF"
                 onKeyDown={(e) => e.key === 'Enter' && formatMac()}
+                className={validation.error ? 'border-accent-red focus:border-accent-red' : ''}
               />
+              {/* Validierungsnachricht */}
+              {mac.trim() && !validation.isValid && (
+                <div className="flex items-center gap-2 mt-2 text-accent-red">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">{validation.error || 'Ungültiges MAC-Format'}</span>
+                </div>
+              )}
+              {mac.trim() && validation.isValid && (
+                <div className="flex items-center gap-2 mt-2 text-accent-green">
+                  <Check className="w-4 h-4" />
+                  <span className="text-sm">Gültiges MAC-Format</span>
+                </div>
+              )}
             </div>
-            <Button onClick={formatMac} disabled={isLoading} loading={isLoading} icon={<Fingerprint className="w-4 h-4" />}>
+            <Button onClick={formatMac} disabled={isLoading || !validation.isValid} loading={isLoading} icon={<Fingerprint className="w-4 h-4" />}>
               Format
             </Button>
             <Button variant="secondary" onClick={generateRandomMac} icon={<RefreshCw className="w-4 h-4" />}>
@@ -210,7 +284,7 @@ export function MacPage() {
       )}
 
       {/* Empty State */}
-      {!results && !error && (
+      {!results && !error && !mac.trim() && (
         <Card variant="bordered">
           <CardContent className="py-16 text-center">
             <Fingerprint className="w-16 h-16 mx-auto mb-4 text-text-muted" />
