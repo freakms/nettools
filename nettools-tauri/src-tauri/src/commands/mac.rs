@@ -1,6 +1,9 @@
 // MAC Address Formatter command
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::io::{Read, Write};
+use std::net::TcpStream;
+use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MacFormats {
