@@ -1,8 +1,6 @@
 // MAC Address Formatter command
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::{Read, Write};
-use std::net::TcpStream;
 use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -237,7 +235,7 @@ pub fn format_mac(mac: String) -> MacResult {
     }
 }
 
-/// Lookup MAC vendor from macvendors.com API
+/// Lookup MAC vendor from macvendors.com API (using reqwest with HTTPS)
 #[tauri::command]
 pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
     let bytes = parse_mac(&mac).ok_or("Invalid MAC address")?;
@@ -247,51 +245,34 @@ pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
         return Ok(vendor);
     }
     
-    // URL-encode the OUI for the API
-    let oui = format!("{:02X}-{:02X}-{:02X}", bytes[0], bytes[1], bytes[2]);
+    let oui = format!("{:02X}:{:02X}:{:02X}", bytes[0], bytes[1], bytes[2]);
+    let url = format!("https://api.macvendors.com/{}", oui);
     
-    // Use DNS to resolve the hostname first
-    use std::net::ToSocketAddrs;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("HTTP-Client Fehler: {}", e))?;
     
-    let addr = "api.macvendors.com:80"
-        .to_socket_addrs()
-        .map_err(|e| format!("DNS resolution failed: {}", e))?
-        .next()
-        .ok_or("No addresses found for api.macvendors.com")?;
+    let response = client
+        .get(&url)
+        .header("User-Agent", "NetTools/1.0")
+        .send()
+        .await
+        .map_err(|e| format!("API-Anfrage fehlgeschlagen: {}", e))?;
     
-    let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(5))
-        .map_err(|e| format!("Connection failed: {}", e))?;
-    
-    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
-    stream.set_write_timeout(Some(Duration::from_secs(5))).ok();
-    
-    let mut stream = stream;
-    
-    let request = format!(
-        "GET /{} HTTP/1.1\r\nHost: api.macvendors.com\r\nConnection: close\r\nUser-Agent: NetTools/1.0\r\n\r\n",
-        oui
-    );
-    
-    stream.write_all(request.as_bytes()).map_err(|e| format!("Write failed: {}", e))?;
-    
-    let mut response = String::new();
-    stream.read_to_string(&mut response).map_err(|e| format!("Read failed: {}", e))?;
-    
-    // Parse HTTP response
-    if let Some(body_start) = response.find("\r\n\r\n") {
-        let body = &response[body_start + 4..];
-        let body = body.trim();
-        
-        if response.contains("HTTP/1.1 200") || response.contains("HTTP/1.0 200") {
-            if !body.is_empty() && !body.contains("Not Found") {
-                return Ok(body.to_string());
+    match response.status().as_u16() {
+        200 => {
+            let body = response.text().await
+                .map_err(|e| format!("Antwort lesen fehlgeschlagen: {}", e))?;
+            let body = body.trim().to_string();
+            if body.is_empty() || body.contains("Not Found") {
+                Ok("Unbekannter Hersteller".to_string())
+            } else {
+                Ok(body)
             }
-        } else if response.contains("404") {
-            return Ok("Unbekannter Hersteller".to_string());
-        } else if response.contains("429") {
-            return Err("Rate Limit erreicht".to_string());
         }
+        404 => Ok("Unbekannter Hersteller".to_string()),
+        429 => Err("Rate Limit erreicht. Bitte später erneut versuchen.".to_string()),
+        status => Err(format!("API-Fehler: HTTP {}", status)),
     }
-    
-    Ok("Unbekannter Hersteller".to_string())
 }
