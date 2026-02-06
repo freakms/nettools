@@ -25,7 +25,7 @@ interface HostStats {
 
 // Numerische IP-Sortierung
 const sortIpsNumerically = (ips: string[]): string[] => {
-  return ips.sort((a, b) => {
+  return [...ips].sort((a, b) => {
     const partsA = a.split('.').map(Number)
     const partsB = b.split('.').map(Number)
     
@@ -46,14 +46,21 @@ export function LiveMonitorPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isClearing, setIsClearing] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [pingInterval, setPingInterval] = useState(1000)
+  
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hostsRef = useRef<Map<string, HostStats>>(new Map())
   const abortRef = useRef(false)
+  const sortedIpsRef = useRef<string[]>([])
 
-  // Keep hostsRef in sync with hosts state
+  // Keep refs in sync
   useEffect(() => {
     hostsRef.current = hosts
   }, [hosts])
+
+  useEffect(() => {
+    sortedIpsRef.current = sortedIps
+  }, [sortedIps])
 
   const startMonitoring = async () => {
     if (!hostsInput.trim()) {
@@ -65,7 +72,6 @@ export function LiveMonitorPage() {
     abortRef.current = false
     
     try {
-      // Parse and validate hosts
       const ipList = await invoke<string[]>('monitor_init_hosts', { hostsInput })
       
       if (ipList.length === 0) {
@@ -79,8 +85,9 @@ export function LiveMonitorPage() {
       }
 
       // Sort IPs numerically
-      const sortedList = sortIpsNumerically([...ipList])
+      const sortedList = sortIpsNumerically(ipList)
       setSortedIps(sortedList)
+      sortedIpsRef.current = sortedList
 
       // Initialize host stats
       const initialHosts = new Map<string, HostStats>()
@@ -105,74 +112,100 @@ export function LiveMonitorPage() {
       setIsRunning(true)
       setIsPaused(false)
 
-      // Resolve hostnames in background (non-blocking)
-      sortedList.forEach(ip => {
-        if (abortRef.current) return
-        invoke<string | null>('monitor_resolve_hostname', { ip }).then(hostname => {
-          if (abortRef.current) return
-          setHosts(prev => {
-            const updated = new Map(prev)
-            const host = updated.get(ip)
-            if (host) {
-              updated.set(ip, { ...host, hostname })
-            }
-            return updated
-          })
-        }).catch(() => {})
-      })
-
-      // Start ping loop
-      const pingAll = async () => {
-        if (abortRef.current) return
-        
-        const currentHosts = hostsRef.current
-        const promises: Promise<void>[] = []
-        
-        for (const [ip, currentStats] of currentHosts) {
-          if (abortRef.current) break
-          
-          const promise = invoke<HostStats>('monitor_ping_host', {
-            ip,
-            currentStats
-          }).then(updatedStats => {
-            if (abortRef.current) return
-            
-            setHosts(prev => {
-              const updated = new Map(prev)
-              const existing = updated.get(ip)
-              if (existing?.hostname && !updatedStats.hostname) {
-                updatedStats.hostname = existing.hostname
-              }
-              updated.set(ip, updatedStats)
-              return updated
-            })
-          }).catch(e => {
-            console.error(`Ping error for ${ip}:`, e)
-          })
-          
-          promises.push(promise)
-        }
-        
-        await Promise.all(promises)
-      }
-
-      // Initial ping
-      await pingAll()
-
-      // Start interval
-      if (!abortRef.current) {
-        intervalRef.current = setInterval(pingAll, 1000)
-      }
+      // Start ping loop with sequential pings and batched updates
+      startPingLoop()
 
     } catch (e) {
       setError(String(e))
     }
   }
 
+  const startPingLoop = useCallback(() => {
+    if (abortRef.current) return
+
+    const pingAllSequentially = async () => {
+      if (abortRef.current) return
+
+      const currentIps = sortedIpsRef.current
+      const currentHosts = hostsRef.current
+      const updatedHosts = new Map(currentHosts)
+      
+      // Ping hosts in small batches (5 at a time) to avoid overwhelming
+      const batchSize = 5
+      for (let i = 0; i < currentIps.length; i += batchSize) {
+        if (abortRef.current) break
+
+        const batch = currentIps.slice(i, i + batchSize)
+        const batchPromises = batch.map(async (ip) => {
+          if (abortRef.current) return null
+          
+          try {
+            const currentStats = updatedHosts.get(ip)
+            const result = await invoke<HostStats>('monitor_ping_host', {
+              ip,
+              currentStats
+            })
+            
+            // Preserve hostname
+            if (currentStats?.hostname && !result.hostname) {
+              result.hostname = currentStats.hostname
+            }
+            
+            return { ip, result }
+          } catch (e) {
+            console.error(`Ping error for ${ip}:`, e)
+            return null
+          }
+        })
+
+        const results = await Promise.all(batchPromises)
+        
+        // Update map with results
+        for (const item of results) {
+          if (item && !abortRef.current) {
+            updatedHosts.set(item.ip, item.result)
+          }
+        }
+      }
+
+      // Single state update with all results
+      if (!abortRef.current) {
+        setHosts(new Map(updatedHosts))
+        hostsRef.current = updatedHosts
+      }
+
+      // Schedule next ping cycle
+      if (!abortRef.current) {
+        intervalRef.current = setTimeout(pingAllSequentially, pingInterval)
+      }
+    }
+
+    // Resolve hostnames once in background (don't wait)
+    sortedIpsRef.current.forEach(ip => {
+      invoke<string | null>('monitor_resolve_hostname', { ip })
+        .then(hostname => {
+          if (hostname && !abortRef.current) {
+            setHosts(prev => {
+              const updated = new Map(prev)
+              const host = updated.get(ip)
+              if (host && !host.hostname) {
+                updated.set(ip, { ...host, hostname })
+              }
+              return updated
+            })
+          }
+        })
+        .catch(() => {})
+    })
+
+    // Start first ping cycle
+    pingAllSequentially()
+  }, [pingInterval])
+
   const stopMonitoring = useCallback(() => {
     abortRef.current = true
     if (intervalRef.current) {
-      clearInterval(intervalRef.current)
+      clearTimeout(intervalRef.current)
       intervalRef.current = null
     }
     setIsRunning(false)
@@ -180,8 +213,9 @@ export function LiveMonitorPage() {
   }, [])
 
   const pauseMonitoring = () => {
+    abortRef.current = true
     if (intervalRef.current) {
-      clearInterval(intervalRef.current)
+      clearTimeout(intervalRef.current)
       intervalRef.current = null
     }
     setIsPaused(true)
@@ -189,66 +223,28 @@ export function LiveMonitorPage() {
 
   const resumeMonitoring = () => {
     if (!isRunning) return
-    
     setIsPaused(false)
     abortRef.current = false
-    
-    const pingAll = async () => {
-      if (abortRef.current) return
-      
-      const currentHosts = hostsRef.current
-      const promises: Promise<void>[] = []
-      
-      for (const [ip, currentStats] of currentHosts) {
-        if (abortRef.current) break
-        
-        const promise = invoke<HostStats>('monitor_ping_host', {
-          ip,
-          currentStats
-        }).then(updatedStats => {
-          if (abortRef.current) return
-          
-          setHosts(prev => {
-            const updated = new Map(prev)
-            const existing = updated.get(ip)
-            if (existing?.hostname && !updatedStats.hostname) {
-              updatedStats.hostname = existing.hostname
-            }
-            updated.set(ip, updatedStats)
-            return updated
-          })
-        }).catch(e => {
-          console.error(`Ping error for ${ip}:`, e)
-        })
-        
-        promises.push(promise)
-      }
-      
-      await Promise.all(promises)
-    }
-
-    intervalRef.current = setInterval(pingAll, 1000)
+    startPingLoop()
   }
 
   const clearResults = useCallback(() => {
     setIsClearing(true)
     abortRef.current = true
     
-    // Stop monitoring first
     if (intervalRef.current) {
-      clearInterval(intervalRef.current)
+      clearTimeout(intervalRef.current)
       intervalRef.current = null
     }
     
-    // Use setTimeout to allow UI to update
-    setTimeout(() => {
-      setHosts(new Map())
-      setSortedIps([])
-      hostsRef.current = new Map()
-      setIsRunning(false)
-      setIsPaused(false)
-      setIsClearing(false)
-    }, 50)
+    // Clear immediately
+    setHosts(new Map())
+    setSortedIps([])
+    hostsRef.current = new Map()
+    sortedIpsRef.current = []
+    setIsRunning(false)
+    setIsPaused(false)
+    setIsClearing(false)
   }, [])
 
   const exportData = async () => {
@@ -272,7 +268,7 @@ export function LiveMonitorPage() {
     return () => {
       abortRef.current = true
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+        clearTimeout(intervalRef.current)
       }
     }
   }, [])
@@ -307,17 +303,14 @@ export function LiveMonitorPage() {
       const height = canvas.height
       const padding = 2
 
-      // Clear canvas
       ctx.clearRect(0, 0, width, height)
 
-      // Get valid RTT values
       const validData = history.filter(p => p.success && p.rtt_ms !== null)
       if (validData.length === 0) return
 
       const maxRtt = Math.max(...validData.map(p => p.rtt_ms || 0), 100)
       const xStep = (width - 2 * padding) / Math.max(history.length - 1, 1)
 
-      // Draw line
       ctx.beginPath()
       ctx.strokeStyle = '#06b6d4'
       ctx.lineWidth = 1.5
@@ -338,7 +331,6 @@ export function LiveMonitorPage() {
       })
       ctx.stroke()
 
-      // Draw points
       history.forEach((point, i) => {
         const x = padding + i * xStep
         
@@ -349,7 +341,6 @@ export function LiveMonitorPage() {
           ctx.arc(x, y, 2, 0, Math.PI * 2)
           ctx.fill()
         } else {
-          // Draw timeout indicator
           ctx.beginPath()
           ctx.fillStyle = '#ef4444'
           ctx.arc(x, height - padding - 2, 2, 0, Math.PI * 2)
@@ -367,6 +358,10 @@ export function LiveMonitorPage() {
       />
     )
   }
+
+  // Summary stats
+  const onlineCount = Array.from(hosts.values()).filter(h => h.status === 'online').length
+  const offlineCount = Array.from(hosts.values()).filter(h => h.status === 'offline').length
 
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
@@ -440,21 +435,25 @@ export function LiveMonitorPage() {
         </CardContent>
       </Card>
 
-      {/* Legend */}
-      <div className="flex gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-accent-green" />
-          <span className="text-text-secondary">0-50ms</span>
+      {/* Summary Stats */}
+      {hosts.size > 0 && (
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-bg-secondary rounded-lg">
+            <span className="text-text-muted">Gesamt:</span>
+            <span className="font-bold text-text-primary">{hosts.size}</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-accent-green/10 rounded-lg">
+            <div className="w-3 h-3 rounded-full bg-accent-green" />
+            <span className="text-accent-green font-bold">{onlineCount}</span>
+            <span className="text-text-muted">Online</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-accent-red/10 rounded-lg">
+            <div className="w-3 h-3 rounded-full bg-accent-red" />
+            <span className="text-accent-red font-bold">{offlineCount}</span>
+            <span className="text-text-muted">Offline</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-accent-yellow" />
-          <span className="text-text-secondary">51-150ms</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-accent-red" />
-          <span className="text-text-secondary">150ms+ / Offline</span>
-        </div>
-      </div>
+      )}
 
       {error && <Alert variant="error" title="Fehler">{error}</Alert>}
 
@@ -472,9 +471,9 @@ export function LiveMonitorPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="w-full">
-                <thead>
+                <thead className="sticky top-0 bg-bg-secondary">
                   <tr className="border-b border-border-default">
                     <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary w-8"></th>
                     <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse</th>
@@ -497,7 +496,7 @@ export function LiveMonitorPage() {
                           <div className={`w-3 h-3 rounded-full ${getStatusColor(host.status)}`} />
                         </td>
                         <td className="py-2 px-3 font-mono text-sm">{host.ip}</td>
-                        <td className="py-2 px-3 text-sm text-text-secondary">{host.hostname || '-'}</td>
+                        <td className="py-2 px-3 text-sm text-text-secondary truncate max-w-[150px]">{host.hostname || '-'}</td>
                         <td className={`py-2 px-3 text-sm text-center font-mono ${getLatencyColor(host.current_rtt)}`}>
                           {host.current_rtt !== null ? `${Math.round(host.current_rtt)}ms` : '-'}
                         </td>
