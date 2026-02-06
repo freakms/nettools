@@ -241,21 +241,26 @@ pub fn format_mac(mac: String) -> MacResult {
 #[tauri::command]
 pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
     let bytes = parse_mac(&mac).ok_or("Invalid MAC address")?;
-    let oui = format!("{:02X}:{:02X}:{:02X}", bytes[0], bytes[1], bytes[2]);
     
     // First try local database
     if let Some(vendor) = lookup_vendor(&bytes) {
         return Ok(vendor);
     }
     
-    // Try API via raw HTTP request
-    let host = "api.macvendors.com";
-    let path = format!("/{}", oui);
+    // URL-encode the OUI for the API
+    let oui = format!("{:02X}-{:02X}-{:02X}", bytes[0], bytes[1], bytes[2]);
     
-    let stream = TcpStream::connect_timeout(
-        &format!("{}:80", host).parse().map_err(|e| format!("Invalid address: {}", e))?,
-        Duration::from_secs(5)
-    ).map_err(|e| format!("Connection failed: {}", e))?;
+    // Use DNS to resolve the hostname first
+    use std::net::ToSocketAddrs;
+    
+    let addr = "api.macvendors.com:80"
+        .to_socket_addrs()
+        .map_err(|e| format!("DNS resolution failed: {}", e))?
+        .next()
+        .ok_or("No addresses found for api.macvendors.com")?;
+    
+    let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(5))
+        .map_err(|e| format!("Connection failed: {}", e))?;
     
     stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
     stream.set_write_timeout(Some(Duration::from_secs(5))).ok();
@@ -263,8 +268,8 @@ pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
     let mut stream = stream;
     
     let request = format!(
-        "GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nUser-Agent: NetTools/1.0\r\n\r\n",
-        path, host
+        "GET /{} HTTP/1.1\r\nHost: api.macvendors.com\r\nConnection: close\r\nUser-Agent: NetTools/1.0\r\n\r\n",
+        oui
     );
     
     stream.write_all(request.as_bytes()).map_err(|e| format!("Write failed: {}", e))?;
