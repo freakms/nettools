@@ -118,36 +118,21 @@ export function MacPage() {
     }
   }
 
-  // Lookup vendor using macvendors.com API
+  // Lookup vendor using Rust backend (bypasses CORS)
   const lookupVendor = async (cleanMac: string) => {
     setIsLoadingVendor(true)
     setVendorError(null)
     
     try {
-      // Use first 6 characters (OUI) for lookup
-      const oui = cleanMac.substring(0, 6)
-      const formattedOui = `${oui.substring(0,2)}:${oui.substring(2,4)}:${oui.substring(4,6)}`
-      
-      const response = await fetch(`https://api.macvendors.com/${formattedOui}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'text/plain'
-        }
-      })
-      
-      if (response.ok) {
-        const vendor = await response.text()
-        setApiVendor(vendor.trim())
-      } else if (response.status === 404) {
-        setApiVendor('Unbekannter Hersteller')
-      } else if (response.status === 429) {
+      const vendor = await invoke<string>('lookup_mac_vendor', { mac: cleanMac })
+      setApiVendor(vendor)
+    } catch (e) {
+      const errorStr = String(e)
+      if (errorStr.includes('Rate Limit')) {
         setVendorError('API Rate Limit erreicht. Bitte später erneut versuchen.')
       } else {
-        setVendorError('Hersteller konnte nicht ermittelt werden')
+        setVendorError(errorStr)
       }
-    } catch (e) {
-      // Network error - might be CORS or offline
-      setVendorError('API nicht erreichbar')
     } finally {
       setIsLoadingVendor(false)
     }
