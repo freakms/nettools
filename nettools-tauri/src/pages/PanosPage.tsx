@@ -498,22 +498,69 @@ export function PanosPage() {
           {/* Services */}
           {activeTab === 'services' && (
             <Card variant="bordered">
-              <CardHeader><CardTitle>Service Object erstellen</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input label="Service-Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} placeholder="Custom-HTTPS" />
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Protokoll</label>
-                    <select value={protocol} onChange={(e) => setProtocol(e.target.value as typeof protocol)} className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
+              <CardHeader>
+                <CardTitle>Service Objects erstellen</CardTitle>
+                <p className="text-sm text-text-muted">Einzeln oder per Bulk-Import</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Single Service */}
+                <div className="p-4 bg-bg-tertiary rounded-lg space-y-4">
+                  <h4 className="font-medium text-text-primary">Einzelner Service</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="Service-Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} placeholder="Custom-HTTPS" />
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">Protokoll</label>
+                      <select value={protocol} onChange={(e) => setProtocol(e.target.value as typeof protocol)} className="w-full bg-bg-secondary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
+                        <option value="tcp">TCP</option>
+                        <option value="udp">UDP</option>
+                        <option value="sctp">SCTP</option>
+                      </select>
+                    </div>
+                    <Input label="Port(s)" value={port} onChange={(e) => setPort(e.target.value)} placeholder="443 oder 8000-8100" />
+                    <Input label="Beschreibung" value={serviceDescription} onChange={(e) => setServiceDescription(e.target.value)} />
+                  </div>
+                  <Button onClick={generateServiceConfig} icon={<Shield className="w-4 h-4" />}>Einzeln Generieren</Button>
+                </div>
+
+                {/* Bulk Services */}
+                <div className="p-4 bg-accent-purple/10 rounded-lg space-y-4">
+                  <h4 className="font-medium text-accent-purple">Bulk Import</h4>
+                  <div className="flex items-center gap-4 mb-2">
+                    <span className="text-sm text-text-secondary">Protokoll für alle:</span>
+                    <select value={bulkProtocol} onChange={(e) => setBulkProtocol(e.target.value as typeof bulkProtocol)} className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary">
                       <option value="tcp">TCP</option>
                       <option value="udp">UDP</option>
                       <option value="sctp">SCTP</option>
                     </select>
                   </div>
-                  <Input label="Port(s)" value={port} onChange={(e) => setPort(e.target.value)} placeholder="443 oder 8000-8100" />
-                  <Input label="Beschreibung" value={serviceDescription} onChange={(e) => setServiceDescription(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        Service Namen (one per line)
+                      </label>
+                      <textarea
+                        value={serviceNames}
+                        onChange={(e) => setServiceNames(e.target.value)}
+                        placeholder="HTTP-8080&#10;HTTPS-Custom&#10;API-Service"
+                        className="w-full h-32 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-2">
+                        Ports (one per line)
+                      </label>
+                      <textarea
+                        value={servicePorts}
+                        onChange={(e) => setServicePorts(e.target.value)}
+                        placeholder="8080&#10;8443&#10;3000-3010"
+                        className="w-full h-32 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono resize-none"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={generateBulkServiceConfig} icon={<Shield className="w-4 h-4" />} className="bg-accent-purple hover:bg-accent-purple/80">
+                    Bulk Generieren
+                  </Button>
                 </div>
-                <Button onClick={generateServiceConfig} icon={<Shield className="w-4 h-4" />}>Generieren</Button>
               </CardContent>
             </Card>
           )}
