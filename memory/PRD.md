@@ -55,19 +55,28 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
 
 #### Dezember 2025 - Bugfixes:
 - [x] **Konsolenfenster-Bug behoben** - `CREATE_NO_WINDOW` Flag implementiert
-  - Scanner, DNS, Traceroute, SSL Checker, Live Monitor, ARP
-  - Keine Pop-up Konsolen mehr bei CIDR/Range-Scans
 - [x] **MAC Formatter - Huawei Format** - 3er Blöcke mit Bindestrich (aabb-ccdd-eeff)
 - [x] **TypeScript Build-Fehler** - Badge variants, NodeJS.Timeout type fixes
+- [x] **Live Monitor Sortierung** - Numerische IP-Sortierung (1, 2, 3... statt 1, 10, 11...)
+- [x] **Live Monitor Freeze/Crash** - Abort-Referenz und async cleanup beim Leeren
+- [x] **Scanner Performance** - 50 gleichzeitige Pings, Semaphore, kein automatischer Hostname-Lookup
 
 #### Dezember 2025 - Neue Features:
 - [x] **Passwort Generator** - Eigene Sonderzeichen definierbar
   - Preset-Auswahl (Standard, Einfach, Sicher, Kompatibel, Minimal)
   - Benutzerdefinierte Zeichenliste
-- [x] **PAN-OS Generator** - Erweiterte Optionen
+- [x] **MAC Formatter - Echtzeit-Validierung**
+  - Zeigt ungültige Zeichen sofort an
+  - Prüft auf 0-9 und A-F
+  - Längenprüfung (12 Hex-Zeichen)
+- [x] **PAN-OS Generator - Vollständig erweitert**
   - Shared Objects Option (Default: aktiviert)
   - Namensformat-Auswahl (IP_Name, Name_IP, Custom Prefix, Nur IP)
-  - Vorschau des generierten Objektnamens
+  - Address Groups mit Mitgliederverwaltung
+  - NAT Rules (Source NAT / Destination NAT)
+  - Security Rules mit Applications
+  - Tags für alle Objekte
+  - Bulk Import (manuell oder aus Datei)
 
 ---
 
