@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert } from '@/components/ui'
-import { Fingerprint, Copy, Check, RefreshCw, AlertCircle } from 'lucide-react'
+import { Fingerprint, Copy, Check, RefreshCw, AlertCircle, Loader2, Building2 } from 'lucide-react'
 
 interface MacResult {
   original: string
@@ -62,15 +62,22 @@ const validateMacInput = (input: string): { isValid: boolean; error: string | nu
 export function MacPage() {
   const [mac, setMac] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingVendor, setIsLoadingVendor] = useState(false)
   const [results, setResults] = useState<MacResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
   const [validation, setValidation] = useState<{ isValid: boolean; error: string | null }>({ isValid: false, error: null })
+  const [apiVendor, setApiVendor] = useState<string | null>(null)
+  const [vendorError, setVendorError] = useState<string | null>(null)
 
   // Echtzeit-Validierung bei Eingabe
   useEffect(() => {
     const result = validateMacInput(mac)
     setValidation({ isValid: result.isValid, error: result.error })
+    
+    // Reset vendor when MAC changes
+    setApiVendor(null)
+    setVendorError(null)
     
     // Wenn gültig, automatisch formatieren
     if (result.isValid && mac.trim()) {
@@ -100,11 +107,49 @@ export function MacPage() {
       setResults(result)
       if (!result.is_valid) {
         setError('Ungültiges MAC-Adressformat')
+      } else {
+        // Lookup vendor from API
+        lookupVendor(validationResult.cleanMac)
       }
     } catch (e) {
       setError(String(e))
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Lookup vendor using macvendors.com API
+  const lookupVendor = async (cleanMac: string) => {
+    setIsLoadingVendor(true)
+    setVendorError(null)
+    
+    try {
+      // Use first 6 characters (OUI) for lookup
+      const oui = cleanMac.substring(0, 6)
+      const formattedOui = `${oui.substring(0,2)}:${oui.substring(2,4)}:${oui.substring(4,6)}`
+      
+      const response = await fetch(`https://api.macvendors.com/${formattedOui}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/plain'
+        }
+      })
+      
+      if (response.ok) {
+        const vendor = await response.text()
+        setApiVendor(vendor.trim())
+      } else if (response.status === 404) {
+        setApiVendor('Unbekannter Hersteller')
+      } else if (response.status === 429) {
+        setVendorError('API Rate Limit erreicht. Bitte später erneut versuchen.')
+      } else {
+        setVendorError('Hersteller konnte nicht ermittelt werden')
+      }
+    } catch (e) {
+      // Network error - might be CORS or offline
+      setVendorError('API nicht erreichbar')
+    } finally {
+      setIsLoadingVendor(false)
     }
   }
 
@@ -231,18 +276,40 @@ export function MacPage() {
 
       {error && <Alert variant="error" title="Fehler">{error}</Alert>}
 
-      {/* Vendor Info */}
-      {results?.is_valid && results.vendor && (
+      {/* Vendor Info from API */}
+      {results?.is_valid && (
         <Card variant="bordered">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-accent-purple/20 rounded-lg flex items-center justify-center">
-                <Fingerprint className="w-6 h-6 text-accent-purple" />
+                {isLoadingVendor ? (
+                  <Loader2 className="w-6 h-6 text-accent-purple animate-spin" />
+                ) : (
+                  <Building2 className="w-6 h-6 text-accent-purple" />
+                )}
               </div>
-              <div>
-                <p className="text-sm text-text-secondary">Hersteller (OUI Lookup)</p>
-                <p className="text-lg font-medium text-text-primary">{results.vendor}</p>
+              <div className="flex-1">
+                <p className="text-sm text-text-secondary">Hersteller (macvendors.com API)</p>
+                {isLoadingVendor ? (
+                  <p className="text-lg font-medium text-text-muted">Lade...</p>
+                ) : vendorError ? (
+                  <p className="text-lg font-medium text-accent-yellow">{vendorError}</p>
+                ) : apiVendor ? (
+                  <p className="text-lg font-medium text-text-primary">{apiVendor}</p>
+                ) : (
+                  <p className="text-lg font-medium text-text-muted">-</p>
+                )}
               </div>
+              {!isLoadingVendor && validation.isValid && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => lookupVendor(validateMacInput(mac).cleanMac)}
+                  icon={<RefreshCw className="w-4 h-4" />}
+                >
+                  Neu laden
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
