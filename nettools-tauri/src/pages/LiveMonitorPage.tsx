@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Badge } from '@/components/ui'
 import { Activity, Play, Square, Pause, PlayCircle, Download, Trash2 } from 'lucide-react'
@@ -46,21 +46,12 @@ export function LiveMonitorPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isClearing, setIsClearing] = useState(false)
-  const [pingInterval, setPingInterval] = useState(1000)
   
-  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hostsRef = useRef<Map<string, HostStats>>(new Map())
-  const abortRef = useRef(false)
   const sortedIpsRef = useRef<string[]>([])
-
-  // Keep refs in sync
-  useEffect(() => {
-    hostsRef.current = hosts
-  }, [hosts])
-
-  useEffect(() => {
-    sortedIpsRef.current = sortedIps
-  }, [sortedIps])
+  const abortRef = useRef(false)
+  const isRunningRef = useRef(false)
 
   const startMonitoring = async () => {
     if (!hostsInput.trim()) {
@@ -110,134 +101,115 @@ export function LiveMonitorPage() {
       setHosts(initialHosts)
       hostsRef.current = initialHosts
       setIsRunning(true)
+      isRunningRef.current = true
       setIsPaused(false)
 
-      // Start ping loop with sequential pings and batched updates
-      startPingLoop()
+      // Resolve hostnames in background
+      sortedList.forEach(ip => {
+        invoke<string | null>('monitor_resolve_hostname', { ip })
+          .then(hostname => {
+            if (hostname && !abortRef.current) {
+              hostsRef.current = new Map(hostsRef.current)
+              const host = hostsRef.current.get(ip)
+              if (host && !host.hostname) {
+                hostsRef.current.set(ip, { ...host, hostname })
+                setHosts(new Map(hostsRef.current))
+              }
+            }
+          })
+          .catch(() => {})
+      })
+
+      // Start ping loop
+      runPingCycle()
 
     } catch (e) {
       setError(String(e))
     }
   }
 
-  const startPingLoop = useCallback(() => {
-    if (abortRef.current) return
+  const runPingCycle = async () => {
+    if (abortRef.current || !isRunningRef.current) return
 
-    const pingAllSequentially = async () => {
-      if (abortRef.current) return
+    const currentIps = sortedIpsRef.current
+    const updatedHosts = new Map(hostsRef.current)
+    
+    // Ping in batches of 5
+    const batchSize = 5
+    for (let i = 0; i < currentIps.length; i += batchSize) {
+      if (abortRef.current) break
 
-      const currentIps = sortedIpsRef.current
-      const currentHosts = hostsRef.current
-      const updatedHosts = new Map(currentHosts)
+      const batch = currentIps.slice(i, i + batchSize)
       
-      // Ping hosts in small batches (5 at a time) to avoid overwhelming
-      const batchSize = 5
-      for (let i = 0; i < currentIps.length; i += batchSize) {
-        if (abortRef.current) break
-
-        const batch = currentIps.slice(i, i + batchSize)
-        const batchPromises = batch.map(async (ip) => {
-          if (abortRef.current) return null
-          
-          try {
-            const currentStats = updatedHosts.get(ip)
-            const result = await invoke<HostStats>('monitor_ping_host', {
-              ip,
-              currentStats
-            })
-            
-            // Preserve hostname
-            if (currentStats?.hostname && !result.hostname) {
-              result.hostname = currentStats.hostname
-            }
-            
-            return { ip, result }
-          } catch (e) {
-            console.error(`Ping error for ${ip}:`, e)
-            return null
-          }
-        })
-
-        const results = await Promise.all(batchPromises)
+      await Promise.all(batch.map(async (ip) => {
+        if (abortRef.current) return
         
-        // Update map with results
-        for (const item of results) {
-          if (item && !abortRef.current) {
-            updatedHosts.set(item.ip, item.result)
+        try {
+          const currentStats = updatedHosts.get(ip)
+          const result = await invoke<HostStats>('monitor_ping_host', {
+            ip,
+            currentStats
+          })
+          
+          // Preserve hostname
+          if (currentStats?.hostname && !result.hostname) {
+            result.hostname = currentStats.hostname
           }
+          
+          updatedHosts.set(ip, result)
+        } catch (e) {
+          console.error(`Ping error for ${ip}:`, e)
         }
-      }
-
-      // Single state update with all results
-      if (!abortRef.current) {
-        setHosts(new Map(updatedHosts))
-        hostsRef.current = updatedHosts
-      }
-
-      // Schedule next ping cycle
-      if (!abortRef.current) {
-        intervalRef.current = setTimeout(pingAllSequentially, pingInterval)
-      }
+      }))
     }
 
-    // Resolve hostnames once in background (don't wait)
-    sortedIpsRef.current.forEach(ip => {
-      invoke<string | null>('monitor_resolve_hostname', { ip })
-        .then(hostname => {
-          if (hostname && !abortRef.current) {
-            setHosts(prev => {
-              const updated = new Map(prev)
-              const host = updated.get(ip)
-              if (host && !host.hostname) {
-                updated.set(ip, { ...host, hostname })
-              }
-              return updated
-            })
-          }
-        })
-        .catch(() => {})
-    })
+    // Update state once after all pings
+    if (!abortRef.current) {
+      hostsRef.current = updatedHosts
+      setHosts(new Map(updatedHosts))
+      
+      // Schedule next cycle
+      timeoutRef.current = setTimeout(runPingCycle, 1000)
+    }
+  }
 
-    // Start first ping cycle
-    pingAllSequentially()
-  }, [pingInterval])
-
-  const stopMonitoring = useCallback(() => {
+  const stopMonitoring = () => {
     abortRef.current = true
-    if (intervalRef.current) {
-      clearTimeout(intervalRef.current)
-      intervalRef.current = null
+    isRunningRef.current = false
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
     setIsRunning(false)
     setIsPaused(false)
-  }, [])
+  }
 
   const pauseMonitoring = () => {
     abortRef.current = true
-    if (intervalRef.current) {
-      clearTimeout(intervalRef.current)
-      intervalRef.current = null
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
     setIsPaused(true)
   }
 
   const resumeMonitoring = () => {
     if (!isRunning) return
-    setIsPaused(false)
     abortRef.current = false
-    startPingLoop()
+    setIsPaused(false)
+    runPingCycle()
   }
 
-  const clearResults = useCallback(() => {
+  const clearResults = () => {
     setIsClearing(true)
     abortRef.current = true
+    isRunningRef.current = false
     
-    if (intervalRef.current) {
-      clearTimeout(intervalRef.current)
-      intervalRef.current = null
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
     
-    // Clear immediately
     setHosts(new Map())
     setSortedIps([])
     hostsRef.current = new Map()
@@ -245,7 +217,7 @@ export function LiveMonitorPage() {
     setIsRunning(false)
     setIsPaused(false)
     setIsClearing(false)
-  }, [])
+  }
 
   const exportData = async () => {
     try {
@@ -267,8 +239,9 @@ export function LiveMonitorPage() {
   useEffect(() => {
     return () => {
       abortRef.current = true
-      if (intervalRef.current) {
-        clearTimeout(intervalRef.current)
+      isRunningRef.current = false
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
       }
     }
   }, [])
