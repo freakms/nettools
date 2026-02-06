@@ -69,14 +69,19 @@ Der Benutzer hatte eine Python/customtkinter Desktop-Anwendung für Netzwerk-Uti
   - Zeigt ungültige Zeichen sofort an
   - Prüft auf 0-9 und A-F
   - Längenprüfung (12 Hex-Zeichen)
+  - **MAC Vendor Lookup via macvendors.com API**
 - [x] **PAN-OS Generator - Vollständig erweitert**
   - Shared Objects Option (Default: aktiviert)
   - Namensformat-Auswahl (IP_Name, Name_IP, Custom Prefix, Nur IP)
-  - Address Groups mit Mitgliederverwaltung
-  - NAT Rules (Source NAT / Destination NAT)
-  - Security Rules mit Applications
+  - **Zwei Fenster (Base Names + IP Addresses) für Bulk-Import**
+  - Separator-Auswahl (Underscore, Dash, Dot)
+  - Security Policies, Services, Schedule, App Filter, URL Category
   - Tags für alle Objekte
-  - Bulk Import (manuell oder aus Datei)
+- [x] **Subnet Calculator - Erweitert**
+  - Split-Funktion: Netzwerk in kleinere Subnetze aufteilen
+  - Interaktive Präfix-Auswahl
+  - Kopieren aller Subnetze
+  - Quick Reference für CIDR-Präfixe
 
 ---
 
