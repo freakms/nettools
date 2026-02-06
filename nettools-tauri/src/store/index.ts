@@ -123,6 +123,19 @@ export const useStore = create<AppState>()(
         sidebarCollapsed: state.sidebarCollapsed,
         settings: state.settings,
       }),
+      // Migration: sicherstellen, dass neue Tools automatisch sichtbar werden
+      merge: (persistedState: any, currentState) => {
+        const merged = { ...currentState, ...persistedState }
+        // Neue Tools zur enabledTools-Liste hinzufügen, falls fehlend
+        if (merged.enabledTools && Array.isArray(merged.enabledTools)) {
+          for (const tool of defaultEnabledTools) {
+            if (!merged.enabledTools.includes(tool)) {
+              merged.enabledTools.push(tool)
+            }
+          }
+        }
+        return merged
+      },
     }
   )
 )
