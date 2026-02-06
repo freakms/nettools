@@ -1,8 +1,10 @@
-// Scanner commands for network host discovery
+// Scanner commands for network host discovery - Performance optimized
 use serde::{Deserialize, Serialize};
 use super::utils::create_hidden_command;
+use std::sync::Arc;
+use tokio::sync::Semaphore;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PingResult {
     pub ip: String,
     pub hostname: Option<String>,
@@ -19,7 +21,7 @@ pub struct ScanResult {
     pub duration_ms: u64,
 }
 
-/// Ping a single host
+/// Ping a single host - Fast version without hostname lookup
 #[tauri::command]
 pub async fn ping_host(ip: String, timeout_ms: u32) -> Result<PingResult, String> {
     let output = create_hidden_command("ping")
@@ -40,18 +42,30 @@ pub async fn ping_host(ip: String, timeout_ms: u32) -> Result<PingResult, String
 
     let rtt = extract_rtt(&stdout);
     let ttl = extract_ttl(&stdout);
-    let hostname = get_hostname(&ip).ok();
 
     Ok(PingResult {
         ip,
-        hostname,
+        hostname: None, // Don't lookup hostname during scan for performance
         status: status.to_string(),
         rtt,
         ttl,
     })
 }
 
-/// Scan a network range
+/// Ping with hostname lookup (optional, slower)
+#[tauri::command]
+pub async fn ping_host_with_hostname(ip: String, timeout_ms: u32) -> Result<PingResult, String> {
+    let mut result = ping_host(ip.clone(), timeout_ms).await?;
+    
+    // Only lookup hostname if host is online
+    if result.status == "online" {
+        result.hostname = get_hostname(&ip).ok();
+    }
+    
+    Ok(result)
+}
+
+/// Scan a network range - Optimized with concurrency control
 #[tauri::command]
 pub async fn scan_network(
     target: String,
@@ -62,17 +76,25 @@ pub async fn scan_network(
     let ips = parse_target(&target)?;
     let total_hosts = ips.len();
     
-    let mut results = Vec::new();
+    // Use semaphore to limit concurrent pings (prevent system overload)
+    // Higher concurrency = faster scans but more system load
+    let max_concurrent = 50.min(total_hosts);
+    let semaphore = Arc::new(Semaphore::new(max_concurrent));
+    
     let mut handles = Vec::new();
     
     for ip in ips {
         let ip_clone = ip.clone();
+        let sem_clone = Arc::clone(&semaphore);
+        
         let handle = tokio::spawn(async move {
+            let _permit = sem_clone.acquire().await;
             ping_host(ip_clone, timeout_ms).await
         });
         handles.push(handle);
     }
     
+    let mut results = Vec::new();
     for handle in handles {
         if let Ok(Ok(result)) = handle.await {
             if !only_responding || result.status == "online" {
@@ -80,6 +102,16 @@ pub async fn scan_network(
             }
         }
     }
+
+    // Sort results by IP numerically
+    results.sort_by(|a, b| {
+        let parse_ip = |ip: &str| -> u32 {
+            ip.split('.')
+                .filter_map(|s| s.parse::<u32>().ok())
+                .fold(0u32, |acc, octet| (acc << 8) | octet)
+        };
+        parse_ip(&a.ip).cmp(&parse_ip(&b.ip))
+    });
 
     let responding_hosts = results.iter().filter(|r| r.status == "online").count();
     let duration_ms = start.elapsed().as_millis() as u64;
@@ -90,6 +122,40 @@ pub async fn scan_network(
         responding_hosts,
         duration_ms,
     })
+}
+
+/// Resolve hostname for a single IP (can be called separately)
+#[tauri::command]
+pub async fn resolve_hostname(ip: String) -> Result<Option<String>, String> {
+    Ok(get_hostname(&ip).ok())
+}
+
+/// Batch resolve hostnames for online hosts
+#[tauri::command]
+pub async fn resolve_hostnames_batch(ips: Vec<String>) -> Result<Vec<(String, Option<String>)>, String> {
+    let semaphore = Arc::new(Semaphore::new(10)); // Limit concurrent DNS lookups
+    let mut handles = Vec::new();
+    
+    for ip in ips {
+        let ip_clone = ip.clone();
+        let sem_clone = Arc::clone(&semaphore);
+        
+        let handle = tokio::spawn(async move {
+            let _permit = sem_clone.acquire().await;
+            let hostname = get_hostname(&ip_clone).ok();
+            (ip_clone, hostname)
+        });
+        handles.push(handle);
+    }
+    
+    let mut results = Vec::new();
+    for handle in handles {
+        if let Ok(result) = handle.await {
+            results.push(result);
+        }
+    }
+    
+    Ok(results)
 }
 
 /// Get the local machine's IP address
