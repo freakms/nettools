@@ -5,7 +5,8 @@ import {
   DashboardPage, SettingsPage,
   ScannerPage, PortScanPage, DnsPage, TraceroutePage,
   SubnetPage, HashPage, PasswordPage, ArpPage, MacPage, PanosPage,
-  WhoisPage, SslPage, BandwidthPage, ApiTesterPage, LiveMonitorPage
+  WhoisPage, SslPage, BandwidthPage, ApiTesterPage, LiveMonitorPage,
+  NetworkProfilePage
 } from '@/pages'
 import { useStore } from '@/store'
 
@@ -62,6 +63,8 @@ function App() {
         return <ApiTesterPage />
       case 'live-monitor':
         return <LiveMonitorPage />
+      case 'network-profile':
+        return <NetworkProfilePage />
       default:
         return <DashboardPage />
     }
