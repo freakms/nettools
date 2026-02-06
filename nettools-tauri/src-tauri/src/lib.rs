@@ -20,7 +20,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // Scanner commands
             scanner::ping_host,
+            scanner::ping_host_with_hostname,
             scanner::scan_network,
+            scanner::resolve_hostname,
+            scanner::resolve_hostnames_batch,
             scanner::get_local_ip,
             // Port scanner commands
             port_scanner::scan_ports,
