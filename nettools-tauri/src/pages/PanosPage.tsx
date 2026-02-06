@@ -33,11 +33,15 @@ export function PanosPage() {
   const [logStart, setLogStart] = useState(false)
   const [logEnd, setLogEnd] = useState(true)
   
-  // Service Object State
+  // Service Object State - Bulk
   const [serviceName, setServiceName] = useState('')
   const [protocol, setProtocol] = useState<'tcp' | 'udp' | 'sctp'>('tcp')
   const [port, setPort] = useState('')
   const [serviceDescription, setServiceDescription] = useState('')
+  // Service Bulk Import
+  const [serviceNames, setServiceNames] = useState('')
+  const [servicePorts, setServicePorts] = useState('')
+  const [bulkProtocol, setBulkProtocol] = useState<'tcp' | 'udp' | 'sctp'>('tcp')
 
   // Schedule State
   const [scheduleName, setScheduleName] = useState('')
