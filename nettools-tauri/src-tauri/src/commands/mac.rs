@@ -245,7 +245,7 @@ pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
         return Ok(vendor);
     }
     
-    let oui = format!("{:02X}:{:02X}:{:02X}", bytes[0], bytes[1], bytes[2]);
+    let oui = format!("{:02X}-{:02X}-{:02X}", bytes[0], bytes[1], bytes[2]);
     let url = format!("https://api.macvendors.com/{}", oui);
     
     let client = reqwest::Client::builder()
