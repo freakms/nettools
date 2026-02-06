@@ -58,6 +58,17 @@ pub fn run() {
             live_monitor::monitor_export_data,
             // Utility commands
             utils::get_system_info,
+            // Network Profile commands
+            network_profile::get_network_adapters,
+            network_profile::enable_adapter,
+            network_profile::disable_adapter,
+            network_profile::apply_network_profile,
+            network_profile::get_hosts_file,
+            network_profile::update_hosts_file,
+            network_profile::get_computer_name,
+            network_profile::set_computer_name,
+            network_profile::flush_dns_cache,
+            network_profile::renew_dhcp,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
