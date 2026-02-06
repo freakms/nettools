@@ -219,27 +219,37 @@ fn ping_host(ip: &str) -> (bool, Option<f64>) {
 
 /// Extract RTT from ping output
 fn extract_rtt(output: &str) -> Option<f64> {
-    // Windows format: "Reply from x.x.x.x: bytes=32 time=1ms TTL=64"
+    // Windows German format: "Antwort von x.x.x.x: Bytes=32 Zeit=1ms TTL=64" or "Zeit<1ms"
+    // Windows English format: "Reply from x.x.x.x: bytes=32 time=1ms TTL=64"
     // Linux format: "64 bytes from x.x.x.x: icmp_seq=1 ttl=64 time=0.123 ms"
     
-    // Try Windows format first
-    if let Some(time_pos) = output.find("time=") {
+    // Try German format first (Zeit= or Zeit<)
+    if let Some(time_pos) = output.find("Zeit=").or_else(|| output.find("Zeit<")) {
         let after_time = &output[time_pos + 5..];
-        let end_pos = after_time.find(|c: char| !c.is_numeric() && c != '.' && c != '<').unwrap_or(after_time.len());
-        let time_str = &after_time[..end_pos].replace('<', "");
+        let time_str: String = after_time.chars()
+            .skip_while(|c| *c == '<')
+            .take_while(|c| c.is_numeric() || *c == '.')
+            .collect();
         if let Ok(rtt) = time_str.parse::<f64>() {
             return Some(rtt);
         }
     }
     
-    // Try Linux format
-    if let Some(time_pos) = output.find("time=") {
+    // Try English format (time= or time<)
+    if let Some(time_pos) = output.find("time=").or_else(|| output.find("time<")) {
         let after_time = &output[time_pos + 5..];
-        let end_pos = after_time.find(' ').unwrap_or(after_time.len());
-        let time_str = &after_time[..end_pos];
+        let time_str: String = after_time.chars()
+            .skip_while(|c| *c == '<')
+            .take_while(|c| c.is_numeric() || *c == '.')
+            .collect();
         if let Ok(rtt) = time_str.parse::<f64>() {
             return Some(rtt);
         }
+    }
+    
+    // Fallback for "time<1ms" or "Zeit<1ms"
+    if output.contains("time<1ms") || output.contains("Zeit<1ms") {
+        return Some(0.5);
     }
     
     None
