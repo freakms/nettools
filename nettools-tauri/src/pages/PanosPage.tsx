@@ -186,6 +186,37 @@ export function PanosPage() {
     setCommandCount(lines.length)
   }
 
+  // Generate Bulk Services
+  const generateBulkServiceConfig = () => {
+    const names = serviceNames.split('\n').map(n => n.trim()).filter(n => n)
+    const ports = servicePorts.split('\n').map(p => p.trim()).filter(p => p)
+    
+    if (names.length === 0 || ports.length === 0) {
+      setGeneratedConfig('// Fehler: Namen und Ports erforderlich')
+      setCommandCount(0)
+      return
+    }
+
+    const prefix = getPrefix('service')
+    const lines: string[] = []
+    const maxLength = Math.max(names.length, ports.length)
+    
+    for (let i = 0; i < maxLength; i++) {
+      const name = names[i] || names[names.length - 1]
+      const portVal = ports[i] || ports[ports.length - 1]
+      
+      if (!name || !portVal) continue
+      
+      lines.push(`${prefix} "${name}" protocol ${bulkProtocol} port ${portVal}`)
+      if (defaultTag) {
+        lines.push(`${prefix} "${name}" tag [ "${defaultTag}" ]`)
+      }
+    }
+    
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
+  }
+
   // Generate Schedule
   const generateScheduleConfig = () => {
     if (!scheduleName) {
