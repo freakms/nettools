@@ -12,3 +12,4 @@ pub mod mac;
 pub mod api_tester;
 pub mod live_monitor;
 pub mod utils;
+pub mod network_profile;
