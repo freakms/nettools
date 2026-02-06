@@ -543,12 +543,16 @@ export function PanosPage() {
                       <select value={protocol} onChange={(e) => setProtocol(e.target.value as typeof protocol)} className="w-full bg-bg-secondary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary">
                         <option value="tcp">TCP</option>
                         <option value="udp">UDP</option>
+                        <option value="tcp/udp">TCP + UDP (beide)</option>
                         <option value="sctp">SCTP</option>
                       </select>
                     </div>
                     <Input label="Port(s)" value={port} onChange={(e) => setPort(e.target.value)} placeholder="443 oder 8000-8100" />
                     <Input label="Beschreibung" value={serviceDescription} onChange={(e) => setServiceDescription(e.target.value)} />
                   </div>
+                  {protocol === 'tcp/udp' && (
+                    <p className="text-xs text-accent-purple">💡 Erstellt zwei Services: {serviceName || 'Name'}-tcp und {serviceName || 'Name'}-udp</p>
+                  )}
                   <Button onClick={generateServiceConfig} icon={<Shield className="w-4 h-4" />}>Einzeln Generieren</Button>
                 </div>
 
@@ -560,9 +564,13 @@ export function PanosPage() {
                     <select value={bulkProtocol} onChange={(e) => setBulkProtocol(e.target.value as typeof bulkProtocol)} className="bg-bg-tertiary border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary">
                       <option value="tcp">TCP</option>
                       <option value="udp">UDP</option>
+                      <option value="tcp/udp">TCP + UDP (beide)</option>
                       <option value="sctp">SCTP</option>
                     </select>
                   </div>
+                  {bulkProtocol === 'tcp/udp' && (
+                    <p className="text-xs text-accent-purple">💡 Erstellt für jeden Namen zwei Services: Name-tcp und Name-udp</p>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-text-secondary mb-2">
