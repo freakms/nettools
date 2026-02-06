@@ -63,9 +63,10 @@ export function PanosPage() {
     return isShared ? `set shared ${objectType}` : `set ${objectType}`
   }
 
-  // Generate object name based on format
+  // Generate object name based on format - IP bleibt mit Punkten
   const generateObjectName = (name: string, ip: string): string => {
-    const cleanIp = ip.replace(/\//g, '_').replace(/\./g, '-')
+    // Nur den CIDR-Teil ersetzen, Punkte in der IP behalten
+    const cleanIp = ip.replace(/\//g, '_')
     const cleanName = name.trim()
     
     switch (nameFormat) {
