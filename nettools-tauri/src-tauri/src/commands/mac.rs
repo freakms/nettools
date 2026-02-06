@@ -236,3 +236,57 @@ pub fn format_mac(mac: String) -> MacResult {
         is_valid: true,
     }
 }
+
+/// Lookup MAC vendor from macvendors.com API
+#[tauri::command]
+pub async fn lookup_mac_vendor(mac: String) -> Result<String, String> {
+    let bytes = parse_mac(&mac).ok_or("Invalid MAC address")?;
+    let oui = format!("{:02X}:{:02X}:{:02X}", bytes[0], bytes[1], bytes[2]);
+    
+    // First try local database
+    if let Some(vendor) = lookup_vendor(&bytes) {
+        return Ok(vendor);
+    }
+    
+    // Try API via raw HTTP request
+    let host = "api.macvendors.com";
+    let path = format!("/{}", oui);
+    
+    let stream = TcpStream::connect_timeout(
+        &format!("{}:80", host).parse().map_err(|e| format!("Invalid address: {}", e))?,
+        Duration::from_secs(5)
+    ).map_err(|e| format!("Connection failed: {}", e))?;
+    
+    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+    stream.set_write_timeout(Some(Duration::from_secs(5))).ok();
+    
+    let mut stream = stream;
+    
+    let request = format!(
+        "GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nUser-Agent: NetTools/1.0\r\n\r\n",
+        path, host
+    );
+    
+    stream.write_all(request.as_bytes()).map_err(|e| format!("Write failed: {}", e))?;
+    
+    let mut response = String::new();
+    stream.read_to_string(&mut response).map_err(|e| format!("Read failed: {}", e))?;
+    
+    // Parse HTTP response
+    if let Some(body_start) = response.find("\r\n\r\n") {
+        let body = &response[body_start + 4..];
+        let body = body.trim();
+        
+        if response.contains("HTTP/1.1 200") || response.contains("HTTP/1.0 200") {
+            if !body.is_empty() && !body.contains("Not Found") {
+                return Ok(body.to_string());
+            }
+        } else if response.contains("404") {
+            return Ok("Unbekannter Hersteller".to_string());
+        } else if response.contains("429") {
+            return Err("Rate Limit erreicht".to_string());
+        }
+    }
+    
+    Ok("Unbekannter Hersteller".to_string())
+}
