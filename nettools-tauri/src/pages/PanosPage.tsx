@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Checkbox } from '@/components/ui'
 import { Shield, Copy, Check, Download, Trash2, RefreshCw, FileText, Tag, Settings } from 'lucide-react'
 
-type ActiveTab = 'addresses' | 'policies' | 'services' | 'schedule' | 'appfilter' | 'urlcategory'
+type ActiveTab = 'addresses' | 'addressgroups' | 'policies' | 'services' | 'schedule' | 'appfilter' | 'urlcategory'
 type NameFormat = 'name_ip' | 'ip_name' | 'name_only' | 'ip_only'
 type Separator = '_' | '-' | '.'
 
@@ -58,6 +58,13 @@ export function PanosPage() {
   // URL Category State
   const [urlCategoryName, setUrlCategoryName] = useState('')
   const [urlList, setUrlList] = useState('')
+
+  // Address Group State
+  const [addressGroupName, setAddressGroupName] = useState('')
+  const [addressGroupType, setAddressGroupType] = useState<'static' | 'dynamic'>('static')
+  const [addressGroupMembers, setAddressGroupMembers] = useState('')
+  const [addressGroupFilter, setAddressGroupFilter] = useState('')
+  const [addressGroupDescription, setAddressGroupDescription] = useState('')
 
   const [generatedConfig, setGeneratedConfig] = useState('')
   const [commandCount, setCommandCount] = useState(0)
@@ -247,6 +254,46 @@ export function PanosPage() {
     setCommandCount(lines.length)
   }
 
+  // Generate Address Group
+  const generateAddressGroupConfig = () => {
+    if (!addressGroupName) {
+      setGeneratedConfig('// Fehler: Kein Gruppen-Name eingegeben')
+      setCommandCount(0)
+      return
+    }
+
+    const prefix = getPrefix('address-group')
+    const lines: string[] = []
+
+    if (addressGroupType === 'static') {
+      const members = addressGroupMembers.split('\n').map(m => m.trim()).filter(m => m)
+      if (members.length === 0) {
+        setGeneratedConfig('// Fehler: Keine Mitglieder eingegeben')
+        setCommandCount(0)
+        return
+      }
+      lines.push(`${prefix} "${addressGroupName}" static [ ${members.map(m => `"${m}"`).join(' ')} ]`)
+    } else {
+      // Dynamic group with tag filter
+      if (!addressGroupFilter.trim()) {
+        setGeneratedConfig('// Fehler: Kein Tag-Filter eingegeben')
+        setCommandCount(0)
+        return
+      }
+      lines.push(`${prefix} "${addressGroupName}" dynamic filter "'${addressGroupFilter.trim()}'"`)
+    }
+
+    if (addressGroupDescription) {
+      lines.push(`${prefix} "${addressGroupName}" description "${addressGroupDescription}"`)
+    }
+    if (defaultTag) {
+      lines.push(`${prefix} "${addressGroupName}" tag [ "${defaultTag}" ]`)
+    }
+
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
+  }
+
   // Generate Schedule
   const generateScheduleConfig = () => {
     if (!scheduleName) {
@@ -419,6 +466,7 @@ export function PanosPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
         <TabButton id="addresses" label="Addresses" icon={<Shield className="w-4 h-4" />} />
+        <TabButton id="addressgroups" label="Address Groups" icon={<Tag className="w-4 h-4" />} />
         <TabButton id="policies" label="Policies" />
         <TabButton id="services" label="Services" />
         <TabButton id="schedule" label="Schedule" />
@@ -493,6 +541,88 @@ export function PanosPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Address Groups */}
+          {activeTab === 'addressgroups' && (
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="text-accent-orange">Address Group Generator</CardTitle>
+                <p className="text-sm text-text-muted">Erstellen Sie statische oder dynamische Address Groups</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input 
+                  label="Gruppen-Name" 
+                  value={addressGroupName} 
+                  onChange={(e) => setAddressGroupName(e.target.value)} 
+                  placeholder="z.B. GRP_Webserver"
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Typ</label>
+                  <select
+                    value={addressGroupType}
+                    onChange={(e) => setAddressGroupType(e.target.value as 'static' | 'dynamic')}
+                    className="w-full bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary"
+                  >
+                    <option value="static">Static (Mitglieder-Liste)</option>
+                    <option value="dynamic">Dynamic (Tag-Filter)</option>
+                  </select>
+                </div>
+
+                {addressGroupType === 'static' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      Mitglieder (Address Object Namen, one per line)
+                    </label>
+                    <textarea
+                      value={addressGroupMembers}
+                      onChange={(e) => setAddressGroupMembers(e.target.value)}
+                      placeholder={"Server1_192.168.1.10\nServer2_192.168.1.20\nWebServer_10.0.0.10"}
+                      className="w-full h-40 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-red resize-none"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Input 
+                      label="Tag-Filter" 
+                      value={addressGroupFilter} 
+                      onChange={(e) => setAddressGroupFilter(e.target.value)} 
+                      placeholder="z.B. Webserver"
+                    />
+                    <p className="text-xs text-text-muted mt-1">
+                      Dynamische Gruppen enthalten automatisch alle Objekte mit dem angegebenen Tag.
+                    </p>
+                  </div>
+                )}
+
+                <Input 
+                  label="Beschreibung (optional)" 
+                  value={addressGroupDescription} 
+                  onChange={(e) => setAddressGroupDescription(e.target.value)} 
+                  placeholder="Beschreibung der Gruppe"
+                />
+
+                <div className="p-3 bg-accent-orange/10 rounded-lg text-sm">
+                  <p className="font-medium text-accent-orange mb-1">💡 Tipp:</p>
+                  <ul className="text-text-secondary space-y-1">
+                    <li>• Static: Mitglieder sind die Namen von Address Objects</li>
+                    <li>• Dynamic: Objekte werden automatisch über Tags zugewiesen</li>
+                    <li>• Erstellen Sie zuerst die Address Objects im "Addresses"-Tab</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={generateAddressGroupConfig} icon={<Tag className="w-4 h-4" />} className="flex-1">
+                    Generate Address Group
+                  </Button>
+                  <Button variant="secondary" onClick={() => { setAddressGroupName(''); setAddressGroupMembers(''); setAddressGroupFilter(''); setAddressGroupDescription('') }} icon={<Trash2 className="w-4 h-4" />}>
+                    Reset
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Security Policy */}
           {activeTab === 'policies' && (

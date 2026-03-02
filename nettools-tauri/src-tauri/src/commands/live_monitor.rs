@@ -257,11 +257,8 @@ fn extract_rtt(output: &str) -> Option<f64> {
 
 /// Resolve hostname for an IP
 fn resolve_hostname(ip: &str) -> Option<String> {
-    use std::net::ToSocketAddrs;
-    
-    // Try DNS reverse lookup
-    if let Ok(addr) = ip.parse::<IpAddr>() {
-        // Use system command for reverse DNS
+    // Try DNS reverse lookup via nslookup
+    if let Ok(_addr) = ip.parse::<IpAddr>() {
         #[cfg(target_os = "windows")]
         {
             if let Ok(output) = create_hidden_command("nslookup")
@@ -269,11 +266,44 @@ fn resolve_hostname(ip: &str) -> Option<String> {
                 .output()
             {
                 let stdout = String::from_utf8_lossy(&output.stdout);
-                for line in stdout.lines() {
-                    if line.contains("Name:") || line.contains("name =") {
-                        let parts: Vec<&str> = line.split(&[':', '='][..]).collect();
-                        if parts.len() >= 2 {
-                            return Some(parts[1].trim().to_string());
+                let lines: Vec<&str> = stdout.lines().collect();
+                
+                // nslookup output has server info first, then result
+                // We need to skip the DNS server section and find "Name:" in the answer
+                let mut found_answer = false;
+                for line in &lines {
+                    let trimmed = line.trim();
+                    
+                    // Skip empty lines
+                    if trimmed.is_empty() {
+                        found_answer = true; // After first empty line, we're in the answer section
+                        continue;
+                    }
+                    
+                    // Look for "Name:" or "Name =" in the answer section
+                    if found_answer {
+                        if let Some(pos) = trimmed.find("Name:").or_else(|| trimmed.find("name:")) {
+                            let name = trimmed[pos + 5..].trim();
+                            if !name.is_empty() && name != ip {
+                                return Some(name.to_string());
+                            }
+                        }
+                        if let Some(pos) = trimmed.find("name =").or_else(|| trimmed.find("Name =")) {
+                            let name = trimmed[pos + 6..].trim().trim_end_matches('.');
+                            if !name.is_empty() && name != ip {
+                                return Some(name.to_string());
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: also try "Name:" anywhere in output (some DNS servers differ)
+                for line in &lines {
+                    let trimmed = line.trim();
+                    if (trimmed.starts_with("Name:") || trimmed.starts_with("name:")) {
+                        let name = trimmed.split(':').nth(1).unwrap_or("").trim();
+                        if !name.is_empty() && name != ip {
+                            return Some(name.to_string());
                         }
                     }
                 }
