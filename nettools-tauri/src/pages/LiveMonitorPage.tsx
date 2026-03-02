@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Badge } from '@/components/ui'
-import { Activity, Play, Square, Pause, PlayCircle, Download, Trash2 } from 'lucide-react'
+import { Activity, Play, Square, Pause, PlayCircle, Download, Trash2, ExternalLink } from 'lucide-react'
 
 interface PingDataPoint {
   timestamp: number
@@ -332,18 +332,45 @@ export function LiveMonitorPage() {
     )
   }
 
+  // Pop-out: Live Monitor in neuem Fenster öffnen
+  const popOutMonitor = async () => {
+    try {
+      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+      const popup = new WebviewWindow('live-monitor-popup', {
+        url: window.location.href.split('?')[0] + '?page=live-monitor',
+        title: 'Live Monitor — Detached',
+        width: 1000,
+        height: 700,
+        center: true,
+        resizable: true,
+        decorations: true,
+      })
+      popup.once('tauri://error', (e) => {
+        console.error('Popup error:', e)
+      })
+    } catch {
+      // Fallback: neues Browser-Fenster
+      window.open(window.location.href, '_blank', 'width=1000,height=700')
+    }
+  }
+
   // Summary stats
   const onlineCount = Array.from(hosts.values()).filter(h => h.status === 'online').length
   const offlineCount = Array.from(hosts.values()).filter(h => h.status === 'offline').length
 
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
-      <div className="flex items-center gap-3">
-        <Activity className="w-8 h-8 text-accent-cyan" />
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Live Ping Monitor</h1>
-          <p className="text-text-secondary">Überwachen Sie Hosts in Echtzeit</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Activity className="w-8 h-8 text-accent-cyan" />
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Live Ping Monitor</h1>
+            <p className="text-text-secondary">Überwachen Sie Hosts in Echtzeit</p>
+          </div>
         </div>
+        <Button variant="secondary" size="sm" onClick={popOutMonitor} icon={<ExternalLink className="w-4 h-4" />}>
+          Abdocken
+        </Button>
       </div>
 
       {/* Controls */}
@@ -449,8 +476,7 @@ export function LiveMonitorPage() {
                 <thead className="sticky top-0 bg-bg-secondary">
                   <tr className="border-b border-border-default">
                     <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary w-8"></th>
-                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse</th>
-                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">Hostname</th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse / Hostname</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Aktuell</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Avg</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Min</th>
@@ -468,8 +494,14 @@ export function LiveMonitorPage() {
                         <td className="py-2 px-3">
                           <div className={`w-3 h-3 rounded-full ${getStatusColor(host.status)}`} />
                         </td>
-                        <td className="py-2 px-3 font-mono text-sm">{host.ip}</td>
-                        <td className="py-2 px-3 text-sm text-text-secondary truncate max-w-[150px]">{host.hostname || '-'}</td>
+                        <td className="py-2 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm">{host.ip}</span>
+                            {host.hostname && (
+                              <span className="text-xs text-text-muted">({host.hostname})</span>
+                            )}
+                          </div>
+                        </td>
                         <td className={`py-2 px-3 text-sm text-center font-mono ${getLatencyColor(host.current_rtt)}`}>
                           {host.current_rtt !== null ? `${Math.round(host.current_rtt)}ms` : '-'}
                         </td>

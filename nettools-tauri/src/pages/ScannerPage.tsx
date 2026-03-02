@@ -272,6 +272,7 @@ export function ScannerPage() {
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
                 placeholder="z.B. 192.168.1.0/24 oder server.example.com"
+                onKeyDown={(e) => e.key === 'Enter' && !isScanning && startScan()}
               />
             </div>
             <div className="md:col-span-4">

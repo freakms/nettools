@@ -14,6 +14,21 @@ function App() {
   const { activeTool, sidebarCollapsed, toggleSidebar, toasts, removeToast } = useStore()
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
 
+  // Check for pop-out mode (detached window)
+  const urlParams = new URLSearchParams(window.location.search)
+  const popOutPage = urlParams.get('page')
+
+  // If pop-out mode, render only the requested page
+  if (popOutPage === 'live-monitor') {
+    return (
+      <div className="h-screen bg-bg-primary overflow-hidden">
+        <main className="h-full overflow-hidden bg-bg-primary">
+          <LiveMonitorPage />
+        </main>
+      </div>
+    )
+  }
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
