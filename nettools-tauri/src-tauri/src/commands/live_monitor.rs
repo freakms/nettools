@@ -2,8 +2,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::IpAddr;
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
 use super::utils::create_hidden_command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
