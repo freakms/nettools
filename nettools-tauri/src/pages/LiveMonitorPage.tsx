@@ -67,17 +67,32 @@ export function LiveMonitorPage() {
         return
       }
 
+      // Detect which inputs were hostnames → map resolved IPs back to original hostnames
+      const inputParts = hostsInput.split(',').map(s => s.trim()).filter(s => s)
+      const hostnameMap = new Map<string, string>()
+      for (const part of inputParts) {
+        // If the part is a hostname (not IP, not CIDR, not range)
+        if (!/^\d/.test(part) && !part.includes('/') && !part.includes('-')) {
+          // Find the resolved IP in ipList that wasn't in the original input
+          for (const ip of ipList) {
+            if (ip !== part && !inputParts.includes(ip)) {
+              hostnameMap.set(ip, part)
+            }
+          }
+        }
+      }
+
       // Sort IPs numerically
       const sortedList = sortIpsNumerically(ipList)
       setSortedIps(sortedList)
       sortedIpsRef.current = sortedList
 
-      // Initialize host stats
+      // Initialize host stats with pre-mapped hostnames
       const initialHosts = new Map<string, HostStats>()
       for (const ip of sortedList) {
         initialHosts.set(ip, {
           ip,
-          hostname: null,
+          hostname: hostnameMap.get(ip) || null,
           status: 'unknown',
           current_rtt: null,
           avg_rtt: null,
