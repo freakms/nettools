@@ -28,11 +28,8 @@ const sortIpsNumerically = (ips: string[]): string[] => {
   return [...ips].sort((a, b) => {
     const partsA = a.split('.').map(Number)
     const partsB = b.split('.').map(Number)
-    
     for (let i = 0; i < 4; i++) {
-      if (partsA[i] !== partsB[i]) {
-        return partsA[i] - partsB[i]
-      }
+      if (partsA[i] !== partsB[i]) return partsA[i] - partsB[i]
     }
     return 0
   })
@@ -70,11 +67,6 @@ export function LiveMonitorPage() {
         return
       }
 
-      if (ipList.length > 100) {
-        setError('Maximal 100 Hosts gleichzeitig erlaubt')
-        return
-      }
-
       // Sort IPs numerically
       const sortedList = sortIpsNumerically(ipList)
       setSortedIps(sortedList)
@@ -104,72 +96,88 @@ export function LiveMonitorPage() {
       isRunningRef.current = true
       setIsPaused(false)
 
-      // Resolve hostnames in background
-      sortedList.forEach(ip => {
-        invoke<string | null>('monitor_resolve_hostname', { ip })
-          .then(hostname => {
-            if (hostname && !abortRef.current) {
-              hostsRef.current = new Map(hostsRef.current)
-              const host = hostsRef.current.get(ip)
-              if (host && !host.hostname) {
-                hostsRef.current.set(ip, { ...host, hostname })
-                setHosts(new Map(hostsRef.current))
-              }
-            }
-          })
-          .catch(() => {})
-      })
+      // Resolve hostnames in background (batch for speed)
+      resolveAllHostnames(sortedList)
 
-      // Start ping loop
-      runPingCycle()
+      // Start ping loop with batch pinging
+      runBatchPingCycle()
 
     } catch (e) {
       setError(String(e))
     }
   }
 
-  const runPingCycle = async () => {
+  // Resolve hostnames in batches
+  const resolveAllHostnames = async (ips: string[]) => {
+    // Resolve in chunks of 20 to avoid overwhelming DNS
+    const chunkSize = 20
+    for (let i = 0; i < ips.length; i += chunkSize) {
+      if (abortRef.current) break
+      const chunk = ips.slice(i, i + chunkSize)
+      
+      // Resolve each chunk in parallel
+      const results = await Promise.allSettled(
+        chunk.map(ip => invoke<string | null>('monitor_resolve_hostname', { ip }))
+      )
+      
+      if (abortRef.current) break
+      
+      const updatedHosts = new Map(hostsRef.current)
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled' && result.value) {
+          const ip = chunk[idx]
+          const host = updatedHosts.get(ip)
+          if (host && !host.hostname) {
+            updatedHosts.set(ip, { ...host, hostname: result.value })
+          }
+        }
+      })
+      hostsRef.current = updatedHosts
+      setHosts(new Map(updatedHosts))
+    }
+  }
+
+  // Batch ping all hosts at once (MultiPing-style)
+  const runBatchPingCycle = async () => {
     if (abortRef.current || !isRunningRef.current) return
 
     const currentIps = sortedIpsRef.current
-    const updatedHosts = new Map(hostsRef.current)
     
-    // Ping in batches of 5
-    const batchSize = 5
-    for (let i = 0; i < currentIps.length; i += batchSize) {
-      if (abortRef.current) break
+    try {
+      // Convert current stats to a plain object for Rust
+      const statsMap: Record<string, HostStats> = {}
+      for (const [ip, stats] of hostsRef.current) {
+        statsMap[ip] = stats
+      }
 
-      const batch = currentIps.slice(i, i + batchSize)
-      
-      await Promise.all(batch.map(async (ip) => {
-        if (abortRef.current) return
-        
-        try {
-          const currentStats = updatedHosts.get(ip)
-          const result = await invoke<HostStats>('monitor_ping_host', {
-            ip,
-            currentStats
-          })
-          
-          // Preserve hostname
-          if (currentStats?.hostname && !result.hostname) {
-            result.hostname = currentStats.hostname
+      // Single IPC call - Rust pings ALL hosts in parallel
+      const results = await invoke<HostStats[]>('monitor_ping_batch', {
+        ips: currentIps,
+        currentStatsMap: statsMap,
+      })
+
+      if (!abortRef.current) {
+        const updatedHosts = new Map(hostsRef.current)
+        for (const result of results) {
+          // Preserve hostname from previous resolution
+          const existing = updatedHosts.get(result.ip)
+          if (existing?.hostname && !result.hostname) {
+            result.hostname = existing.hostname
           }
-          
-          updatedHosts.set(ip, result)
-        } catch (e) {
-          console.error(`Ping error for ${ip}:`, e)
+          updatedHosts.set(result.ip, result)
         }
-      }))
-    }
+        hostsRef.current = updatedHosts
+        setHosts(new Map(updatedHosts))
 
-    // Update state once after all pings
-    if (!abortRef.current) {
-      hostsRef.current = updatedHosts
-      setHosts(new Map(updatedHosts))
-      
-      // Schedule next cycle
-      timeoutRef.current = setTimeout(runPingCycle, 1000)
+        // Schedule next cycle
+        timeoutRef.current = setTimeout(runBatchPingCycle, 1500)
+      }
+    } catch (e) {
+      console.error('Batch ping error:', e)
+      // Retry after delay
+      if (!abortRef.current) {
+        timeoutRef.current = setTimeout(runBatchPingCycle, 3000)
+      }
     }
   }
 
@@ -197,19 +205,17 @@ export function LiveMonitorPage() {
     if (!isRunning) return
     abortRef.current = false
     setIsPaused(false)
-    runPingCycle()
+    runBatchPingCycle()
   }
 
   const clearResults = () => {
     setIsClearing(true)
     abortRef.current = true
     isRunningRef.current = false
-    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
-    
     setHosts(new Map())
     setSortedIps([])
     hostsRef.current = new Map()
@@ -223,7 +229,6 @@ export function LiveMonitorPage() {
     try {
       const hostsArray = Array.from(hosts.values())
       const data = await invoke<string>('monitor_export_data', { hosts: hostsArray })
-      
       const blob = new Blob([data], { type: 'text/plain' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -235,14 +240,30 @@ export function LiveMonitorPage() {
     }
   }
 
+  // Pop-out Monitor in separate window
+  const popOutMonitor = async () => {
+    try {
+      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+      new WebviewWindow('live-monitor-detached', {
+        url: 'index.html?page=live-monitor',
+        title: 'Live Monitor — Abgedockt',
+        width: 1100,
+        height: 700,
+        center: true,
+        resizable: true,
+      })
+    } catch {
+      // Fallback
+      window.open(window.location.origin + '?page=live-monitor', '_blank', 'width=1100,height=700')
+    }
+  }
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       abortRef.current = true
       isRunningRef.current = false
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [])
 
@@ -261,100 +282,47 @@ export function LiveMonitorPage() {
     return 'text-accent-red'
   }
 
-  // Mini sparkline graph component
+  // Mini sparkline graph
   const SparklineGraph = ({ history }: { history: PingDataPoint[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-
     useEffect(() => {
       const canvas = canvasRef.current
       if (!canvas || history.length === 0) return
-
       const ctx = canvas.getContext('2d')
       if (!ctx) return
-
       const width = canvas.width
       const height = canvas.height
       const padding = 2
-
       ctx.clearRect(0, 0, width, height)
-
       const validData = history.filter(p => p.success && p.rtt_ms !== null)
       if (validData.length === 0) return
-
       const maxRtt = Math.max(...validData.map(p => p.rtt_ms || 0), 100)
       const xStep = (width - 2 * padding) / Math.max(history.length - 1, 1)
-
       ctx.beginPath()
       ctx.strokeStyle = '#06b6d4'
       ctx.lineWidth = 1.5
-
       let firstPoint = true
       history.forEach((point, i) => {
         if (point.success && point.rtt_ms !== null) {
           const x = padding + i * xStep
           const y = height - padding - (point.rtt_ms / maxRtt) * (height - 2 * padding)
-          
-          if (firstPoint) {
-            ctx.moveTo(x, y)
-            firstPoint = false
-          } else {
-            ctx.lineTo(x, y)
-          }
+          if (firstPoint) { ctx.moveTo(x, y); firstPoint = false } else { ctx.lineTo(x, y) }
         }
       })
       ctx.stroke()
-
       history.forEach((point, i) => {
         const x = padding + i * xStep
-        
         if (point.success && point.rtt_ms !== null) {
           const y = height - padding - (point.rtt_ms / maxRtt) * (height - 2 * padding)
-          ctx.beginPath()
-          ctx.fillStyle = '#06b6d4'
-          ctx.arc(x, y, 2, 0, Math.PI * 2)
-          ctx.fill()
+          ctx.beginPath(); ctx.fillStyle = '#06b6d4'; ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill()
         } else {
-          ctx.beginPath()
-          ctx.fillStyle = '#ef4444'
-          ctx.arc(x, height - padding - 2, 2, 0, Math.PI * 2)
-          ctx.fill()
+          ctx.beginPath(); ctx.fillStyle = '#ef4444'; ctx.arc(x, height - padding - 2, 2, 0, Math.PI * 2); ctx.fill()
         }
       })
     }, [history])
-
-    return (
-      <canvas
-        ref={canvasRef}
-        width={200}
-        height={30}
-        className="bg-bg-tertiary rounded"
-      />
-    )
+    return <canvas ref={canvasRef} width={200} height={30} className="bg-bg-tertiary rounded" />
   }
 
-  // Pop-out: Live Monitor in neuem Fenster öffnen
-  const popOutMonitor = async () => {
-    try {
-      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
-      const popup = new WebviewWindow('live-monitor-popup', {
-        url: window.location.href.split('?')[0] + '?page=live-monitor',
-        title: 'Live Monitor — Detached',
-        width: 1000,
-        height: 700,
-        center: true,
-        resizable: true,
-        decorations: true,
-      })
-      popup.once('tauri://error', (e) => {
-        console.error('Popup error:', e)
-      })
-    } catch {
-      // Fallback: neues Browser-Fenster
-      window.open(window.location.href, '_blank', 'width=1000,height=700')
-    }
-  }
-
-  // Summary stats
   const onlineCount = Array.from(hosts.values()).filter(h => h.status === 'online').length
   const offlineCount = Array.from(hosts.values()).filter(h => h.status === 'offline').length
 
@@ -375,9 +343,7 @@ export function LiveMonitorPage() {
 
       {/* Controls */}
       <Card variant="bordered">
-        <CardHeader>
-          <CardTitle>Hosts konfigurieren</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Hosts konfigurieren</CardTitle></CardHeader>
         <CardContent>
           <div className="flex gap-4">
             <div className="flex-1">
@@ -389,45 +355,28 @@ export function LiveMonitorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && !isRunning && startMonitoring()}
               />
               <p className="mt-1 text-xs text-text-muted">
-                Unterstützt: Einzelne IPs, CIDR (192.168.1.0/24), Ranges (192.168.1.1-254), kommagetrennt
+                Unterstützt: Einzelne IPs, CIDR (192.168.1.0/24), Ranges (192.168.1.1-254), kommagetrennt. Max 512 Hosts.
               </p>
             </div>
             <div className="flex items-start gap-2">
               {!isRunning ? (
-                <Button onClick={startMonitoring} icon={<Play className="w-4 h-4" />}>
-                  Start
-                </Button>
+                <Button onClick={startMonitoring} icon={<Play className="w-4 h-4" />}>Start</Button>
               ) : (
                 <>
                   {!isPaused ? (
-                    <Button onClick={pauseMonitoring} variant="secondary" icon={<Pause className="w-4 h-4" />}>
-                      Pause
-                    </Button>
+                    <Button onClick={pauseMonitoring} variant="secondary" icon={<Pause className="w-4 h-4" />}>Pause</Button>
                   ) : (
-                    <Button onClick={resumeMonitoring} variant="success" icon={<PlayCircle className="w-4 h-4" />}>
-                      Fortsetzen
-                    </Button>
+                    <Button onClick={resumeMonitoring} variant="success" icon={<PlayCircle className="w-4 h-4" />}>Fortsetzen</Button>
                   )}
-                  <Button onClick={stopMonitoring} variant="danger" icon={<Square className="w-4 h-4" />}>
-                    Stop
-                  </Button>
+                  <Button onClick={stopMonitoring} variant="danger" icon={<Square className="w-4 h-4" />}>Stop</Button>
                 </>
               )}
             </div>
           </div>
-
           {hosts.size > 0 && (
             <div className="flex gap-2 mt-4">
-              <Button variant="secondary" size="sm" onClick={exportData} icon={<Download className="w-4 h-4" />}>
-                Export
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearResults} 
-                disabled={isClearing}
-                icon={<Trash2 className="w-4 h-4" />}
-              >
+              <Button variant="secondary" size="sm" onClick={exportData} icon={<Download className="w-4 h-4" />}>Export</Button>
+              <Button variant="ghost" size="sm" onClick={clearResults} disabled={isClearing} icon={<Trash2 className="w-4 h-4" />}>
                 {isClearing ? 'Wird geleert...' : 'Leeren'}
               </Button>
             </div>
@@ -471,12 +420,13 @@ export function LiveMonitorPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
               <table className="w-full">
                 <thead className="sticky top-0 bg-bg-secondary">
                   <tr className="border-b border-border-default">
                     <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary w-8"></th>
-                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse / Hostname</th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse</th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">Hostname</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Aktuell</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Avg</th>
                     <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Min</th>
@@ -494,14 +444,8 @@ export function LiveMonitorPage() {
                         <td className="py-2 px-3">
                           <div className={`w-3 h-3 rounded-full ${getStatusColor(host.status)}`} />
                         </td>
-                        <td className="py-2 px-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm">{host.ip}</span>
-                            {host.hostname && (
-                              <span className="text-xs text-text-muted">({host.hostname})</span>
-                            )}
-                          </div>
-                        </td>
+                        <td className="py-2 px-3 font-mono text-sm">{host.ip}</td>
+                        <td className="py-2 px-3 text-sm text-text-secondary truncate max-w-[200px]">{host.hostname || '-'}</td>
                         <td className={`py-2 px-3 text-sm text-center font-mono ${getLatencyColor(host.current_rtt)}`}>
                           {host.current_rtt !== null ? `${Math.round(host.current_rtt)}ms` : '-'}
                         </td>

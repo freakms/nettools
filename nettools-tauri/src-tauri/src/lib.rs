@@ -54,6 +54,7 @@ pub fn run() {
             // Live Monitor commands
             live_monitor::monitor_init_hosts,
             live_monitor::monitor_ping_host,
+            live_monitor::monitor_ping_batch,
             live_monitor::monitor_resolve_hostname,
             live_monitor::monitor_export_data,
             // Utility commands

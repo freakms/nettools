@@ -66,6 +66,9 @@ export function PanosPage() {
   const [addressGroupFilter, setAddressGroupFilter] = useState('')
   const [addressGroupDescription, setAddressGroupDescription] = useState('')
 
+  // Generated address names for group creation
+  const [generatedAddressNames, setGeneratedAddressNames] = useState<string[]>([])
+
   const [generatedConfig, setGeneratedConfig] = useState('')
   const [commandCount, setCommandCount] = useState(0)
 
@@ -102,24 +105,26 @@ export function PanosPage() {
     if (ips.length === 0) {
       setGeneratedConfig('// Fehler: Keine IP-Adressen eingegeben')
       setCommandCount(0)
+      setGeneratedAddressNames([])
       return
     }
 
     const prefix = getPrefix('address')
     const lines: string[] = []
+    const objectNames: string[] = []
     
     // Match names with IPs line by line
     const maxLength = Math.max(names.length, ips.length)
     
     for (let i = 0; i < maxLength; i++) {
-      const ip = ips[i] || ips[ips.length - 1] // Use last IP if not enough
-      const name = names[i] || '' // Empty name if not enough
+      const ip = ips[i] || ips[ips.length - 1]
+      const name = names[i] || ''
       
       if (!ip) continue
       
       const objectName = generateObjectName(name, ip)
+      objectNames.push(objectName)
       
-      // Add /32 if no mask specified and type is ip-netmask
       let ipValue = ip
       if (addressType === 'ip-netmask' && !ip.includes('/')) {
         ipValue = `${ip}/32`
@@ -134,6 +139,7 @@ export function PanosPage() {
     
     setGeneratedConfig(lines.join('\n'))
     setCommandCount(lines.length)
+    setGeneratedAddressNames(objectNames)
   }
 
   // Generate Security Policy
@@ -861,6 +867,30 @@ export function PanosPage() {
                     Download
                   </Button>
                 </div>
+
+                {/* Show generated address names + "Gruppe erstellen" button */}
+                {activeTab === 'addresses' && generatedAddressNames.length > 0 && (
+                  <div className="mt-4 p-4 bg-bg-tertiary rounded-lg border border-border-default">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-text-primary">Generierte Objektnamen ({generatedAddressNames.length})</h4>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setAddressGroupMembers(generatedAddressNames.join('\n'))
+                          setAddressGroupType('static')
+                          setActiveTab('addressgroups')
+                        }}
+                        icon={<Tag className="w-4 h-4" />}
+                      >
+                        Gruppe erstellen
+                      </Button>
+                    </div>
+                    <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+                      {generatedAddressNames.join('\n')}
+                    </pre>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-12 text-text-muted">
