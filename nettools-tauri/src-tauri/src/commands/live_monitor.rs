@@ -206,11 +206,11 @@ fn parse_ip_input(input: &str) -> Vec<String> {
     ips
 }
 
-/// Single ping to a host
+/// Single ping to a host - fast timeout for monitoring
 fn ping_host(ip: &str) -> (bool, Option<f64>) {
     #[cfg(target_os = "windows")]
     let output = create_hidden_command("ping")
-        .args(["-n", "1", "-w", "1000", ip])
+        .args(["-n", "1", "-w", "500", ip])
         .output();
 
     #[cfg(not(target_os = "windows"))]
@@ -406,7 +406,7 @@ pub fn monitor_ping_host(ip: String, current_stats: Option<HostStats>) -> HostSt
     stats
 }
 
-/// Batch ping all hosts in parallel (MultiPing-style)
+/// Batch ping hosts in parallel - limited concurrency for performance
 #[tauri::command]
 pub async fn monitor_ping_batch(
     ips: Vec<String>,
@@ -415,7 +415,8 @@ pub async fn monitor_ping_batch(
     use std::sync::Arc;
     use tokio::sync::Semaphore;
 
-    let max_concurrent = 50.min(ips.len().max(1));
+    // Max 15 concurrent ping processes to avoid overloading Windows
+    let max_concurrent = 15.min(ips.len().max(1));
     let semaphore = Arc::new(Semaphore::new(max_concurrent));
     let stats_map = Arc::new(current_stats_map);
     
@@ -426,7 +427,6 @@ pub async fn monitor_ping_batch(
         let map = Arc::clone(&stats_map);
         
         let handle = tokio::task::spawn_blocking(move || {
-            // Block on semaphore acquisition in sync context
             let _permit = sem.try_acquire();
             
             let mut stats = map.get(&ip).cloned().unwrap_or_else(|| {
