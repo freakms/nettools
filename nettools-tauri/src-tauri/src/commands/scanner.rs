@@ -43,9 +43,23 @@ pub async fn ping_host(ip: String, timeout_ms: u32) -> Result<PingResult, String
     let rtt = extract_rtt(&stdout);
     let ttl = extract_ttl(&stdout);
 
+    // If input was a hostname (not an IP), extract the resolved IP from ping output
+    // Ping output: "Pinging heise.de [193.99.144.80]" or "Antwort von 193.99.144.80"
+    let is_hostname = ip.parse::<std::net::IpAddr>().is_err();
+    if is_hostname {
+        let resolved_ip = extract_resolved_ip(&stdout);
+        return Ok(PingResult {
+            ip: resolved_ip.unwrap_or_else(|| ip.clone()),
+            hostname: Some(ip),
+            status: status.to_string(),
+            rtt,
+            ttl,
+        });
+    }
+
     Ok(PingResult {
         ip,
-        hostname: None, // Don't lookup hostname during scan for performance
+        hostname: None,
         status: status.to_string(),
         rtt,
         ttl,
@@ -277,4 +291,44 @@ fn get_hostname(ip: &str) -> Result<String, String> {
     }
     
     Err("Hostname not found".to_string())
+}
+
+/// Extract resolved IP from ping output when hostname was pinged
+/// Matches patterns like "Pinging heise.de [193.99.144.80]" or "Reply from 193.99.144.80:"
+fn extract_resolved_ip(output: &str) -> Option<String> {
+    // Pattern 1: "Pinging hostname [IP]" or "Ping wird ausgeführt für hostname [IP]"
+    for line in output.lines() {
+        if let Some(start) = line.find('[') {
+            if let Some(end) = line.find(']') {
+                if start < end {
+                    let ip_str = &line[start + 1..end];
+                    if ip_str.parse::<std::net::IpAddr>().is_ok() {
+                        return Some(ip_str.to_string());
+                    }
+                }
+            }
+        }
+    }
+    
+    // Pattern 2: "Reply from IP:" or "Antwort von IP:"
+    for line in output.lines() {
+        let line = line.trim();
+        let prefix = if line.starts_with("Reply from") {
+            Some("Reply from")
+        } else if line.starts_with("Antwort von") {
+            Some("Antwort von")
+        } else {
+            None
+        };
+        
+        if let Some(pfx) = prefix {
+            let rest = line[pfx.len()..].trim();
+            let ip_str: String = rest.chars().take_while(|c| *c != ':' && *c != ' ').collect();
+            if ip_str.parse::<std::net::IpAddr>().is_ok() {
+                return Some(ip_str);
+            }
+        }
+    }
+    
+    None
 }
