@@ -137,29 +137,36 @@ export function LiveMonitorPage() {
     }
   }
 
-  // Batch ping all hosts at once (MultiPing-style)
+  // Chunked batch ping - process hosts in small groups for instant UI updates
   const runBatchPingCycle = async () => {
     if (abortRef.current || !isRunningRef.current) return
 
     const currentIps = sortedIpsRef.current
+    const chunkSize = 15 // Match Rust concurrency limit
     
-    try {
-      // Convert current stats to a plain object for Rust
-      const statsMap: Record<string, HostStats> = {}
-      for (const [ip, stats] of hostsRef.current) {
-        statsMap[ip] = stats
-      }
+    for (let i = 0; i < currentIps.length; i += chunkSize) {
+      if (abortRef.current) return
+      
+      const chunk = currentIps.slice(i, i + chunkSize)
+      
+      try {
+        // Build stats map for this chunk only
+        const statsMap: Record<string, HostStats> = {}
+        for (const ip of chunk) {
+          const existing = hostsRef.current.get(ip)
+          if (existing) statsMap[ip] = existing
+        }
 
-      // Single IPC call - Rust pings ALL hosts in parallel
-      const results = await invoke<HostStats[]>('monitor_ping_batch', {
-        ips: currentIps,
-        currentStatsMap: statsMap,
-      })
+        const results = await invoke<HostStats[]>('monitor_ping_batch', {
+          ips: chunk,
+          currentStatsMap: statsMap,
+        })
 
-      if (!abortRef.current) {
+        if (abortRef.current) return
+
+        // Update UI immediately after each chunk
         const updatedHosts = new Map(hostsRef.current)
         for (const result of results) {
-          // Preserve hostname from previous resolution
           const existing = updatedHosts.get(result.ip)
           if (existing?.hostname && !result.hostname) {
             result.hostname = existing.hostname
@@ -168,16 +175,14 @@ export function LiveMonitorPage() {
         }
         hostsRef.current = updatedHosts
         setHosts(new Map(updatedHosts))
+      } catch (e) {
+        console.error('Chunk ping error:', e)
+      }
+    }
 
-        // Schedule next cycle
-        timeoutRef.current = setTimeout(runBatchPingCycle, 1500)
-      }
-    } catch (e) {
-      console.error('Batch ping error:', e)
-      // Retry after delay
-      if (!abortRef.current) {
-        timeoutRef.current = setTimeout(runBatchPingCycle, 3000)
-      }
+    // Schedule next full cycle
+    if (!abortRef.current && isRunningRef.current) {
+      timeoutRef.current = setTimeout(runBatchPingCycle, 500)
     }
   }
 
