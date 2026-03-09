@@ -183,7 +183,35 @@ fn parse_ip_input(input: &str) -> Vec<String> {
     }
 
     // Single IP or hostname
-    ips.push(input.to_string());
+    // If it's a hostname (not a valid IP), resolve to IP
+    if input.parse::<IpAddr>().is_err() {
+        // It's a hostname - resolve via ping to get the IP
+        #[cfg(target_os = "windows")]
+        if let Ok(output) = create_hidden_command("ping")
+            .args(["-n", "1", "-w", "1000", input])
+            .output()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            // Extract IP from "Pinging heise.de [193.99.144.80]"
+            for line in stdout.lines() {
+                if let Some(start) = line.find('[') {
+                    if let Some(end) = line.find(']') {
+                        if start < end {
+                            let ip_str = &line[start + 1..end];
+                            if ip_str.parse::<IpAddr>().is_ok() {
+                                ips.push(ip_str.to_string());
+                                return ips;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Fallback: use the hostname as-is if resolution fails
+        ips.push(input.to_string());
+    } else {
+        ips.push(input.to_string());
+    }
     ips
 }
 
