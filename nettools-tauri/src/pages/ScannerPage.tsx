@@ -124,8 +124,8 @@ export function ScannerPage() {
       const onlineIps = result.results.filter(r => r.status === 'online').map(r => r.ip)
       if (onlineIps.length > 0) {
         try {
-          const resolved = await invoke<[string, string | null][]>('resolve_hostnames_batch', { ips: onlineIps })
-          const hostnameMap = new Map(resolved.map(([ip, name]) => [ip, name]))
+          const resolved = await invoke<(string | null)[][]>('resolve_hostnames_batch', { ips: onlineIps })
+          const hostnameMap = new Map(resolved.map((pair: any) => [pair[0], pair[1]] as [string, string | null]))
           setResults(prev => {
             if (!prev) return prev
             return {

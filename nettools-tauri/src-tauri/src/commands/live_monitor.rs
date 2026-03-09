@@ -2,9 +2,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::IpAddr;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
-use tauri::State;
+use std::sync::Arc;
+use std::time::Duration;
 use super::utils::create_hidden_command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -300,7 +299,7 @@ fn resolve_hostname(ip: &str) -> Option<String> {
                 // Fallback: also try "Name:" anywhere in output (some DNS servers differ)
                 for line in &lines {
                     let trimmed = line.trim();
-                    if (trimmed.starts_with("Name:") || trimmed.starts_with("name:")) {
+                    if trimmed.starts_with("Name:") || trimmed.starts_with("name:") {
                         let name = trimmed.split(':').nth(1).unwrap_or("").trim();
                         if !name.is_empty() && name != ip {
                             return Some(name.to_string());
