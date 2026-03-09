@@ -60,39 +60,24 @@ export function LiveMonitorPage() {
     abortRef.current = false
     
     try {
-      const ipList = await invoke<string[]>('monitor_init_hosts', { hostsInput })
+      const resolvedHosts = await invoke<{ ip: string; hostname: string | null }[]>('monitor_init_hosts', { hostsInput })
       
-      if (ipList.length === 0) {
+      if (resolvedHosts.length === 0) {
         setError('Keine gültigen IP-Adressen gefunden')
         return
       }
 
-      // Detect which inputs were hostnames → map resolved IPs back to original hostnames
-      const inputParts = hostsInput.split(',').map(s => s.trim()).filter(s => s)
-      const hostnameMap = new Map<string, string>()
-      for (const part of inputParts) {
-        // If the part is a hostname (not IP, not CIDR, not range)
-        if (!/^\d/.test(part) && !part.includes('/') && !part.includes('-')) {
-          // Find the resolved IP in ipList that wasn't in the original input
-          for (const ip of ipList) {
-            if (ip !== part && !inputParts.includes(ip)) {
-              hostnameMap.set(ip, part)
-            }
-          }
-        }
-      }
-
-      // Sort IPs numerically
-      const sortedList = sortIpsNumerically(ipList)
+      // Already sorted by backend
+      const sortedList = resolvedHosts.map(h => h.ip)
       setSortedIps(sortedList)
       sortedIpsRef.current = sortedList
 
-      // Initialize host stats with pre-mapped hostnames
+      // Initialize host stats with hostnames from resolution
       const initialHosts = new Map<string, HostStats>()
-      for (const ip of sortedList) {
-        initialHosts.set(ip, {
-          ip,
-          hostname: hostnameMap.get(ip) || null,
+      for (const h of resolvedHosts) {
+        initialHosts.set(h.ip, {
+          ip: h.ip,
+          hostname: h.hostname,
           status: 'unknown',
           current_rtt: null,
           avg_rtt: null,
