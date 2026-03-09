@@ -347,9 +347,9 @@ pub fn monitor_init_hosts(hosts_input: String) -> Result<Vec<String>, String> {
     all_ips.sort();
     all_ips.dedup();
     
-    // Limit to 100 hosts
-    if all_ips.len() > 100 {
-        all_ips.truncate(100);
+    // Limit to 512 hosts
+    if all_ips.len() > 512 {
+        all_ips.truncate(512);
     }
     
     Ok(all_ips)
@@ -367,6 +367,49 @@ pub fn monitor_ping_host(ip: String, current_stats: Option<HostStats>) -> HostSt
     stats.add_result(success, rtt);
     
     stats
+}
+
+/// Batch ping all hosts in parallel (MultiPing-style)
+#[tauri::command]
+pub async fn monitor_ping_batch(
+    ips: Vec<String>,
+    current_stats_map: std::collections::HashMap<String, HostStats>,
+) -> Vec<HostStats> {
+    use std::sync::Arc;
+    use tokio::sync::Semaphore;
+
+    let max_concurrent = 50.min(ips.len().max(1));
+    let semaphore = Arc::new(Semaphore::new(max_concurrent));
+    let stats_map = Arc::new(current_stats_map);
+    
+    let mut handles = Vec::new();
+    
+    for ip in ips {
+        let sem = Arc::clone(&semaphore);
+        let map = Arc::clone(&stats_map);
+        
+        let handle = tokio::task::spawn_blocking(move || {
+            // Block on semaphore acquisition in sync context
+            let _permit = sem.try_acquire();
+            
+            let mut stats = map.get(&ip).cloned().unwrap_or_else(|| {
+                HostStats::new(ip.clone(), None)
+            });
+            
+            let (success, rtt) = ping_host(&ip);
+            stats.add_result(success, rtt);
+            stats
+        });
+        handles.push(handle);
+    }
+    
+    let mut results = Vec::new();
+    for handle in handles {
+        if let Ok(stats) = handle.await {
+            results.push(stats);
+        }
+    }
+    results
 }
 
 /// Get hostname for an IP

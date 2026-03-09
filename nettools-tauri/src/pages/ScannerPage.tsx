@@ -119,6 +119,27 @@ export function ScannerPage() {
     try {
       const result = await invoke<ScanResult>('scan_network', { target, timeoutMs: parseInt(timeout), onlyResponding: false })
       setResults(result)
+      
+      // Resolve hostnames for online hosts after scan
+      const onlineIps = result.results.filter(r => r.status === 'online').map(r => r.ip)
+      if (onlineIps.length > 0) {
+        try {
+          const resolved = await invoke<[string, string | null][]>('resolve_hostnames_batch', { ips: onlineIps })
+          const hostnameMap = new Map(resolved.map(([ip, name]) => [ip, name]))
+          setResults(prev => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              results: prev.results.map(r => ({
+                ...r,
+                hostname: hostnameMap.get(r.ip) ?? r.hostname,
+              })),
+            }
+          })
+        } catch {
+          // Hostname resolution is optional, don't block on errors
+        }
+      }
     } catch (e) { setError(String(e)) } finally { setIsScanning(false) }
   }
 

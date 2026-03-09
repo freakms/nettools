@@ -278,3 +278,26 @@ fn get_hostname(ip: &str) -> Result<String, String> {
     
     Err("Hostname not found".to_string())
 }
+
+
+/// Resolve hostnames for multiple IPs in parallel
+#[tauri::command]
+pub async fn resolve_hostnames_batch(ips: Vec<String>) -> Vec<(String, Option<String>)> {
+    let mut handles = Vec::new();
+    
+    for ip in ips {
+        let handle = tokio::task::spawn_blocking(move || {
+            let hostname = get_hostname(&ip).ok();
+            (ip, hostname)
+        });
+        handles.push(handle);
+    }
+    
+    let mut results = Vec::new();
+    for handle in handles {
+        if let Ok(result) = handle.await {
+            results.push(result);
+        }
+    }
+    results
+}
