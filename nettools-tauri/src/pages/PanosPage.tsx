@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Checkbox } from '@/components/ui'
 import { Shield, Copy, Check, Download, Trash2, RefreshCw, FileText, Tag, Settings } from 'lucide-react'
 
-type ActiveTab = 'addresses' | 'addressgroups' | 'policies' | 'services' | 'schedule' | 'appfilter' | 'urlcategory'
+type ActiveTab = 'addresses' | 'addressgroups' | 'policies' | 'services' | 'servicegroups' | 'schedule' | 'appfilter' | 'urlcategory'
 type NameFormat = 'name_ip' | 'ip_name' | 'name_only' | 'ip_only'
 type Separator = '_' | '-' | '.'
 
@@ -68,6 +68,12 @@ export function PanosPage() {
 
   // Generated address names for group creation
   const [generatedAddressNames, setGeneratedAddressNames] = useState<string[]>([])
+  // Generated service names for group creation
+  const [generatedServiceNames, setGeneratedServiceNames] = useState<string[]>([])
+  
+  // Service Group State
+  const [serviceGroupName, setServiceGroupName] = useState('')
+  const [serviceGroupMembers, setServiceGroupMembers] = useState('')
 
   const [generatedConfig, setGeneratedConfig] = useState('')
   const [commandCount, setCommandCount] = useState(0)
@@ -203,6 +209,7 @@ export function PanosPage() {
       if (defaultTag) {
         lines.push(`${prefix} "${serviceName}-udp" tag [ "${defaultTag}" ]`)
       }
+      setGeneratedServiceNames([`${serviceName}-tcp`, `${serviceName}-udp`])
     } else {
       lines.push(`${prefix} "${serviceName}" protocol ${protocol} port ${port}`)
       if (serviceDescription) {
@@ -211,6 +218,7 @@ export function PanosPage() {
       if (defaultTag) {
         lines.push(`${prefix} "${serviceName}" tag [ "${defaultTag}" ]`)
       }
+      setGeneratedServiceNames([serviceName])
     }
     
     setGeneratedConfig(lines.join('\n'))
@@ -230,6 +238,7 @@ export function PanosPage() {
 
     const prefix = getPrefix('service')
     const lines: string[] = []
+    const svcNames: string[] = []
     const maxLength = Math.max(names.length, ports.length)
     
     for (let i = 0; i < maxLength; i++) {
@@ -248,16 +257,19 @@ export function PanosPage() {
         if (defaultTag) {
           lines.push(`${prefix} "${name}-udp" tag [ "${defaultTag}" ]`)
         }
+        svcNames.push(`${name}-tcp`, `${name}-udp`)
       } else {
         lines.push(`${prefix} "${name}" protocol ${bulkProtocol} port ${portVal}`)
         if (defaultTag) {
           lines.push(`${prefix} "${name}" tag [ "${defaultTag}" ]`)
         }
+        svcNames.push(name)
       }
     }
     
     setGeneratedConfig(lines.join('\n'))
     setCommandCount(lines.length)
+    setGeneratedServiceNames(svcNames)
   }
 
   // Generate Address Group
@@ -296,6 +308,29 @@ export function PanosPage() {
       lines.push(`${prefix} "${addressGroupName}" tag [ "${defaultTag}" ]`)
     }
 
+    setGeneratedConfig(lines.join('\n'))
+    setCommandCount(lines.length)
+  }
+
+  // Generate Service Group
+  const generateServiceGroupConfig = () => {
+    if (!serviceGroupName) {
+      setGeneratedConfig('// Fehler: Kein Gruppen-Name eingegeben')
+      setCommandCount(0)
+      return
+    }
+    const members = serviceGroupMembers.split('\n').map(m => m.trim()).filter(m => m)
+    if (members.length === 0) {
+      setGeneratedConfig('// Fehler: Keine Mitglieder eingegeben')
+      setCommandCount(0)
+      return
+    }
+    const prefix = getPrefix('service-group')
+    const lines: string[] = []
+    lines.push(`${prefix} "${serviceGroupName}" members [ ${members.map(m => `"${m}"`).join(' ')} ]`)
+    if (defaultTag) {
+      lines.push(`${prefix} "${serviceGroupName}" tag [ "${defaultTag}" ]`)
+    }
     setGeneratedConfig(lines.join('\n'))
     setCommandCount(lines.length)
   }
@@ -475,6 +510,7 @@ export function PanosPage() {
         <TabButton id="addressgroups" label="Address Groups" icon={<Tag className="w-4 h-4" />} />
         <TabButton id="policies" label="Policies" />
         <TabButton id="services" label="Services" />
+        <TabButton id="servicegroups" label="Service Groups" icon={<Tag className="w-4 h-4" />} />
         <TabButton id="schedule" label="Schedule" />
         <TabButton id="appfilter" label="App Filter" />
         <TabButton id="urlcategory" label="URL Category" />
@@ -739,6 +775,44 @@ export function PanosPage() {
             </Card>
           )}
 
+
+          {/* Service Groups */}
+          {activeTab === 'servicegroups' && (
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="text-accent-orange">Service Group Generator</CardTitle>
+                <p className="text-sm text-text-muted">Fassen Sie mehrere Services zu einer Gruppe zusammen</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input 
+                  label="Gruppen-Name" 
+                  value={serviceGroupName} 
+                  onChange={(e) => setServiceGroupName(e.target.value)} 
+                  placeholder="z.B. SVC_GRP_WebPorts"
+                />
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Mitglieder (Service Object Namen, one per line)
+                  </label>
+                  <textarea
+                    value={serviceGroupMembers}
+                    onChange={(e) => setServiceGroupMembers(e.target.value)}
+                    placeholder={"HTTP-tcp\nHTTPS-tcp\nDNS-udp"}
+                    className="w-full h-40 bg-bg-tertiary border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:border-accent-red resize-none"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={generateServiceGroupConfig} icon={<Tag className="w-4 h-4" />} className="flex-1">
+                    Generate Service Group
+                  </Button>
+                  <Button variant="secondary" onClick={() => { setServiceGroupName(''); setServiceGroupMembers('') }} icon={<Trash2 className="w-4 h-4" />}>
+                    Reset
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Schedule */}
           {activeTab === 'schedule' && (
             <Card variant="bordered">
@@ -888,6 +962,29 @@ export function PanosPage() {
                     </div>
                     <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap max-h-[150px] overflow-y-auto">
                       {generatedAddressNames.join('\n')}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Show generated service names + "Gruppe erstellen" button */}
+                {activeTab === 'services' && generatedServiceNames.length > 0 && (
+                  <div className="mt-4 p-4 bg-bg-tertiary rounded-lg border border-border-default">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-text-primary">Generierte Service-Namen ({generatedServiceNames.length})</h4>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setServiceGroupMembers(generatedServiceNames.join('\n'))
+                          setActiveTab('servicegroups')
+                        }}
+                        icon={<Tag className="w-4 h-4" />}
+                      >
+                        Gruppe erstellen
+                      </Button>
+                    </div>
+                    <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+                      {generatedServiceNames.join('\n')}
                     </pre>
                   </div>
                 )}
