@@ -13,6 +13,12 @@ pub struct PingDataPoint {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolvedHost {
+    pub ip: String,
+    pub hostname: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HostStats {
     pub ip: String,
     pub hostname: Option<String>,
@@ -183,31 +189,16 @@ fn parse_ip_input(input: &str) -> Vec<String> {
     }
 
     // Single IP or hostname
-    // If it's a hostname (not a valid IP), resolve to IP
+    // If it's a hostname (not a valid IP), resolve to IP via DNS
     if input.parse::<IpAddr>().is_err() {
-        // It's a hostname - resolve via ping to get the IP
-        #[cfg(target_os = "windows")]
-        if let Ok(output) = create_hidden_command("ping")
-            .args(["-n", "1", "-w", "1000", input])
-            .output()
-        {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            // Extract IP from "Pinging heise.de [193.99.144.80]"
-            for line in stdout.lines() {
-                if let Some(start) = line.find('[') {
-                    if let Some(end) = line.find(']') {
-                        if start < end {
-                            let ip_str = &line[start + 1..end];
-                            if ip_str.parse::<IpAddr>().is_ok() {
-                                ips.push(ip_str.to_string());
-                                return ips;
-                            }
-                        }
-                    }
-                }
+        use std::net::ToSocketAddrs;
+        if let Ok(mut addrs) = format!("{}:0", input).to_socket_addrs() {
+            if let Some(addr) = addrs.next() {
+                ips.push(addr.ip().to_string());
+                return ips;
             }
         }
-        // Fallback: use the hostname as-is if resolution fails
+        // Fallback: use the hostname as-is if DNS resolution fails
         ips.push(input.to_string());
     } else {
         ips.push(input.to_string());
@@ -358,27 +349,47 @@ fn resolve_hostname(ip: &str) -> Option<String> {
     None
 }
 
-/// Initialize hosts for monitoring
+/// Initialize hosts for monitoring - resolves hostnames to IPs
 #[tauri::command]
-pub fn monitor_init_hosts(hosts_input: String) -> Result<Vec<String>, String> {
-    let mut all_ips = Vec::new();
+pub fn monitor_init_hosts(hosts_input: String) -> Result<Vec<ResolvedHost>, String> {
+    let mut results = Vec::new();
+    let mut seen_ips = std::collections::HashSet::new();
     
-    // Parse each comma-separated input
     for input in hosts_input.split(',') {
-        let ips = parse_ip_input(input.trim());
-        all_ips.extend(ips);
+        let input = input.trim();
+        if input.is_empty() { continue; }
+        
+        // Check if input is a hostname
+        let is_hostname = input.parse::<IpAddr>().is_err() 
+            && !input.contains('/') 
+            && !input.contains('-');
+        
+        let ips = parse_ip_input(input);
+        
+        for ip in ips {
+            if seen_ips.contains(&ip) { continue; }
+            seen_ips.insert(ip.clone());
+            
+            results.push(ResolvedHost {
+                ip: ip.clone(),
+                hostname: if is_hostname { Some(input.to_string()) } else { None },
+            });
+        }
     }
     
-    // Remove duplicates
-    all_ips.sort();
-    all_ips.dedup();
+    // Sort by IP numerically
+    results.sort_by(|a, b| {
+        let parse_ip = |ip: &str| -> u32 {
+            ip.split('.').filter_map(|s| s.parse::<u32>().ok()).fold(0u32, |acc, o| (acc << 8) | o)
+        };
+        parse_ip(&a.ip).cmp(&parse_ip(&b.ip))
+    });
     
-    // Limit to 512 hosts
-    if all_ips.len() > 512 {
-        all_ips.truncate(512);
+    if results.len() > 512 {
+        results.truncate(512);
     }
     
-    Ok(all_ips)
+    Ok(results)
 }
 
 /// Ping a single host and return updated stats
