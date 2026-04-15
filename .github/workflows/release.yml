@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        working-directory: nettools-tauri
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +28,7 @@ jobs:
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: nettools-tauri/src-tauri
 
       - name: Install frontend deps
         run: npm install
@@ -34,6 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: nettools-tauri
           tagName: ${{ github.ref_name }}
           releaseName: "NetTools Suite ${{ github.ref_name }}"
           releaseBody: |
