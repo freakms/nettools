@@ -1,6 +1,6 @@
 [package]
 name = "nettools-tauri"
-version = "1.0.6"
+version = "1.0.0"
 description = "NetTools Professional Suite - Network Utilities for Windows"
 authors = ["frekms"]
 license = "MIT"
