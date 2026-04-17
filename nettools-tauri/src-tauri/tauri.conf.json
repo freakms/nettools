@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "NetTools Suite",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "identifier": "com.frekms.nettools",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -30,7 +30,6 @@
     "active": true,
     "targets": ["msi", "nsis"],
     "icon": ["icons/icon.ico", "icons/icon.png", "icons/128x128.png", "icons/32x32.png"],
-    "resources": [],
     "copyright": "© 2024 frekms",
     "category": "Utility",
     "shortDescription": "Netzwerk-Utilities für Windows",
@@ -42,11 +41,7 @@
         "displayLanguageSelector": true,
         "shortcutName": "NetTools Suite",
         "createDesktopShortcut": true,
-        "createStartMenuShortcut": true,
-        "installerHooks": "windows/installer-hooks.nsh"
-      },
-      "msi": {
-        "enableElevatedUpdateTask": true
+        "createStartMenuShortcut": true
       }
     }
   }
