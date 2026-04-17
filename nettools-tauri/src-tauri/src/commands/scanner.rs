@@ -108,7 +108,10 @@ pub fn parse_target(target: &str) -> Result<ParsedTarget, String> {
             .parse()
             .map_err(|e| format!("Ungültige CIDR-Notation: {}", e))?;
 
-        let total = network.size() as usize;
+        let total = match network {
+            ipnetwork::IpNetwork::V4(n) => n.size() as usize,
+            ipnetwork::IpNetwork::V6(_) => HARD_MAX_HOSTS + 1,
+        };
 
         if total > HARD_MAX_HOSTS {
             return Err(format!(
