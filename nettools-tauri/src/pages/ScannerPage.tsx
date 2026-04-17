@@ -294,6 +294,7 @@ export function ScannerPage() {
     input.click()
   }
 
+<<<<<<< HEAD
   const exportCsv = () => {
     if (!results) return
     const csv = ['IP,Hostname,Status,RTT (ms),TTL', ...results.results.map(r => `${r.ip},${r.hostname || ''},${r.status},${r.rtt || ''},${r.ttl || ''}`)].join('\n')
@@ -303,6 +304,31 @@ export function ScannerPage() {
     a.href = url
     a.download = `scan_${new Date().toISOString().slice(0,10)}.csv`
     a.click()
+=======
+  const exportCsv = async () => {
+    if (!results) return
+    try {
+      const { save } = await import('@tauri-apps/plugin-dialog')
+      const { writeTextFile } = await import('@tauri-apps/plugin-fs')
+
+      const csv = [
+        'IP,Hostname,Status,RTT (ms),TTL',
+        ...results.results.map(r =>
+          `${r.ip},${r.hostname || ''},${r.status},${r.rtt !== null ? r.rtt.toFixed(2) : ''},${r.ttl || ''}`)
+      ].join('\n')
+
+      const filePath = await save({
+        defaultPath: `scan_${new Date().toISOString().slice(0, 10)}.csv`,
+        filters: [{ name: 'CSV', extensions: ['csv'] }],
+      })
+
+      if (filePath) {
+        await writeTextFile(filePath, csv)
+      }
+    } catch (e) {
+      setError(`Export fehlgeschlagen: ${e}`)
+    }
+>>>>>>> 7f47f04 (fix: nettools suite v1.0.3)
   }
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
