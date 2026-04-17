@@ -294,17 +294,6 @@ export function ScannerPage() {
     input.click()
   }
 
-<<<<<<< HEAD
-  const exportCsv = () => {
-    if (!results) return
-    const csv = ['IP,Hostname,Status,RTT (ms),TTL', ...results.results.map(r => `${r.ip},${r.hostname || ''},${r.status},${r.rtt || ''},${r.ttl || ''}`)].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `scan_${new Date().toISOString().slice(0,10)}.csv`
-    a.click()
-=======
   const exportCsv = async () => {
     if (!results) return
     try {
@@ -328,7 +317,6 @@ export function ScannerPage() {
     } catch (e) {
       setError(`Export fehlgeschlagen: ${e}`)
     }
->>>>>>> 7f47f04 (fix: nettools suite v1.0.3)
   }
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
