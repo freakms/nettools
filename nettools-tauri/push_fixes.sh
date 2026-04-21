@@ -190,3 +190,9 @@ echo ""
 echo -e "${GREEN}${BOLD}✓ Tag $TAG gepusht!${RESET}"
 echo -e "  GitHub Actions baut jetzt den Windows Installer automatisch."
 echo -e "  Release: https://github.com/freakms/nettools/releases/tag/${TAG}"
+
+# Sicherheitscheck: immer auf endphase
+CURRENT_BRANCH="$(git -C "$REPO" rev-parse --abbrev-ref HEAD)"
+if [[ "$CURRENT_BRANCH" == "HEAD" ]]; then
+  git -C "$REPO" checkout endphase
+fi

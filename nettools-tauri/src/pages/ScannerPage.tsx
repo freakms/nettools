@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { save } from '@tauri-apps/plugin-dialog'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Badge } from '@/components/ui'
-import { Radar, Play, Square, Download, History, GitCompare, Trash2, Clock, Plus, Minus, Activity, Upload, Save, FolderOpen, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Scan, CheckCircle, XCircle, Percent, AlertTriangle } from 'lucide-react'
+import { Radar, Play, Square, Download, History, GitCompare, Trash2, Clock, Plus, Minus, Activity, Upload, Save, FolderOpen, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Scan, CheckCircle, XCircle, Percent, AlertTriangle, Radio } from 'lucide-react'
 import { useStore } from '@/store'
 
 interface PingResult {
@@ -56,7 +58,7 @@ const PROFILES_KEY = 'nettools-scan-profiles'
 const ITEMS_PER_PAGE = 50
 
 export function ScannerPage() {
-  const { setActiveTool } = useStore()
+  const { setActiveTool, setLiveMonitorIps } = useStore()
   const [target, setTarget] = useState('192.168.1.1-254')
   const [timeout, setTimeout] = useState('1000')
   const [aggressiveness, setAggressiveness] = useState<'low' | 'medium' | 'high'>('medium')
@@ -294,15 +296,42 @@ export function ScannerPage() {
     input.click()
   }
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
     if (!results) return
-    const csv = ['IP,Hostname,Status,RTT (ms),TTL', ...results.results.map(r => `${r.ip},${r.hostname || ''},${r.status},${r.rtt || ''},${r.ttl || ''}`)].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `scan_${new Date().toISOString().slice(0,10)}.csv`
-    a.click()
+    try {
+      const csv = [
+        'IP,Hostname,Status,RTT (ms),TTL',
+        ...results.results.map(r =>
+          `${r.ip},${r.hostname || ''},${r.status},${r.rtt !== null ? r.rtt.toFixed(2) : ''},${r.ttl || ''}`)
+      ].join('\n')
+
+      const filePath = await save({
+        defaultPath: `scan_${new Date().toISOString().slice(0, 10)}.csv`,
+        filters: [{ name: 'CSV', extensions: ['csv'] }],
+      })
+
+      if (filePath) {
+        await writeTextFile(filePath, csv)
+      }
+    } catch (e) {
+      setError(`Export fehlgeschlagen: ${e}`)
+    }
+  }
+
+  const sendToLiveMonitor = () => {
+    if (!results) return
+    const onlineIps = results.results
+      .filter(r => r.status === 'online')
+      .map(r => r.ip)
+    if (onlineIps.length === 0) return
+    setLiveMonitorIps(onlineIps.join(', '))
+    setActiveTool('live-monitor')
+  }
+
+  const formatRtt = (rtt: number | null) => {
+    if (rtt === null) return '-'
+    if (rtt < 1) return '<1 ms'
+    return `${rtt.toFixed(1)} ms`
   }
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -375,6 +404,11 @@ export function ScannerPage() {
             <Button variant="success" onClick={() => setActiveTool('live-monitor')} icon={<Activity className="w-4 h-4" />}>
               Live Monitor
             </Button>
+            {results && results.results.some(r => r.status === 'online') && (
+              <Button variant="secondary" onClick={sendToLiveMonitor} icon={<Radio className="w-4 h-4" />}>
+                Online Hosts monitoren
+              </Button>
+            )}
             {isScanning && (
               <Button variant="danger" onClick={cancelScan} icon={<Square className="w-4 h-4" />}>
                 Cancel
@@ -652,7 +686,7 @@ export function ScannerPage() {
                             {result.status}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm">{result.rtt ? `${result.rtt}` : '-'}</td>
+                        <td className="py-3 px-4 text-sm">{formatRtt(result.rtt)}</td>
                       </tr>
                     ))
                   )}

@@ -1,0 +1,502 @@
+import { useState, useEffect, useRef } from 'react'
+import { invoke } from '@tauri-apps/api/core'
+import { save } from '@tauri-apps/plugin-dialog'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Badge } from '@/components/ui'
+import { Activity, Play, Square, Pause, PlayCircle, Download, Trash2, ExternalLink } from 'lucide-react'
+import { useStore } from '@/store'
+
+interface PingDataPoint {
+  timestamp: number
+  success: boolean
+  rtt_ms: number | null
+}
+
+interface HostStats {
+  ip: string
+  hostname: string | null
+  status: string
+  current_rtt: number | null
+  avg_rtt: number | null
+  min_rtt: number | null
+  max_rtt: number | null
+  packet_loss: number
+  total_sent: number
+  total_received: number
+  history: PingDataPoint[]
+}
+
+// Numerische IP-Sortierung
+const sortIpsNumerically = (ips: string[]): string[] => {
+  return [...ips].sort((a, b) => {
+    const partsA = a.split('.').map(Number)
+    const partsB = b.split('.').map(Number)
+    for (let i = 0; i < 4; i++) {
+      if (partsA[i] !== partsB[i]) return partsA[i] - partsB[i]
+    }
+    return 0
+  })
+}
+
+// RTT sauber formatieren
+const formatRtt = (rtt: number | null): string => {
+  if (rtt === null) return '-'
+  if (rtt < 1) return '<1 ms'
+  return `${Math.round(rtt)} ms`
+}
+
+export function LiveMonitorPage() {
+  const { liveMonitorIps, clearLiveMonitorIps } = useStore()
+  const [hostsInput, setHostsInput] = useState('')
+  const [hosts, setHosts] = useState<Map<string, HostStats>>(new Map())
+  const [sortedIps, setSortedIps] = useState<string[]>([])
+  const [isRunning, setIsRunning] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isClearing, setIsClearing] = useState(false)
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hostsRef = useRef<Map<string, HostStats>>(new Map())
+  const sortedIpsRef = useRef<string[]>([])
+  const abortRef = useRef(false)
+  const isRunningRef = useRef(false)
+
+  // Preload IPs from Scanner wenn vorhanden
+  useEffect(() => {
+    if (liveMonitorIps && liveMonitorIps.trim() !== '') {
+      setHostsInput(liveMonitorIps)
+      clearLiveMonitorIps()
+    }
+  }, [liveMonitorIps, clearLiveMonitorIps])
+
+  const startMonitoring = async () => {
+    if (!hostsInput.trim()) {
+      setError('Bitte geben Sie mindestens eine IP-Adresse ein')
+      return
+    }
+
+    setError(null)
+    abortRef.current = false
+
+    try {
+      const resolvedHosts = await invoke<{ ip: string; hostname: string | null }[]>('monitor_init_hosts', { hostsInput })
+
+      if (resolvedHosts.length === 0) {
+        setError('Keine gültigen IP-Adressen gefunden')
+        return
+      }
+
+      const sortedList = resolvedHosts.map(h => h.ip)
+      setSortedIps(sortedList)
+      sortedIpsRef.current = sortedList
+
+      const initialHosts = new Map<string, HostStats>()
+      for (const h of resolvedHosts) {
+        initialHosts.set(h.ip, {
+          ip: h.ip,
+          hostname: h.hostname,
+          status: 'unknown',
+          current_rtt: null,
+          avg_rtt: null,
+          min_rtt: null,
+          max_rtt: null,
+          packet_loss: 0,
+          total_sent: 0,
+          total_received: 0,
+          history: []
+        })
+      }
+
+      setHosts(initialHosts)
+      hostsRef.current = initialHosts
+      setIsRunning(true)
+      isRunningRef.current = true
+      setIsPaused(false)
+
+      resolveAllHostnames(sortedList)
+      runBatchPingCycle()
+
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+
+  const resolveAllHostnames = async (ips: string[]) => {
+    const chunkSize = 20
+    for (let i = 0; i < ips.length; i += chunkSize) {
+      if (abortRef.current) break
+      const chunk = ips.slice(i, i + chunkSize)
+
+      const results = await Promise.allSettled(
+        chunk.map(ip => invoke<string | null>('monitor_resolve_hostname', { ip }))
+      )
+
+      if (abortRef.current) break
+
+      const updatedHosts = new Map(hostsRef.current)
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled' && result.value) {
+          const ip = chunk[idx]
+          const host = updatedHosts.get(ip)
+          if (host && !host.hostname) {
+            updatedHosts.set(ip, { ...host, hostname: result.value })
+          }
+        }
+      })
+      hostsRef.current = updatedHosts
+      setHosts(new Map(updatedHosts))
+    }
+  }
+
+  const runBatchPingCycle = async () => {
+    if (abortRef.current || !isRunningRef.current) return
+
+    const currentIps = sortedIpsRef.current
+    const chunkSize = 15
+
+    for (let i = 0; i < currentIps.length; i += chunkSize) {
+      if (abortRef.current) return
+
+      const chunk = currentIps.slice(i, i + chunkSize)
+
+      try {
+        const statsMap: Record<string, HostStats> = {}
+        for (const ip of chunk) {
+          const existing = hostsRef.current.get(ip)
+          if (existing) statsMap[ip] = existing
+        }
+
+        const results = await invoke<HostStats[]>('monitor_ping_batch', {
+          ips: chunk,
+          currentStatsMap: statsMap,
+        })
+
+        if (abortRef.current) return
+
+        const updatedHosts = new Map(hostsRef.current)
+        for (const result of results) {
+          const existing = updatedHosts.get(result.ip)
+          if (existing?.hostname && !result.hostname) {
+            result.hostname = existing.hostname
+          }
+          updatedHosts.set(result.ip, result)
+        }
+        hostsRef.current = updatedHosts
+        setHosts(new Map(updatedHosts))
+      } catch (e) {
+        console.error('Chunk ping error:', e)
+      }
+    }
+
+    if (!abortRef.current && isRunningRef.current) {
+      timeoutRef.current = setTimeout(runBatchPingCycle, 500)
+    }
+  }
+
+  const stopMonitoring = () => {
+    abortRef.current = true
+    isRunningRef.current = false
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setIsRunning(false)
+    setIsPaused(false)
+  }
+
+  const pauseMonitoring = () => {
+    abortRef.current = true
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setIsPaused(true)
+  }
+
+  const resumeMonitoring = () => {
+    if (!isRunning) return
+    abortRef.current = false
+    setIsPaused(false)
+    runBatchPingCycle()
+  }
+
+  const clearResults = () => {
+    setIsClearing(true)
+    abortRef.current = true
+    isRunningRef.current = false
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setHosts(new Map())
+    setSortedIps([])
+    hostsRef.current = new Map()
+    sortedIpsRef.current = []
+    setIsRunning(false)
+    setIsPaused(false)
+    setIsClearing(false)
+  }
+
+  const exportData = async () => {
+    try {
+      const hostsArray = Array.from(hosts.values())
+      const data = await invoke<string>('monitor_export_data', { hosts: hostsArray })
+
+      const filePath = await save({
+        defaultPath: `ping_monitor_${new Date().toISOString().slice(0, 10)}.txt`,
+        filters: [{ name: 'Text', extensions: ['txt'] }],
+      })
+
+      if (filePath) {
+        await writeTextFile(filePath, data)
+      }
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+
+  const popOutMonitor = async () => {
+    try {
+      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
+      new WebviewWindow('live-monitor-detached', {
+        url: 'index.html?page=live-monitor',
+        title: 'Live Monitor — Abgedockt',
+        width: 1100,
+        height: 700,
+        center: true,
+        resizable: true,
+      })
+    } catch {
+      window.open(window.location.origin + '?page=live-monitor', '_blank', 'width=1100,height=700')
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      abortRef.current = true
+      isRunningRef.current = false
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online': return 'bg-accent-green'
+      case 'offline': return 'bg-accent-red'
+      default: return 'bg-gray-500'
+    }
+  }
+
+  const getLatencyColor = (rtt: number | null) => {
+    if (rtt === null) return 'text-text-muted'
+    if (rtt <= 50) return 'text-accent-green'
+    if (rtt <= 150) return 'text-accent-yellow'
+    return 'text-accent-red'
+  }
+
+  const SparklineGraph = ({ history }: { history: PingDataPoint[] }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    useEffect(() => {
+      const canvas = canvasRef.current
+      if (!canvas || history.length === 0) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      const width = canvas.width
+      const height = canvas.height
+      const padding = 2
+      ctx.clearRect(0, 0, width, height)
+      const validData = history.filter(p => p.success && p.rtt_ms !== null)
+      if (validData.length === 0) return
+      const maxRtt = Math.max(...validData.map(p => p.rtt_ms || 0), 100)
+      const xStep = (width - 2 * padding) / Math.max(history.length - 1, 1)
+      ctx.beginPath()
+      ctx.strokeStyle = '#06b6d4'
+      ctx.lineWidth = 1.5
+      let firstPoint = true
+      history.forEach((point, i) => {
+        if (point.success && point.rtt_ms !== null) {
+          const x = padding + i * xStep
+          const y = height - padding - (point.rtt_ms / maxRtt) * (height - 2 * padding)
+          if (firstPoint) { ctx.moveTo(x, y); firstPoint = false } else { ctx.lineTo(x, y) }
+        }
+      })
+      ctx.stroke()
+      history.forEach((point, i) => {
+        const x = padding + i * xStep
+        if (point.success && point.rtt_ms !== null) {
+          const y = height - padding - (point.rtt_ms / maxRtt) * (height - 2 * padding)
+          ctx.beginPath(); ctx.fillStyle = '#06b6d4'; ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill()
+        } else {
+          ctx.beginPath(); ctx.fillStyle = '#ef4444'; ctx.arc(x, height - padding - 2, 2, 0, Math.PI * 2); ctx.fill()
+        }
+      })
+    }, [history])
+    return <canvas ref={canvasRef} width={200} height={30} className="bg-bg-tertiary rounded" />
+  }
+
+  const onlineCount = Array.from(hosts.values()).filter(h => h.status === 'online').length
+  const offlineCount = Array.from(hosts.values()).filter(h => h.status === 'offline').length
+
+  return (
+    <div className="p-6 space-y-6 overflow-auto h-full">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Activity className="w-8 h-8 text-accent-cyan" />
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Live Ping Monitor</h1>
+            <p className="text-text-secondary">Überwachen Sie Hosts in Echtzeit</p>
+          </div>
+        </div>
+        <Button variant="secondary" size="sm" onClick={popOutMonitor} icon={<ExternalLink className="w-4 h-4" />}>
+          Abdocken
+        </Button>
+      </div>
+
+      {/* Controls */}
+      <Card variant="bordered">
+        <CardHeader><CardTitle>Hosts konfigurieren</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input
+                value={hostsInput}
+                onChange={(e) => setHostsInput(e.target.value)}
+                placeholder="IPs, CIDRs, Ranges: z.B. 192.168.1.0/24, 10.0.0.1-50, 8.8.8.8"
+                disabled={isRunning}
+                onKeyDown={(e) => e.key === 'Enter' && !isRunning && startMonitoring()}
+              />
+              <p className="mt-1 text-xs text-text-muted">
+                Unterstützt: Einzelne IPs, CIDR (192.168.1.0/24), Ranges (192.168.1.1-254), kommagetrennt. Max 512 Hosts.
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              {!isRunning ? (
+                <Button onClick={startMonitoring} icon={<Play className="w-4 h-4" />}>Start</Button>
+              ) : (
+                <>
+                  {!isPaused ? (
+                    <Button onClick={pauseMonitoring} variant="secondary" icon={<Pause className="w-4 h-4" />}>Pause</Button>
+                  ) : (
+                    <Button onClick={resumeMonitoring} variant="success" icon={<PlayCircle className="w-4 h-4" />}>Fortsetzen</Button>
+                  )}
+                  <Button onClick={stopMonitoring} variant="danger" icon={<Square className="w-4 h-4" />}>Stop</Button>
+                </>
+              )}
+            </div>
+          </div>
+          {hosts.size > 0 && (
+            <div className="flex gap-2 mt-4">
+              <Button variant="secondary" size="sm" onClick={exportData} icon={<Download className="w-4 h-4" />}>Export</Button>
+              <Button variant="ghost" size="sm" onClick={clearResults} disabled={isClearing} icon={<Trash2 className="w-4 h-4" />}>
+                {isClearing ? 'Wird geleert...' : 'Leeren'}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Summary Stats */}
+      {hosts.size > 0 && (
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-bg-secondary rounded-lg">
+            <span className="text-text-muted">Gesamt:</span>
+            <span className="font-bold text-text-primary">{hosts.size}</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-accent-green/10 rounded-lg">
+            <div className="w-3 h-3 rounded-full bg-accent-green" />
+            <span className="text-accent-green font-bold">{onlineCount}</span>
+            <span className="text-text-muted">Online</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-accent-red/10 rounded-lg">
+            <div className="w-3 h-3 rounded-full bg-accent-red" />
+            <span className="text-accent-red font-bold">{offlineCount}</span>
+            <span className="text-text-muted">Offline</span>
+          </div>
+        </div>
+      )}
+
+      {error && <Alert variant="error" title="Fehler">{error}</Alert>}
+
+      {/* Host Table */}
+      {hosts.size > 0 && (
+        <Card variant="bordered">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Überwachte Hosts ({hosts.size})</CardTitle>
+              {isRunning && (
+                <Badge variant={isPaused ? 'warning' : 'success'}>
+                  {isPaused ? 'Pausiert' : 'Aktiv'}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <table className="w-full">
+                <thead className="sticky top-0 bg-bg-secondary">
+                  <tr className="border-b border-border-default">
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary w-8"></th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">IP-Adresse</th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">Hostname</th>
+                    <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Aktuell</th>
+                    <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Avg</th>
+                    <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Min</th>
+                    <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Max</th>
+                    <th className="text-center py-2 px-3 text-sm font-medium text-text-secondary">Loss</th>
+                    <th className="text-left py-2 px-3 text-sm font-medium text-text-secondary">Graph</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedIps.map((ip) => {
+                    const host = hosts.get(ip)
+                    if (!host) return null
+                    return (
+                      <tr key={host.ip} className="border-b border-border-default hover:bg-bg-hover">
+                        <td className="py-2 px-3">
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(host.status)}`} />
+                        </td>
+                        <td className="py-2 px-3 font-mono text-sm">{host.ip}</td>
+                        <td className="py-2 px-3 text-sm text-text-secondary truncate max-w-[200px]">{host.hostname || '-'}</td>
+                        <td className={`py-2 px-3 text-sm text-center font-mono ${getLatencyColor(host.current_rtt)}`}>
+                          {formatRtt(host.current_rtt)}
+                        </td>
+                        <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
+                          {formatRtt(host.avg_rtt)}
+                        </td>
+                        <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
+                          {formatRtt(host.min_rtt)}
+                        </td>
+                        <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
+                          {formatRtt(host.max_rtt)}
+                        </td>
+                        <td className={`py-2 px-3 text-sm text-center font-mono ${host.packet_loss > 0 ? 'text-accent-red' : 'text-text-secondary'}`}>
+                          {host.packet_loss.toFixed(1)}%
+                        </td>
+                        <td className="py-2 px-3">
+                          <SparklineGraph history={host.history} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state */}
+      {hosts.size === 0 && !error && (
+        <Card variant="bordered">
+          <CardContent className="py-16 text-center">
+            <Activity className="w-16 h-16 mx-auto mb-4 text-text-muted" />
+            <h3 className="text-lg font-medium text-text-primary mb-2">Keine Hosts konfiguriert</h3>
+            <p className="text-text-secondary">
+              Geben Sie IP-Adressen, CIDR-Notationen oder Ranges ein und klicken Sie auf "Start"
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
