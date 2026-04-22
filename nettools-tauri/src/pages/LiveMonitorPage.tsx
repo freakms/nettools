@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { save } from '@tauri-apps/plugin-dialog'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, Badge } from '@/components/ui'
 import { Activity, Play, Square, Pause, PlayCircle, Download, Trash2, ExternalLink } from 'lucide-react'
+import { useStore } from '@/store'
 
 interface PingDataPoint {
   timestamp: number
@@ -35,7 +38,15 @@ const sortIpsNumerically = (ips: string[]): string[] => {
   })
 }
 
+// RTT sauber formatieren
+const formatRtt = (rtt: number | null): string => {
+  if (rtt === null) return '-'
+  if (rtt < 1) return '<1 ms'
+  return `${Math.round(rtt)} ms`
+}
+
 export function LiveMonitorPage() {
+  const { liveMonitorIps, clearLiveMonitorIps } = useStore()
   const [hostsInput, setHostsInput] = useState('')
   const [hosts, setHosts] = useState<Map<string, HostStats>>(new Map())
   const [sortedIps, setSortedIps] = useState<string[]>([])
@@ -43,12 +54,20 @@ export function LiveMonitorPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isClearing, setIsClearing] = useState(false)
-  
+
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hostsRef = useRef<Map<string, HostStats>>(new Map())
   const sortedIpsRef = useRef<string[]>([])
   const abortRef = useRef(false)
   const isRunningRef = useRef(false)
+
+  // Preload IPs from Scanner wenn vorhanden
+  useEffect(() => {
+    if (liveMonitorIps && liveMonitorIps.trim() !== '') {
+      setHostsInput(liveMonitorIps)
+      clearLiveMonitorIps()
+    }
+  }, [liveMonitorIps, clearLiveMonitorIps])
 
   const startMonitoring = async () => {
     if (!hostsInput.trim()) {
@@ -58,21 +77,19 @@ export function LiveMonitorPage() {
 
     setError(null)
     abortRef.current = false
-    
+
     try {
       const resolvedHosts = await invoke<{ ip: string; hostname: string | null }[]>('monitor_init_hosts', { hostsInput })
-      
+
       if (resolvedHosts.length === 0) {
         setError('Keine gültigen IP-Adressen gefunden')
         return
       }
 
-      // Already sorted by backend
       const sortedList = resolvedHosts.map(h => h.ip)
       setSortedIps(sortedList)
       sortedIpsRef.current = sortedList
 
-      // Initialize host stats with hostnames from resolution
       const initialHosts = new Map<string, HostStats>()
       for (const h of resolvedHosts) {
         initialHosts.set(h.ip, {
@@ -89,17 +106,14 @@ export function LiveMonitorPage() {
           history: []
         })
       }
-      
+
       setHosts(initialHosts)
       hostsRef.current = initialHosts
       setIsRunning(true)
       isRunningRef.current = true
       setIsPaused(false)
 
-      // Resolve hostnames in background (batch for speed)
       resolveAllHostnames(sortedList)
-
-      // Start ping loop with batch pinging
       runBatchPingCycle()
 
     } catch (e) {
@@ -107,21 +121,18 @@ export function LiveMonitorPage() {
     }
   }
 
-  // Resolve hostnames in batches
   const resolveAllHostnames = async (ips: string[]) => {
-    // Resolve in chunks of 20 to avoid overwhelming DNS
     const chunkSize = 20
     for (let i = 0; i < ips.length; i += chunkSize) {
       if (abortRef.current) break
       const chunk = ips.slice(i, i + chunkSize)
-      
-      // Resolve each chunk in parallel
+
       const results = await Promise.allSettled(
         chunk.map(ip => invoke<string | null>('monitor_resolve_hostname', { ip }))
       )
-      
+
       if (abortRef.current) break
-      
+
       const updatedHosts = new Map(hostsRef.current)
       results.forEach((result, idx) => {
         if (result.status === 'fulfilled' && result.value) {
@@ -137,20 +148,18 @@ export function LiveMonitorPage() {
     }
   }
 
-  // Chunked batch ping - process hosts in small groups for instant UI updates
   const runBatchPingCycle = async () => {
     if (abortRef.current || !isRunningRef.current) return
 
     const currentIps = sortedIpsRef.current
-    const chunkSize = 15 // Match Rust concurrency limit
-    
+    const chunkSize = 15
+
     for (let i = 0; i < currentIps.length; i += chunkSize) {
       if (abortRef.current) return
-      
+
       const chunk = currentIps.slice(i, i + chunkSize)
-      
+
       try {
-        // Build stats map for this chunk only
         const statsMap: Record<string, HostStats> = {}
         for (const ip of chunk) {
           const existing = hostsRef.current.get(ip)
@@ -164,7 +173,6 @@ export function LiveMonitorPage() {
 
         if (abortRef.current) return
 
-        // Update UI immediately after each chunk
         const updatedHosts = new Map(hostsRef.current)
         for (const result of results) {
           const existing = updatedHosts.get(result.ip)
@@ -180,7 +188,6 @@ export function LiveMonitorPage() {
       }
     }
 
-    // Schedule next full cycle
     if (!abortRef.current && isRunningRef.current) {
       timeoutRef.current = setTimeout(runBatchPingCycle, 500)
     }
@@ -234,18 +241,20 @@ export function LiveMonitorPage() {
     try {
       const hostsArray = Array.from(hosts.values())
       const data = await invoke<string>('monitor_export_data', { hosts: hostsArray })
-      const blob = new Blob([data], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `ping_monitor_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`
-      a.click()
+
+      const filePath = await save({
+        defaultPath: `ping_monitor_${new Date().toISOString().slice(0, 10)}.txt`,
+        filters: [{ name: 'Text', extensions: ['txt'] }],
+      })
+
+      if (filePath) {
+        await writeTextFile(filePath, data)
+      }
     } catch (e) {
       setError(String(e))
     }
   }
 
-  // Pop-out Monitor in separate window
   const popOutMonitor = async () => {
     try {
       const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow')
@@ -258,12 +267,10 @@ export function LiveMonitorPage() {
         resizable: true,
       })
     } catch {
-      // Fallback
       window.open(window.location.origin + '?page=live-monitor', '_blank', 'width=1100,height=700')
     }
   }
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       abortRef.current = true
@@ -287,7 +294,6 @@ export function LiveMonitorPage() {
     return 'text-accent-red'
   }
 
-  // Mini sparkline graph
   const SparklineGraph = ({ history }: { history: PingDataPoint[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     useEffect(() => {
@@ -452,16 +458,16 @@ export function LiveMonitorPage() {
                         <td className="py-2 px-3 font-mono text-sm">{host.ip}</td>
                         <td className="py-2 px-3 text-sm text-text-secondary truncate max-w-[200px]">{host.hostname || '-'}</td>
                         <td className={`py-2 px-3 text-sm text-center font-mono ${getLatencyColor(host.current_rtt)}`}>
-                          {host.current_rtt !== null ? `${Math.round(host.current_rtt)}ms` : '-'}
+                          {formatRtt(host.current_rtt)}
                         </td>
                         <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
-                          {host.avg_rtt !== null ? `${Math.round(host.avg_rtt)}ms` : '-'}
+                          {formatRtt(host.avg_rtt)}
                         </td>
                         <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
-                          {host.min_rtt !== null ? `${Math.round(host.min_rtt)}ms` : '-'}
+                          {formatRtt(host.min_rtt)}
                         </td>
                         <td className="py-2 px-3 text-sm text-center font-mono text-text-secondary">
-                          {host.max_rtt !== null ? `${Math.round(host.max_rtt)}ms` : '-'}
+                          {formatRtt(host.max_rtt)}
                         </td>
                         <td className={`py-2 px-3 text-sm text-center font-mono ${host.packet_loss > 0 ? 'text-accent-red' : 'text-text-secondary'}`}>
                           {host.packet_loss.toFixed(1)}%

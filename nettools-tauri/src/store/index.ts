@@ -7,25 +7,30 @@ interface AppState {
   // Navigation
   activeTool: ToolId
   setActiveTool: (tool: ToolId) => void
-  
+
+  // Live Monitor preload
+  liveMonitorIps: string
+  setLiveMonitorIps: (ips: string) => void
+  clearLiveMonitorIps: () => void
+
   // Sidebar
   sidebarCollapsed: boolean
   toggleSidebar: () => void
-  
+
   // Favorites
   favorites: ToolId[]
   toggleFavorite: (toolId: ToolId) => void
-  
+
   // Enabled Tools
   enabledTools: ToolId[]
   setEnabledTools: (tools: ToolId[]) => void
   toggleTool: (toolId: ToolId) => void
-  
+
   // Toasts
   toasts: Toast[]
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
-  
+
   // Settings
   settings: AppSettings
   updateSettings: (settings: Partial<AppSettings>) => void
@@ -70,11 +75,16 @@ export const useStore = create<AppState>()(
       // Navigation
       activeTool: 'dashboard',
       setActiveTool: (tool) => set({ activeTool: tool }),
-      
+
+      // Live Monitor preload
+      liveMonitorIps: '',
+      setLiveMonitorIps: (ips) => set({ liveMonitorIps: ips }),
+      clearLiveMonitorIps: () => set({ liveMonitorIps: '' }),
+
       // Sidebar
       sidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-      
+
       // Favorites
       favorites: [],
       toggleFavorite: (toolId) =>
@@ -83,7 +93,7 @@ export const useStore = create<AppState>()(
             ? state.favorites.filter((id) => id !== toolId)
             : [...state.favorites, toolId],
         })),
-      
+
       // Enabled Tools
       enabledTools: defaultEnabledTools,
       setEnabledTools: (tools) => set({ enabledTools: tools }),
@@ -93,7 +103,7 @@ export const useStore = create<AppState>()(
             ? state.enabledTools.filter((id) => id !== toolId)
             : [...state.enabledTools, toolId],
         })),
-      
+
       // Toasts
       toasts: [],
       addToast: (toast) =>
@@ -107,7 +117,7 @@ export const useStore = create<AppState>()(
         set((state) => ({
           toasts: state.toasts.filter((t) => t.id !== id),
         })),
-      
+
       // Settings
       settings: defaultSettings,
       updateSettings: (newSettings) =>
@@ -123,10 +133,8 @@ export const useStore = create<AppState>()(
         sidebarCollapsed: state.sidebarCollapsed,
         settings: state.settings,
       }),
-      // Migration: sicherstellen, dass neue Tools automatisch sichtbar werden
       merge: (persistedState: any, currentState) => {
         const merged = { ...currentState, ...persistedState }
-        // Neue Tools zur enabledTools-Liste hinzufügen, falls fehlend
         if (merged.enabledTools && Array.isArray(merged.enabledTools)) {
           for (const tool of defaultEnabledTools) {
             if (!merged.enabledTools.includes(tool)) {
@@ -140,10 +148,9 @@ export const useStore = create<AppState>()(
   )
 )
 
-// Hook for toast notifications with auto-dismiss
 export function useToast() {
   const { addToast, removeToast } = useStore()
-  
+
   const toast = {
     success: (title: string, message?: string) => {
       const id = Math.random().toString(36).substring(7)
@@ -166,6 +173,6 @@ export function useToast() {
       setTimeout(() => removeToast(id), 5000)
     },
   }
-  
+
   return toast
 }
